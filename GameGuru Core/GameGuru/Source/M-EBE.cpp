@@ -452,9 +452,7 @@ void ebe_init_newbuild ( int iBuildObj, int entid )
 	if (t.ebe.active == 0)
 	{
 		ebe_init(iBuildObj, entid);
-#ifdef WICKEDENGINE
 		t.grideleprof.bCustomWickedMaterialActive = false;
-#endif
 	}
 
 	// load TXP profile from entity data

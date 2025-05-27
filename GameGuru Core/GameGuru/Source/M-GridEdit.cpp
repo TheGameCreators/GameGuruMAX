@@ -9621,45 +9621,9 @@ void mapeditorexecutable_loop(void)
 											WickedSetEntityId(-1);
 											WickedSetElementId(0);
 										}
-										//WickedSetEntityId(iMasterID);
-										//WickedSetElementId(iEntityIndex);
-										//Wicked_Change_Object_Material((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
-										//WickedSetEntityId(-1);
-										//WickedSetElementId(0);
 									}
 									ImGui::Indent(-10);
 								}
-								//if (bNeedMaterialUpdate==true)
-								//{
-									/* done using mode 6 inside change_object_material so can focus change rather than a blanket copy!
-									for (int ii = 0; ii < g.entityrubberbandlist.size(); ii++)
-									{
-										int iEntityIndex = g.entityrubberbandlist[ii].e;
-										int iMasterID = t.entityelement[iEntityIndex].bankindex;
-										sObject* pObject = g_ObjectList[t.entityelement[iEntityIndex].obj];
-										if (pObject)
-										{
-											if (!t.entityelement[iEntityIndex].eleprof.bCustomWickedMaterialActive)
-											{
-												// Set material settings from master object.
-												sObject* pMasterObject = g_ObjectList[g.entitybankoffset + iMasterID];
-												Wicked_Copy_Material_To_Grideleprof((void*)pMasterObject, 0, &t.entityelement[iEntityIndex].eleprof);
-												if (t.entityprofile[iMasterID].WEMaterial.dwBaseColor[0] == -1)
-													SetObjectDiffuse(iActiveObj, Rgb(255, 255, 255));
-												Wicked_Set_Material_From_grideleprof((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
-												t.grideleprof.WEMaterial.MaterialActive = false;
-											}
-											else
-											{
-												// Set custom material settings.
-												Wicked_Copy_Material_To_Grideleprof((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
-												Wicked_Set_Material_From_grideleprof((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
-												t.grideleprof.WEMaterial.MaterialActive = true;
-											}
-										}
-									}
-									*/
-								//}
 							}
 						}
 
@@ -13728,12 +13692,12 @@ void mapeditorexecutable_loop(void)
 
 				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, fFontSize*0.25f));
 				ImGui::Text("Game Elements");
+				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, fFontSize * 0.5f));
+				ImGui::Text("Editable Area 3D Edge");
 				if (t.visuals.bEnableEmptyLevelMode == false)
 				{
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, fFontSize * 0.5f));
 					ImGui::Text("Editable Area 2D Edge");
-					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, fFontSize * 0.5f));
-					ImGui::Text("Editable Area 3D Edge");
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, fFontSize * 0.5f));
 					ImGui::Text("Trees");
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, fFontSize * 0.5f));
@@ -13757,6 +13721,15 @@ void mapeditorexecutable_loop(void)
 					t.showeditorelements = bShow;
 					editor_toggle_element_vis(bShow);
 				}
+				// Editor 3D boundary.
+				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(4.0f, 0.0f));
+				bShow = (ggterrain_global_render_params2.flags2 & GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE_3D) != 0;
+				if (ImGui::Checkbox("##Editor3DBounds", &bShow))
+				{
+					if (bShow) ggterrain_global_render_params2.flags2 |= GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE_3D;
+					else ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE_3D;
+				}
+				// Regular mode
 				if (t.visuals.bEnableEmptyLevelMode == false)
 				{
 					// Editor 2D boundary.
@@ -13767,16 +13740,6 @@ void mapeditorexecutable_loop(void)
 						if (bShow) ggterrain_global_render_params2.flags2 |= GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE;
 						else ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE;
 					}
-
-					// Editor 3D boundary.
-					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(4.0f, 0.0f));
-					bShow = (ggterrain_global_render_params2.flags2 & GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE_3D) != 0;
-					if (ImGui::Checkbox("##Editor3DBounds", &bShow))
-					{
-						if (bShow) ggterrain_global_render_params2.flags2 |= GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE_3D;
-						else ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE_3D;
-					}
-
 					// Editor Trees.
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(4.0f, 0.0f));
 					if (t.showeditortrees < 0)
@@ -13833,22 +13796,18 @@ void mapeditorexecutable_loop(void)
 				// Test level game elements.
 				bShow = t.showtestgameelements;
 				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(5.0f, 0.0f));
-				if (ImGui::Checkbox("##LevelElements", &bShow))
-				t.showtestgameelements = bShow;
+				if (ImGui::Checkbox("##LevelElements", &bShow))	t.showtestgameelements = bShow;
+				// Test level 3D boundary.
+				bShow = t.showtestgame3dbounds;
+				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(5.0f, 0.0f));
+				if (ImGui::Checkbox("##Level3DBounds", &bShow))	t.showtestgame3dbounds = bShow;
+				// Regular mode
 				if (t.visuals.bEnableEmptyLevelMode == false)
 				{
 					// Test level 2D boundary.
 					bShow = t.showtestgame2dbounds;
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(5.0f, 0.0f));
-					if (ImGui::Checkbox("##Level2DBounds", &bShow))
-						t.showtestgame2dbounds = bShow;
-
-					// Test level 3D boundary.
-					bShow = t.showtestgame3dbounds;
-					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(5.0f, 0.0f));
-					if (ImGui::Checkbox("##Level3DBounds", &bShow))
-						t.showtestgame3dbounds = bShow;
-
+					if (ImGui::Checkbox("##Level2DBounds", &bShow))	t.showtestgame2dbounds = bShow;
 					// Test level Trees.
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(5.0f, 0.0f));
 					if (ImGui::Checkbox("##LevelTrees", &t.visuals.bEndableTreeDrawing))
@@ -13896,10 +13855,8 @@ void mapeditorexecutable_loop(void)
 				ImGui::TextCenter("");
 				ImGui::TextCenter("Completely Empty Level Mode");
 				ImGui::TextCenter("");
-				ImGui::TextCenter("This is a special mode set in");
-				ImGui::TextCenter("the Terrain Generator to force");
-				ImGui::TextCenter("terrain, water and other default");
-				ImGui::TextCenter("elements to be removed from level");
+				ImGui::TextCenter("Terrain, water and other default");
+				ImGui::TextCenter("elements removed from this level");
 			}
 
 			ImGui::End();

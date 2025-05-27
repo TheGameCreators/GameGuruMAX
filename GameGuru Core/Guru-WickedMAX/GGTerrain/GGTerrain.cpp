@@ -9726,7 +9726,7 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 	#endif
 }
 
-void GGTerrain_Update_EmptyLevel(float playerX, float playerY, float playerZ)
+void GGTerrain_Update_EmptyLevel(float playerX, float playerY, float playerZ, wiGraphics::CommandList cmd)
 {
 	// most basic transfers of values
 	terrainlock.lock();
@@ -9736,8 +9736,17 @@ void GGTerrain_Update_EmptyLevel(float playerX, float playerY, float playerZ)
 	}
 	terrainlock.unlock();
 
-	// also need to handle env probe refreshes
-	// Environmental Light Probe System
+	// also need to mighrate settings related to the editbox for seeing extent of mapsize
+	float detailScale = 1.0f;
+	uint32_t screenWidth = master.masterrenderer.GetWidth3D();
+	if (screenWidth > 2560) ggterrain_global_render_params2.detailScale = 1.42f - screenWidth * 0.0001628f; // carefully chosen to equal 1.0 at 2560
+	terrainConstantData.terrain_detailScale = 1.0f / (detailScale * ggterrain_global_render_params2.detailScale);
+	terrainConstantData.terrain_flags = ggterrain_local_render_params.flags | ggterrain_local_render_params2.flags2;
+	terrainConstantData.terrain_maskScale = ggterrain_local_render_params.maskScale / 50000.0f;
+	terrainConstantData.terrain_mapEditSize = ggterrain_global_render_params2.editable_size;
+	wiRenderer::GetDevice()->UpdateBuffer(&terrainConstantBuffer, &terrainConstantData, cmd, sizeof(TerrainCB));
+
+	// also need to handle env probe refreshes - Environmental Light Probe System
 	GGTerrain_EnvProbeWork(playerX, playerY, playerZ);
 }
 
@@ -10581,9 +10590,10 @@ extern "C" void GGTerrain_Draw_Transparent( const Frustum* frustum, CommandList 
 	if (!ggterrain_update_enabled) return;
 	if (!ggterrain_initialised) return;
 
-	if ( !ggterrain_initialised ) return;
-	if ( !ggterrain_draw_enabled ) return;
-	if ( !ggterrain.IsValid() ) return;
+	//we are going to allow editbox map size 3D to show, even for completely empty levels :)
+	//if ( !ggterrain_initialised ) return;
+	//if ( !ggterrain_draw_enabled ) return;
+	//if ( !ggterrain.IsValid() ) return;
 
 	GraphicsDevice* device = wiRenderer::GetDevice();
 	device->EventBegin("GGTerrain Transparents", cmd);

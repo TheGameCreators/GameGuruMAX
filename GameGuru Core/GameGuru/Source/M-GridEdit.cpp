@@ -28995,6 +28995,7 @@ void gridedit_load_map ( void )
 		}
 	}
 
+	/* there is no duplicate set in workshop, this feature was confusing!!
 	// scan all core scripts used by all entities, and if any are missing
 	// look in trusted workshop item community folders for direct replacements
 	bool bAutoReplaceMissingCoreScriptsWithTrustedWorkshopItems = true;
@@ -29057,6 +29058,7 @@ void gridedit_load_map ( void )
 			}
 		}
 	}
+	*/
 
 	// free usages
 	if ( ArrayCount(t.missingmedia_s) >= 0 ) 

@@ -3474,11 +3474,12 @@ void mapfile_savestandalone_stage4 ( void )
 
 	// for wicked, create fonts and shaders folder
 	cstr destExeRoot_s = t.exepath_s + t.exename_s;
-	SetDir ( destExeRoot_s.Get() );
-	if (PathExist("fonts") == 0) MakeDirectory("fonts");
+	//SetDir ( destExeRoot_s.Get() );
+	//if (PathExist("fonts") == 0) MakeDirectory("fonts");
 	SetDir ( destExeRoot_s.Get() );
 	if (PathExist("shaders") == 0) MakeDirectory("shaders");
 
+	/* TT fonts not used!
 	// for wicked, copy fonts folder
 	SetDir ( g.originalrootdir_s.Get() );
 	SetDir("fonts");
@@ -3493,6 +3494,7 @@ void mapfile_savestandalone_stage4 ( void )
 			CopyAFile(pFontFile, t.dest_s.Get());
 		}
 	}
+	*/
 	// for wicked, copy shaders folder
 	SetDir ( g.originalrootdir_s.Get() );
 	SetDir("shaders");

@@ -28637,6 +28637,22 @@ void DisplayFPEGeneral(bool readonly, int entid, entityeleproftype *edit_gridele
 					const char* itemsAll[] = { "Change All To" , "Static", "Physics on", "Physics off" };
 					const char** Selected = items;
 					int iArraySize = 3;
+					// limit selection to just Static if certain collision modes used
+					if (t.entityelement[elementID].eleprof.iOverrideCollisionMode == 1 || t.entityelement[elementID].eleprof.iOverrideCollisionMode == 8)
+					{
+						// polygon and collision mesh can only be static
+						iArraySize = 1;
+					}
+					else
+					{
+						if (t.entityelement[elementID].eleprof.iOverrideCollisionMode==-1)
+						{
+							// polygon and collision mesh can only be static
+							int entid = t.entityelement[elementID].bankindex;
+							if (t.entityprofile[entid].collisionmode == 1) iArraySize = 1;
+							if (t.entityprofile[entid].collisionmode == 8) iArraySize = 1;
+						}
+					}
 					int item_current = 0;
 					if (t.entityelement[elementID].staticflag == 1)
 						item_current = 0;
@@ -28992,8 +29008,11 @@ void DisplayFPEGeneral(bool readonly, int entid, entityeleproftype *edit_gridele
 		{
 			for (int i = 0; i < 10; i++)
 			{
-				// Don't display "Polygon" collision for dynamic objects.
+				// Don't display certtain collision modes for dynamic objects!
 				if (i == 1 && t.entityelement[elementID].staticflag == 0) continue;
+				if (i == 4 && t.entityelement[elementID].staticflag == 0) continue;
+				if (i == 8 && t.entityelement[elementID].staticflag == 0) continue;
+				if (i == 9 && t.entityelement[elementID].staticflag == 0) continue;
 
 				// get collision shape name
 				char* pCollisionShapeName = pCollisionShapes[i];
@@ -47050,7 +47069,14 @@ void load_storyboard(char *name)
 			iTitleScreenNodeID = 1;
 			iGamePausedNodeID = 8;
 			iHUDScreenNodeID = 13;
+
+			// LB: can have a scenario that moves a remote project but project holds the OLD path
+			// so prefer the current one than any held in the old project file
+			char pCurrentPathIsBest[MAX_PATH];
+			strcpy(pCurrentPathIsBest, Storyboard.customprojectfolder);
 			Storyboard = checkproject;
+			strcpy(Storyboard.customprojectfolder, pCurrentPathIsBest);
+
 			bStoryboardFirstRunSetInitPos = false; //Load new thumbs, and reposition new nodes.
 			Storyboard.iChanged = false;
 			strcpy(pref.cLastUsedStoryboardProject, name);

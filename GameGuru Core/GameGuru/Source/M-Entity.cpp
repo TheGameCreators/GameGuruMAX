@@ -6675,6 +6675,27 @@ void c_entity_loadelementsdata ( void )
 				}
 			}
 		}
+
+		// clean up for entityelement for impossible mode combinations!
+		if (g_iAddEntityElementsMode == 0)
+		{
+			for (t.e = 1; t.e <= g.entityelementlist; t.e++)
+			{
+				t.entid = t.entityelement[t.e].bankindex;
+				if (t.entid > 0)
+				{
+					// [A] Impossible to have a COLLISION MESH (collisionmode=8) and be DYNAMIC
+					if (t.entityelement[t.e].staticflag == 0)
+					{
+						if (t.entityprofile[t.entid].collisionmode == 8 || t.entityelement[t.e].eleprof.iOverrideCollisionMode == 8)
+						{
+							// so correct and set to STATIC
+							t.entityelement[t.e].staticflag = 1;
+						}
+					}
+				}
+			}
+		}
 	}
 }
 #endif
@@ -10958,7 +10979,9 @@ extern std::vector<sWorkshopSteamUserName> g_workshopSteamUserNames;
 extern std::vector<PublishedFileId_t> g_workshopTrustedItems;
 bool workshop_verifyandorreplacescript(int e, int entid)
 {
-#ifndef OPTICK_ENABLE
+	return false;
+	/* no longer support duplicate scripts in core and workshop, was confusing in the end!
+	#ifndef OPTICK_ENABLE
 	bool bReplacedScript = false;
 	char pScriptFile[MAX_PATH];
 	strcpy(pScriptFile, "scriptbank\\");
@@ -11010,9 +11033,10 @@ bool workshop_verifyandorreplacescript(int e, int entid)
 		}
 	}
 	return bReplacedScript;
-#else
+	#else
 	return false;
-#endif
+	#endif
+	*/
 }
 #else
 bool workshop_verifyandorreplacescript(int e, int entid)

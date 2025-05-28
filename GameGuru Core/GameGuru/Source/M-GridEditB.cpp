@@ -35609,12 +35609,14 @@ void Welcome_Screen(void)
 				if (g_bWorkshopAvailable == true)
 				{
 					// For Workshop Viewer
+					extern bool g_bWorkshopTabOpen;
 					rect.Min = TabStartPos;
 					rect.Max = rect.Min + ImGui::TabItemCalcSize(" Workshop ", false);
 					TabStartPos.x += ImGui::TabItemCalcSize(" Workshop ", false).x + gui.Style.ItemInnerSpacing.x;
 					if (ImGui::BeginTabItem(" Workshop ", NULL, tabflags))
 					{
 						iCurrentOpenTab = 7;
+						g_bWorkshopTabOpen = true;
 						ImGui::Text("");
 						ImGui::SetWindowFontScale(2.0);
 						ImGui::TextCenter("Your Workshop Items");
@@ -35768,6 +35770,8 @@ void Welcome_Screen(void)
 						}							
 						ImGui::EndTabItem();
 					}
+					else
+						g_bWorkshopTabOpen = false;
 					if (ImGui::IsMouseHoveringRect(rect.Min, rect.Max)) ImGui::SetTooltip("%s", "The Workshop Area shows all the workshop items you are manually and automatically subscribed to");
 				}
 				#endif

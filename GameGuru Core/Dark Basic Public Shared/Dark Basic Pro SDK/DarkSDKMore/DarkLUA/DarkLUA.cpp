@@ -63,6 +63,9 @@ using namespace wiECS;
 #include "..\tracers\TracerManager.h"
 using namespace Tracers;
 
+#include "..\GGTerrain\GGGrass.h"
+using namespace GGGrass;
+
 // Prototypes
 extern void DrawSpritesFirst(void);
 extern void DrawSpritesLast(void);
@@ -11145,6 +11148,20 @@ int PromptGuruMeditation(lua_State * L)
 }
 
 
+//gggrass_global_params.grass_scale
+int SetGrassScale(lua_State* L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	gggrass_global_params.grass_scale = lua_tonumber(L, 1);
+	return 0;
+}
+int GetGrassScale(lua_State* L)
+{
+	lua_pushnumber(L, gggrass_global_params.grass_scale);
+	return 1;
+}
+
 //PE: USE - SetLutTo("editors\\lut\\sephia.png")
 //PE: USE - string = GetLut()
 void Wicked_Update_Visuals(void* voidvisual);
@@ -13763,6 +13780,10 @@ void addFunctions()
 	lua_register(lua, "GetLut", lua_get_lut);
 	lua_register(lua, "PromptLocalOffset", PromptLocalOffset);
 	lua_register(lua, "PromptGuruMeditation", PromptGuruMeditation);
+
+	//Other effects.
+	lua_register(lua, "SetGrassScale", SetGrassScale);
+	lua_register(lua, "GetGrassScale", GetGrassScale);
 
 }
 

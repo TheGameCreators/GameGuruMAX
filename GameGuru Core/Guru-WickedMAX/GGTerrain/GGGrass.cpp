@@ -53,6 +53,7 @@ namespace GGGrass
 #define GGGRASS_MAP_SIZE 4096
 #define GGGRASS_UNDOREDO
 
+GGGrassParams gggrass_save_params;
 GGGrassParams gggrass_global_params;
 GGGrassInternalParams gggrass_internal_params;
 

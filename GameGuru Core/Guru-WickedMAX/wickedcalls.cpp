@@ -348,6 +348,26 @@ std::shared_ptr<wiResource> WickedCall_LoadImage(std::string pFilenameToLoadIN, 
 				strcpy(pRealFilenameToLoad, CheckFile);
 				bFound = true;
 			}
+			else
+			{
+				//PE: Also prefer .dds over .png here.
+				const char last = CheckFile[strlen(CheckFile) - 3];
+				if (last == 'p' || last == 'P') //PE: Quick png check.
+				{
+					CheckFile[strlen(CheckFile) - 1] = 's';
+					CheckFile[strlen(CheckFile) - 2] = 'd';
+					CheckFile[strlen(CheckFile) - 3] = 'd';
+					HANDLE hfile = GG_CreateFile(CheckFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+					if (hfile != INVALID_HANDLE_VALUE)
+					{
+						CloseHandle(hfile);
+						//PE: Prefer this _e_ version.
+						strcpy(pRealFilenameToLoad, CheckFile);
+						bFound = true;
+					}
+				}
+
+			}
 		}
 		
 		// first get real filename

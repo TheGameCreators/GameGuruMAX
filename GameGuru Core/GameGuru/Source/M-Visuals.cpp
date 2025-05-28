@@ -22,6 +22,7 @@
 namespace GGGrass
 {
 	extern struct GGGrassParams gggrass_global_params;
+	extern struct GGGrassParams gggrass_save_params;
 }
 
 void visuals_init ( void )

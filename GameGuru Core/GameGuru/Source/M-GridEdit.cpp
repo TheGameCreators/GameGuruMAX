@@ -17157,6 +17157,8 @@ void editor_previewmapormultiplayer_initcode ( int iUseVRTest )
 	// copy game visuals to visuals for use in level play
 	t.visuals = t.gamevisuals;
 
+	gggrass_save_params = gggrass_global_params;
+
 	#ifdef WICKEDENGINE
 	//PE: SetGlobalGraphicsSettings 2 = highest , this is the users current settings, user knows best dont change there settings.
 	if(pref.iTestGameGraphicsQuality != 2)
@@ -18020,6 +18022,7 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 
 	t.visuals.fLevelDifficulty = t.gamevisuals.fLevelDifficulty;
 	
+	gggrass_global_params = gggrass_save_params;
 
 	for (int iL = 0; iL < 32; iL++) 
 	{

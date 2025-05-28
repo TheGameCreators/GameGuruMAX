@@ -2892,7 +2892,7 @@ void imgui_terrain_loop_v3(void)
 						ImGui::TextCenter("Grass Scale");
 						if (ImGui::SliderFloat("##Grassgrass_scale", &gggrass_global_params.grass_scale, 1.0f, 200.0f, "%.2f", 1.0f))
 						{
-							ggterrain_extra_params.iUpdateGrass = 2;
+							//ggterrain_extra_params.iUpdateGrass = 2;
 						}
 
 						ImGui::TextCenter("Grass Start/End Altitude");

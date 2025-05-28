@@ -11,6 +11,7 @@
 
 // Globals
 bool g_bWorkshopAvailable = false;
+bool g_bWorkshopTabOpen = false;
 bool g_bUpdateWorkshopItemList = false;
 bool g_bUpdateWorkshopDownloads = false;
 bool g_bUpdateWorkshopDownloadsAlwaysPerformOnce = true;
@@ -709,7 +710,8 @@ void CSteamUserGeneratedWorkshopItem::UnsubscribeTrustedItems()
 
 int g_iFiveOnOffTimer = 0;
 int g_iFiveOnOffTimerState = 0;
-
+int g_iOnlyOneSubscripe = 0;
+int g_iLastSubscripe = 0;
 void CSteamUserGeneratedWorkshopItem::SteamRunCallbacks()
 {
 	// only do steam update if logged into Steam
@@ -717,6 +719,20 @@ void CSteamUserGeneratedWorkshopItem::SteamRunCallbacks()
 	if (pSteamUtilsPtr)
 	{
 		SteamAPI_RunCallbacks();
+	}
+
+	//PE: Got huge stutter from this, mainly from microsoft "defender" that run each time you download.
+	//PE: While runnings it lower fps from 60 -> 18 fps, this keep on in 5 sec. intervals, but never stop again.
+	//PE: Steam problem ? , anyway make it timout if it keep failing.
+	if (g_bWorkshopTabOpen)
+	{
+		//PE: Keep running when workshop tab is open.
+		g_iOnlyOneSubscripe = 0;
+	}
+	if (g_iOnlyOneSubscripe > 12)
+	{
+		//PE: Max 12 tries , then ignore. 1 minute.
+		return;
 	}
 
 	// add a time out so callbacks can do there thing (five seconds on five off)
@@ -727,6 +743,11 @@ void CSteamUserGeneratedWorkshopItem::SteamRunCallbacks()
 		{
 			g_iFiveOnOffTimerState = 1 - g_iFiveOnOffTimerState;
 			g_iFiveOnOffTimer = Timer() + 5000;
+
+			if (g_iLastSubscripe == 1)
+			{
+				g_iOnlyOneSubscripe++;
+			}
 		}
 		if (g_iFiveOnOffTimerState == 0)
 		{
@@ -735,6 +756,8 @@ void CSteamUserGeneratedWorkshopItem::SteamRunCallbacks()
 			{
 				g_bStillDownloadingThings = false;
 				uint32 numSubscribed = SteamUGC()->GetNumSubscribedItems();
+				//PE: Sometimes 1 is returned here, so something wrong, and it keep downloading items.
+				g_iLastSubscripe = numSubscribed;
 				PublishedFileId_t* pEntries = new PublishedFileId_t[numSubscribed];
 				SteamUGC()->GetSubscribedItems(pEntries, numSubscribed);
 				for (int i = 0; i < numSubscribed; i++)

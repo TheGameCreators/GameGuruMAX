@@ -48,6 +48,7 @@ namespace GGGrass
 		float prevLodDist = GGGRASS_INITIAL_LOD_DIST;
 	};
 
+	extern GGGrassParams gggrass_save_params;
 	extern GGGrassParams gggrass_global_params; // modify this anywhere
 
 	void GGGrass_Init_Textures(LPSTR pRemoteGrassPath);

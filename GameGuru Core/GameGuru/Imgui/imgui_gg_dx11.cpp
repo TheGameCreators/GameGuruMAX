@@ -7186,83 +7186,88 @@ void ParseLuaScriptWithElementID(entityeleproftype *tmpeleprof, char * script, i
 													tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = 0;
 												}
 											}
-											if (stricmp(labels[1].c_str(), "hudscreenlist") == NULL)
+										}
+									}
+									//PE: Let some lists work on zones also.
+									if (labels.size() == 2)
+									{
+										if (stricmp(labels[1].c_str(), "hudscreenlist") == NULL)
+										{
+											static std::vector<std::string> globallist_labels;
+											extern StoryboardStruct Storyboard;
+											labels.clear();
+											labels.push_back(cVariable);
+											labels.push_back("None");
+											for (int allhudscreensnodeid = 0; allhudscreensnodeid < STORYBOARD_MAXNODES; allhudscreensnodeid++)
 											{
-												static std::vector<std::string> globallist_labels;
-												extern StoryboardStruct Storyboard;
-												labels.clear();
-												labels.push_back(cVariable);
-
-												for (int allhudscreensnodeid = 0; allhudscreensnodeid < STORYBOARD_MAXNODES; allhudscreensnodeid++)
+												if (Storyboard.Nodes[allhudscreensnodeid].used)
 												{
-													if (Storyboard.Nodes[allhudscreensnodeid].used)
+													if (Storyboard.Nodes[allhudscreensnodeid].type == STORYBOARD_TYPE_HUD)
 													{
-														if (Storyboard.Nodes[allhudscreensnodeid].type == STORYBOARD_TYPE_HUD)
+														if (strlen(Storyboard.Nodes[allhudscreensnodeid].title) > 0)
 														{
-															if (strlen(Storyboard.Nodes[allhudscreensnodeid].title) > 0)
-															{
-																labels.push_back(Storyboard.Nodes[allhudscreensnodeid].title);
+															labels.push_back(Storyboard.Nodes[allhudscreensnodeid].title);
 
-															}
 														}
 													}
 												}
-												if (labels.size() > 1)
-												{
-													tmpeleprof->PropertiesVariable.VariableValueFrom[tmpeleprof->PropertiesVariable.iVariables] = 1;
-													tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = labels.size();
-												}
-												else
-												{
-													tmpeleprof->PropertiesVariable.VariableValueFrom[tmpeleprof->PropertiesVariable.iVariables] = 0;
-													tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = 0;
-												}
-
 											}
-											if (stricmp(labels[1].c_str(), "globallist") == NULL)
+											if (labels.size() > 1)
 											{
-												static std::vector<std::string> globallist_labels;
-												extern StoryboardStruct Storyboard;
-												extern std::vector<int> g_gameGlobalListNodeId;
-												extern std::vector<int> g_gameGlobalListIndex;
-												extern std::vector<int> g_gameGlobalListValue;
+												tmpeleprof->PropertiesVariable.VariableValueFrom[tmpeleprof->PropertiesVariable.iVariables] = 1;
+												tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = labels.size();
+											}
+											else
+											{
+												tmpeleprof->PropertiesVariable.VariableValueFrom[tmpeleprof->PropertiesVariable.iVariables] = 0;
+												tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = 0;
+											}
 
-												if (1) //PE: Always update.
+										}
+										if (stricmp(labels[1].c_str(), "globallist") == NULL)
+										{
+											static std::vector<std::string> globallist_labels;
+											extern StoryboardStruct Storyboard;
+											extern std::vector<int> g_gameGlobalListNodeId;
+											extern std::vector<int> g_gameGlobalListIndex;
+											extern std::vector<int> g_gameGlobalListValue;
+
+											if (1) //PE: Always update.
+											{
+												globallist_labels.clear();
+												globallist_labels.push_back(cVariable);
+												globallist_labels.push_back("None");
+												for (int allhudscreensnodeid = 0; allhudscreensnodeid < STORYBOARD_MAXNODES; allhudscreensnodeid++)
 												{
-													globallist_labels.clear();
-													globallist_labels.push_back(cVariable);
-													for (int allhudscreensnodeid = 0; allhudscreensnodeid < STORYBOARD_MAXNODES; allhudscreensnodeid++)
+													//PE: Need custom ? stricmp(readout.c_str(), "User Defined Global Statusbar") == NULL
+													if (strlen(Storyboard.Nodes[allhudscreensnodeid].lua_name) > 0 && strnicmp(Storyboard.Nodes[allhudscreensnodeid].lua_name, "hud", 3) == NULL)
 													{
-														//PE: Need custom ? stricmp(readout.c_str(), "User Defined Global Statusbar") == NULL
-														if (strlen(Storyboard.Nodes[allhudscreensnodeid].lua_name) > 0 && strnicmp(Storyboard.Nodes[allhudscreensnodeid].lua_name, "hud", 3) == NULL)
+														for (int i = STORYBOARD_MAXWIDGETS; i >= 0; i--)
 														{
-															for (int i = STORYBOARD_MAXWIDGETS; i >= 0; i--)
+															if (Storyboard.Nodes[allhudscreensnodeid].widget_type[i] == STORYBOARD_WIDGET_TEXT)
 															{
-																if (Storyboard.Nodes[allhudscreensnodeid].widget_type[i] == STORYBOARD_WIDGET_TEXT)
+																std::string readout = Storyboard.widget_readout[allhudscreensnodeid][i];
+																if (stricmp(readout.c_str(), "User Defined Global") == NULL
+																	|| stricmp(Storyboard.widget_readout[allhudscreensnodeid][i], "User Defined Global Text") == NULL)
 																{
-																	std::string readout = Storyboard.widget_readout[allhudscreensnodeid][i];
-																	if (   stricmp(readout.c_str(), "User Defined Global") == NULL
-																		|| stricmp(Storyboard.widget_readout[allhudscreensnodeid][i], "User Defined Global Text") == NULL)
+																	//"User Defined Global Statusbar"
+																	// only add unique ones to game global list
+																	LPSTR pNewName = Storyboard.Nodes[allhudscreensnodeid].widget_label[i];
+																	if (strlen(pNewName) > 0)
 																	{
-																		//"User Defined Global Statusbar"
-																		// only add unique ones to game global list
-																		LPSTR pNewName = Storyboard.Nodes[allhudscreensnodeid].widget_label[i];
-																		if (strlen(pNewName) > 0)
+																		if (!pestrcasestr(pNewName, ":")) //PE: Do not show : rpginventorykinds.
 																		{
-																			if (!pestrcasestr(pNewName, ":")) //PE: Do not show : rpginventorykinds.
+																			for (int n = 0; n < globallist_labels.size(); n++)
 																			{
-																				for (int n = 0; n < globallist_labels.size(); n++)
+																				if (strcmp(pNewName, globallist_labels[n].c_str()) == NULL)
 																				{
-																					if (strcmp(pNewName, globallist_labels[n].c_str()) == NULL)
-																					{
-																						// already exists
-																						pNewName = "";
-																						break;
-																					}
+																					// already exists
+																					pNewName = "";
+																					break;
 																				}
-																				if (strlen(pNewName) > 0)
-																					globallist_labels.push_back(pNewName);
 																			}
+																			if (strlen(pNewName) > 0)
+																				globallist_labels.push_back(pNewName);
 																		}
 																	}
 																}
@@ -7270,20 +7275,21 @@ void ParseLuaScriptWithElementID(entityeleproftype *tmpeleprof, char * script, i
 														}
 													}
 												}
-												labels = globallist_labels;
-												if (labels.size() > 1)
-												{
-													tmpeleprof->PropertiesVariable.VariableValueFrom[tmpeleprof->PropertiesVariable.iVariables] = 1;
-													tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = labels.size();
-												}
-												else
-												{
-													tmpeleprof->PropertiesVariable.VariableValueFrom[tmpeleprof->PropertiesVariable.iVariables] = 0;
-													tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = 0;
-												}
+											}
+											labels = globallist_labels;
+											if (labels.size() > 1)
+											{
+												tmpeleprof->PropertiesVariable.VariableValueFrom[tmpeleprof->PropertiesVariable.iVariables] = 1;
+												tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = labels.size();
+											}
+											else
+											{
+												tmpeleprof->PropertiesVariable.VariableValueFrom[tmpeleprof->PropertiesVariable.iVariables] = 0;
+												tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = 0;
 											}
 										}
 									}
+								
 
 									// and add to official dropdown lists
 									luadropdownlabels.push_back(labels);
@@ -7923,8 +7929,12 @@ int DisplayLuaDescription(entityeleproftype *tmpeleprof)
 							
 								if (ImGui::Selectable(label, bSelected))
 								{
-									if(bAsString)
+									if (bAsString)
+									{
 										strcpy(tmpeleprof->PropertiesVariable.VariableValue[i], label);
+										if (strcmp(tmpeleprof->PropertiesVariable.VariableValue[i], "None") == 0)
+											strcpy(tmpeleprof->PropertiesVariable.VariableValue[i], "");									
+									}
 									else
 										strcpy(tmpeleprof->PropertiesVariable.VariableValue[i], labelID);
 

@@ -2,7 +2,7 @@
 -- Gibs v16 - by Necrym,59
 -- DESCRIPTION: Will randomly gib a weakened character in range when their health is low. Attach to an object and set Always Active.
 -- DESCRIPTION: Ensure all named gib objects are on the map and set Physics=On, Gravity=ON, and Always Active=ON.
--- DESCRIPTION: [RANGE=1000(100,3000)]
+-- DESCRIPTION: [RANGE=1000(100,10000)] 
 -- DESCRIPTION: [GIB1_NAME$="gib 1"] for gib object
 -- DESCRIPTION: [GIB2_NAME$="gib 2"] for gib object
 -- DESCRIPTION: [GIB3_NAME$="gib 3"] for gib object
@@ -12,29 +12,32 @@
 -- DESCRIPTION: [SPLAT_NAME$="blood_splat"] for blood splat plain
 -- DESCRIPTION: [LIFESPAN=10(1,60)] Seconds
 -- DESCRIPTION: [@CLEANUP=1(1=Instant, 2=Discrete)]
--- DESCRIPTION: [GLOBAL_ENABLED!=0]
+-- DESCRIPTION: [GLOBAL_ENABLED!=0] for use with non-cc based characters
 -- DESCRIPTION: <Sound0> when gibbed.
 
 local U = require "scriptbank\\utillib"
 g_GibsEnabled = {}
 
 local lower = string.lower
-local gibs 			= {}
-local range 		= {}
-local gib1_name 	= {}
-local gib2_name 	= {}
-local gib3_name 	= {}
-local gib4_name 	= {}
-local gib5_name 	= {}
-local gib6_name 	= {}
-local splat_name 	= {}
-local lifespan		= {}
-local cleanup		= {}
+local gibs 				= {}
+local range 			= {}
+local gib1_name 		= {}
+local gib2_name 		= {}
+local gib3_name 		= {}
+local gib4_name 		= {}
+local gib5_name 		= {}
+local gib6_name 		= {}
+local splat_name 		= {}
+local lifespan			= {}
+local cleanup			= {}
+local global_enabled	= {}
 
 local gib1_no 		= {}
 local gib2_no 		= {}
 local gib3_no 		= {}
 local gib4_no 		= {}
+local gib5_no 		= {}
+local gib6_no 		= {}
 local splat_no 		= {}
 
 local pEntno 		= {}

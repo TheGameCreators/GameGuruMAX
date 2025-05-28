@@ -151,19 +151,19 @@ function add_fx_main(e)
 				tspinspeed[e] = addfx[e].spinspeed * -1
 			end
 			if addfx[e].spin_x == 1 then
-				CollisionOff(e)
+				CollisionOff(objEnt[e])
 				RotateX(objEnt[e],GetAnimationSpeed(objEnt[e])*tspinspeed[e])
-				CollisionOn(e)
+				CollisionOn(objEnt[e])
 			end
 			if addfx[e].spin_y == 1 then
-				CollisionOff(e)
+				CollisionOff(objEnt[e])
 				RotateY(objEnt[e],GetAnimationSpeed(objEnt[e])*tspinspeed[e])
-				CollisionOn(e)
+				CollisionOn(objEnt[e])
 			end
 			if addfx[e].spin_z == 1 then
-				CollisionOff(e)
+				CollisionOff(objEnt[e])
 				RotateZ(objEnt[e],GetAnimationSpeed(objEnt[e])*tspinspeed[e])
-				CollisionOn(e)
+				CollisionOn(objEnt[e])
 			end
 		end
 

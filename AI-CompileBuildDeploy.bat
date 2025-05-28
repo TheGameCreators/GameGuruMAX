@@ -24,6 +24,7 @@ call :copyOverThisFolder "D:\DEV\BUILDS\GameGuru Wicked MAX Build Area\Max\Files
 call :copyOverThisFolder "D:\DEV\BUILDS\GameGuru Wicked MAX Build Area\Max\Files\scriptbank\images" "D:\DEV\GAMEGURUMAXREPO\Scripts\scriptbank\images"
 call :copyOverThisFolder "D:\DEV\BUILDS\GameGuru Wicked MAX Build Area\Max\Files\scriptbank\markers" "D:\DEV\GAMEGURUMAXREPO\Scripts\scriptbank\markers"
 call :copyOverThisFolder "D:\DEV\BUILDS\GameGuru Wicked MAX Build Area\Max\Files\scriptbank\objects" "D:\DEV\GAMEGURUMAXREPO\Scripts\scriptbank\objects"
+call :copyOverThisFolder "D:\DEV\BUILDS\GameGuru Wicked MAX Build Area\Max\Files\scriptbank\particles" "D:\DEV\GAMEGURUMAXREPO\Scripts\scriptbank\particles"
 call :copyOverThisFolder "D:\DEV\BUILDS\GameGuru Wicked MAX Build Area\Max\Files\scriptbank\people" "D:\DEV\GAMEGURUMAXREPO\Scripts\scriptbank\people"
 call :copyOverThisFolder "D:\DEV\BUILDS\GameGuru Wicked MAX Build Area\Max\Files\scriptbank\puzzle" "D:\DEV\GAMEGURUMAXREPO\Scripts\scriptbank\puzzle"
 call :copyOverThisFolder "D:\DEV\BUILDS\GameGuru Wicked MAX Build Area\Max\Files\scriptbank\rpg" "D:\DEV\GAMEGURUMAXREPO\Scripts\scriptbank\rpg"

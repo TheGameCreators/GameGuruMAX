@@ -1,5 +1,5 @@
 --Shake v5 adapted by Necrym59 from an original script by AmenMoses
--- DESCRIPTION: Creates camera shake. Attache to an object and link to a trigger zone or switch.
+-- DESCRIPTION: Creates camera shake. Attach to an object and link to a trigger zone or switch.
 -- DESCRIPTION: Select Shake [@STYLE=6(1=Tremble, 2=Tremor, 3=Earthquake, 4=Explosion, 5=Drunkard, 6=Manual)]
 -- DESCRIPTION: Change the [PROMPT_TEXT$=""]
 -- DESCRIPTION: [TRAUMA#=0(0,100)]

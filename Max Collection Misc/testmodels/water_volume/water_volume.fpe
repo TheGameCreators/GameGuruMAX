@@ -1,0 +1,31 @@
+;Entity Spec
+
+;Header
+desc          = Water Volume
+
+;AI For Trigger
+aimain        = 
+
+;AIUsed
+ifused        = 
+
+;Sound
+soundset      = 
+
+;Orientation
+model         = water_volume.dbo
+textured      = water_volume.dds
+transparency  = 1
+defaultheight = 50
+scale         = 50
+
+;Trigger data
+stylecolor    = 2
+
+;thumbnail
+thumbnailbackdrop = Blue showroom.dds
+thumbnailzoom = -301.453247
+thumbnailcamleft = 9.132728
+thumbnailcamup = 36.189865
+thumbnailrotatex = 0.311934
+thumbnailrotatey = 330.446960

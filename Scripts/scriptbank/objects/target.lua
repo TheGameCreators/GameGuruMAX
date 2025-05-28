@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Target v16 by Necrym59 and BloodMoon
+-- Target v17 by Necrym59 and BloodMoon
 -- DESCRIPTION: Allows a target object to be shot and reset and can activate Linked or IfUsed entities.
 -- DESCRIPTION: Attach to an object/entity and set AlwaysActive=ON, IsImobile=YES
 -- DESCRIPTION: [HIT_TEXT$="Target Hit"]
@@ -12,16 +12,18 @@
 -- DESCRIPTION: [@TARGET_TRIGGER=2(1=Yes, 2=No, 3=Lose Game, 4=Win Game)]
 -- DESCRIPTION: [TARGET_POINTS=1(1,100)]
 -- DESCRIPTION: [@POINTS_ISSUANCE=1(1=Add, 2=Deduct)]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyPointTally"]
+-- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] eg: MyPoints
 -- DESCRIPTION: [TARGET_MOVE_DELAY=0(0,100)] Seconds
 -- DESCRIPTION: [@TARGET_FACING=1(1=Fixed, 2=Random)]
 -- DESCRIPTION: [@TARGET_ANIMATION=-1(0=AnimSetList)]
+-- DESCRIPTION: [SENSE_RANGE=80(0,200)] 0=Off
 -- DESCRIPTION: <Sound0> - Target Hit
 -- DESCRIPTION: <Sound1> - Target Reset
 -- DESCRIPTION: <Sound2> - Target Moving
 -- DESCRIPTION: <Sound3> - Hit Trigger
 
 local U = require "scriptbank\\utillib"
+local P = require "scriptbank\\physlib"
 local rad = math.rad
 
 local target 					= {}
@@ -39,6 +41,7 @@ local user_global_affected		= {}
 local target_move_delay			= {}
 local target_facing				= {}
 local target_animation			= {}
+local sense_range				= {}
 
 local targetxpos		= {}
 local targetypos		= {}
@@ -73,13 +76,14 @@ local flymode			= {}
 local randomonce		= {}
 local fade_level		= {}
 local cleanuptime		= {}
+local sensecheck		= {}
+local entinrange		= {}
 	
-function target_properties(e, hit_text, target_type, target_move_x, target_move_y, target_move_z, target_move_speed, target_reset, target_trigger, target_points, points_issuance, user_global_affected, target_move_delay, target_facing, target_animation)
+function target_properties(e, hit_text, target_type, target_move_x, target_move_y, target_move_z, target_move_speed, target_reset, target_trigger, target_points, points_issuance, user_global_affected, target_move_delay, target_facing, target_animation, sense_range)
 	target[e] = g_Entity[e]
 	target[e].hit_text = hit_text
 	target[e].target_type = target_type
-	target[e].target_move_x = target_move_x
-	target[e].target_move_y = target_move_y
+	target[e].target_move_x = target_move_x	target[e].target_move_y = target_move_y
 	target[e].target_move_z = target_move_z
 	target[e].target_move_speed = target_move_speed	
 	target[e].target_reset = target_reset
@@ -90,6 +94,7 @@ function target_properties(e, hit_text, target_type, target_move_x, target_move_
 	target[e].target_move_delay = target_move_delay
 	target[e].target_facing = target_facing
 	target[e].target_animation = "=" .. tostring(target_animation)
+	target[e].sense_range = sense_range
 end
  
 function target_init(e)
@@ -108,6 +113,7 @@ function target_init(e)
 	target[e].target_move_delay = 0
 	target[e].target_facing = 1
 	target[e].target_animation = ""
+	target[e].sense_range = 0
 	
 	played[e] = 0
 	moved[e] = 0
@@ -133,6 +139,8 @@ function target_init(e)
 	_,_,_,startxang[e],startyang[e],startzang[e] = GetEntityPosAng(e)
 	reset2[e] = g_Time + (target[e].target_move_delay*1000)
 	if g_Entity[e]['health'] < 100 then SetEntityHealth(e,g_Entity[e]['health']+100) end
+	sensecheck[e] = g_Time + 100
+	entinrange[e] = 0
 	status[e] = "init"
 end
  
@@ -258,7 +266,6 @@ function target_main(e)
 		PlayAnimation(e)
 	end
 	
-
 	if target[e].target_facing == 2 and target[e].target_reset > 0 then
 		if randomonce[e] == 0 then
 			reset1[e] = g_Time + math.random(2000, 10000)			
@@ -270,7 +277,22 @@ function target_main(e)
 			randomonce[e] = 0
 		end	
 	end
-	
+
+	if g_Time > sensecheck[e] then		
+		for a = 1, g_EntityElementMax do
+			if a ~= nil and g_Entity[a] ~= nil and g_Entity[a] ~= g_Entity[e] and math.ceil(GetFlatDistance(e,a)) <= target[e].sense_range and g_Entity[a]['health'] > 1 then
+				entinrange[e] = a
+				PerformLogicConnections(e)
+				SetEntityHealth(e,0)
+				local paX, paY, paZ = math.rad( g_Entity[entinrange[e]]['anglex'] ), math.rad( g_Entity[entinrange[e]]['angley'] ),math.rad( g_Entity[entinrange[e]]['anglez'] )
+				local paYR = math.random(paY-5,paY+5)
+				local vx, vy, vz = U.Rotate3D( 0, 0, 1, paX, paYR, paZ)
+				PushObject(g_Entity[entinrange[e]]['obj'],vx*3, vy*3, vz*3, 0, 0, 0)
+			end	
+		end
+		sensecheck[e] = g_Time + 100
+	end	
+		
 	if g_Entity[e]['health'] < 100 and state[e] == 0 then
 		if doonce[e] == 0 then
 			StopSound(e,2)
@@ -394,6 +416,14 @@ function target_main(e)
 			Hide(e)			
 			Destroy(e)
 		end
+	end
+end
+
+function GetFlatDistance(e,v)
+	if g_Entity[e] ~= nil and g_Entity[v] ~= nil then
+		local distDX = g_Entity[e]['x'] - g_Entity[v]['x']
+		local distDZ = g_Entity[e]['z'] - g_Entity[v]['z']
+		return math.sqrt((distDX*distDX)+(distDZ*distDZ));
 	end
 end
  

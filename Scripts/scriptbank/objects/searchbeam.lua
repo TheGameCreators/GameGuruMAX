@@ -1,20 +1,23 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Search Beam v10
+-- Search Beam v12
 -- DESCRIPTION: Edit the settings, [BEAM_RANGE=3000], Attach to [BEAM_OBJECT_NAME$="searchlight1"]
 
-	module_lightcontrol = require "scriptbank\\markers\\module_lightcontrol"
-	local rad = math.rad
-	
-	g_searchbeam = {}
-	local beam = {}
-	local beam_range = {}
-	local beam_object_name = {}
-	local beam_object = {}
-	local status = {}
-	local attachTo = {}
-	local beamattached = {}	
-	local lightNum = GetEntityLightNumber( e )
-	local anglex = {}
+module_lightcontrol = require "scriptbank\\markers\\module_lightcontrol"
+local rad = math.rad
+
+g_searchbeam = {}
+local beam = {}
+local beam_range = {}
+local beam_object_name = {}
+local beam_object = {}
+local status = {}
+local attachTo = {}
+local beamattached = {}	
+local lightNum = GetEntityLightNumber( e )
+local anglex = {}
+local Axv = {}
+local Ayv = {}
+local Azv = {}
 
 function searchbeam_properties(e, beam_range, beam_object_name, beam_object)	
 	module_lightcontrol.init(e,1)	
@@ -29,15 +32,19 @@ function searchbeam_init(e)
 	g_searchbeam[e]['beam_object_name'] = "searchlight1"
 	g_searchbeam[e]['beam_object'] = 0
 	attachTo[e] = 0	
-	anglex = 45
+	anglex[e] = 45
+	Axv[e] = 0	
+	Ayv[e] = 0	
+	Azv[e] = 0	
 	lightNum = GetEntityLightNumber( e )
 	beamattached[e] = 0
 	status[e] = "init"
+	SetEntityAlwaysActive(e,1)
 end
 	
 function searchbeam_main(e)	
 	if status[e] == "init" then
-		xv, yv, zv = GetLightAngle(lightNum)
+		Axv[e], Ayv[e], Azv[e] = GetLightAngle(lightNum)
 		if g_searchbeam[e]['beam_object'] == 0 or nil then
 			for a = 1, g_EntityElementMax do			
 				if a ~= nil and g_Entity[a] ~= nil then		
@@ -56,7 +63,7 @@ function searchbeam_main(e)
 	if beamattached[e] == 0 then	
 		lightNum = GetEntityLightNumber( e )
 		local x,y,z,Ax,Ay,Az = GetEntityPosAng(attachTo[e])
-		Ax=Ax-(xv*9)
+		Ax=Ax-(Axv[e]*9)
 		local xA,yA,zA = rad(Ax),rad(Ay),rad(Az)
 		x=x+math.sin(math.rad(Ay))*20
 		y=y-math.sin(math.rad(Ax))*20
@@ -70,7 +77,7 @@ function searchbeam_main(e)
 	if beamattached[e] == 1 then	
 		lightNum = GetEntityLightNumber( e )		
 		local x,y,z,Ax,Ay,Az = GetEntityPosAng(attachTo[e])		
-		Ax=Ax-(xv*9)
+		Ax=Ax-(Axv[e]*9)
 		local xA,yA,zA = rad(Ax),rad(Ay),rad(Az)
 		x=x+math.sin(math.rad(Ay))*20
 		y=y-math.sin(math.rad(Ax))*20

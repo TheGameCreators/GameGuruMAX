@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Winzone v18 by Necrym59 and Lee
+-- Winzone v19 by Necrym59 and Lee
 -- DESCRIPTION: When the player enters this zone or is optionally activated remotely, <Sound0> will play and the level is complete.
 -- DESCRIPTION: [NOTES_TEXT$="This winzone takes the user to a new level"]
 -- DESCRIPTION: [ZONEHEIGHT=100(0,1000)]
@@ -11,6 +11,7 @@
 -- DESCRIPTION: [SPAWN_MARKER_NAME$=""] for optional spawning using spawn markers
 -- DESCRIPTION: [@GoToLevelMode=1(1=Use Storyboard Logic,2=Go to Specific Level)] controls whether to load the next level in the Storyboard, or a specific level.
 -- DESCRIPTION: [REMOTE_ACTIVATED!=0] is allowed
+-- DESCRIPTION: [@VIDEO_SKIP=1(1=Yes, 2=No)] for optional ending video skip
 -- DESCRIPTION: <Video Slot> for optional ending video
 
 local winzone 					= {}
@@ -22,12 +23,13 @@ local ending_imagefile			= {}
 local spawn_marker_user_global	= {}
 local spawn_marker_name			= {}
 local resetstates				= {}
+local video_skip				= {}
 
 local status			= {}
 local endimg			= {}
 local endvid			= {}
 	
-function winzone_properties(e, notes_text, zoneheight, spawnatstart, resetstates, ending_mode, ending_imagefile, spawn_marker_user_global, spawn_marker_name, gotolevelmode, remote_activated)
+function winzone_properties(e, notes_text, zoneheight, spawnatstart, resetstates, ending_mode, ending_imagefile, spawn_marker_user_global, spawn_marker_name, gotolevelmode, remote_activated, video_skip)
 	winzone[e].notes_text = notes_text
 	winzone[e].zoneheight = zoneheight or 100
 	winzone[e].spawnatstart = spawnatstart
@@ -40,6 +42,7 @@ function winzone_properties(e, notes_text, zoneheight, spawnatstart, resetstates
 	winzone[e].spawn_marker_name = spawn_marker_name or ""
 	--gotolevelmode missing from params and seemingly not used
 	winzone[e].remote_activated = remote_activated or 0
+	winzone[e].video_skip = video_skip or 1
 end
  
 function winzone_init(e)
@@ -53,6 +56,7 @@ function winzone_init(e)
 	winzone[e].spawn_marker_user_global = ""
 	winzone[e].spawn_marker_name = ""	
 	winzone[e].remote_activated = 0
+	winzone[e].video_skip = 1	
 	status[e] = "init"
 	endvid[e] = 0
 end
@@ -91,7 +95,8 @@ function winzone_main(e)
 			end
 			if winzone[e].ending_mode == 3 then
 				if endvid[e] == 0 then
-					PromptVideo(e,1)
+					if winzone[e].video_skip == 1 then PromptVideoNoSkip(e,1) end 
+					if winzone[e].video_skip == 2 then PromptVideo(e,1) end
 					endvid[e] = 1
 				end
 				if endvid[e] == 1 then
@@ -100,7 +105,8 @@ function winzone_main(e)
 			end
 			if winzone[e].ending_mode == 4 then
 				if endvid[e] == 0 then
-					PromptVideo(e,1)
+					if winzone[e].video_skip == 1 then PromptVideo(e,1) end 
+					if winzone[e].video_skip == 2 then PromptVideoNoSkip(e,1) end
 					endvid[e] = 1
 				end
 				if endvid[e] == 1 then

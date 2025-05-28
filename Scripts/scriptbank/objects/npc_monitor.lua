@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- NPC Monitor v10 by Necrym59
+-- NPC Monitor v12 by Necrym59
 -- DESCRIPTION: A global behavior that allows a named npc to be health monitored and trigger event(s) or Lose/Win game or go to a specified level upon its death.
 -- DESCRIPTION: Attach to an object set AlwaysActive=ON, and attach any logic links to this object and/or use ActivateIfUsed field.
 -- DESCRIPTION: [NPC_NAME$=""] to monitor.
@@ -27,9 +27,10 @@ local resetstates		= {}
 local pEntn				= {}
 local status			= {}
 local wait				= {}
+local actiondelay		= {}
+local checktime			= {}
 
 function npc_monitor_properties(e, npc_name, death_action, display_health, monitor_active, action_delay, user_global, user_global_value, resetstates)
-	npc_monitor[e] = g_Entity[e]
 	npc_monitor[e].npc_name = lower(npc_name) or ""
 	npc_monitor[e].death_action = death_action
 	npc_monitor[e].display_health = display_health
@@ -52,19 +53,19 @@ function npc_monitor_init(e)
 	npc_monitor[e].resetstates = 0
 	
 	status[e] = "init"
-	entheight[e] = 0
 	wait[e] = math.huge
 	actiondelay[e] = math.huge
+	checktime[e] = 0
 	pEntn[e] = 0
 end
 
 function npc_monitor_main(e)
-	npc_monitor[e] = g_Entity[e]
 
 	if status[e] == "init" then
+		checktime[e] = g_Time + 500
 		if npc_monitor[e].monitor_active == 1 then SetEntityActivated(e,1) end
 		if npc_monitor[e].monitor_active == 2 then SetEntityActivated(e,0) end	
-		pEntn[e] = 0
+
 		if pEntn[e] == 0 then
 			for n = 1, g_EntityElementMax do
 				if n ~= nil and g_Entity[n] ~= nil then
@@ -79,8 +80,8 @@ function npc_monitor_main(e)
 	end	
 
 	if g_Entity[e]['activated'] == 1 then
-	
-		if status[e] == "monitor" then
+
+		if status[e] == "monitor" and g_Time > checktime[e] then
 			if g_Entity[pEntn[e]].health <= 0 and npc_monitor[e].death_action == 1 then
 				wait[e] = g_Time + (npc_monitor[e].action_delay*1000)				
 				if npc_monitor[e].user_global > "" then
@@ -109,6 +110,7 @@ function npc_monitor_main(e)
 			if npc_monitor[e].display_health == 1 then
 				PromptLocal(pEntn[e],"Health: " ..g_Entity[pEntn[e]].health)
 			end
+			checktime[e] = g_Time + 500
 		end
 
 		if status[e] == "alarm" then			
@@ -117,7 +119,7 @@ function npc_monitor_main(e)
 				ActivateIfUsed(e)
 				PerformLogicConnections(e)
 				status[e] = "end"
-				SwitchScript(e,"no_behavior_selected.lua")
+				SwitchScript(e,"no_behavior_selected.lua")				
 			end
 		end
 		

@@ -1,11 +1,11 @@
--- Bottled_Item v9  by Necrym59
+-- Bottled_Item v10  by Necrym59
 -- DESCRIPTION: The object will give the player a health boost or loss if consumed.
 -- DESCRIPTION: and can also effect a user global if required.
 -- DESCRIPTION: [PROMPT_TEXT$="Press E to consume"]
 -- DESCRIPTION: [QUANTITY=10(1,40)]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
 -- DESCRIPTION: [@EFFECT=1(1=Add, 2=Deduct)]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] "MyGlobal" for example.
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] eg:"MyGlobal"
 -- DESCRIPTION: [POISONING_EFFECT!=0]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
@@ -42,7 +42,7 @@ function bottled_item_properties(e, prompt_text, quantity, pickup_range, effect,
 	bottle[e].pickup_range = pickup_range
 	bottle[e].effect = effect
 	bottle[e].user_global_affected = user_global_affected
-	bottle[e].poisoning_effect = poisoning_effect
+	bottle[e].poisoning_effect = poisoning_effect or 0
 	bottle[e].prompt_display = prompt_display
 	bottle[e].item_highlight = item_highlight
 end

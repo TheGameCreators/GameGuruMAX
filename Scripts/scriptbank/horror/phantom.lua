@@ -1,12 +1,20 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Phantom v15 by Necrym59
+-- Phantom v16 by Necrym59
 -- DESCRIPTION: Fades in an object and can approach player when in zone or switched by control.
 -- DESCRIPTION: Attach to object and set Physics ON/OFF, Always active ON. 
--- DESCRIPTION: Change [PROMPT_TEXT$="What was that"] [@APPEARANCE_MODE=1(1=Show-Fade/Disappear, 2=Show-Approach, 3=Show-Face-Approach, 4=Show-Move-Fade/Disappear, 5=Character Move-Once-No Collision)]
--- DESCRIPTION: [APPEARANCE_LEVEL=80(1,100)] [#APPEARANCE_AURA=0.0(0.0,50)] [#APPEARANCE_SPEED=0.02(0,5)] [#APPEARANCE_TIME=3.0(0,10)] [@DISAPPEARANCE_MODE=1(1=Fade, 2=Instant)]
--- DESCRIPTION: [#MOVEMENT_SPEED=50.0(0,500)] [#MOVEMENT_X=-0.0(-1000,1000)] [#MOVEMENT_Z=-0.0(-1000,1000)]
+-- DESCRIPTION: [PROMPT_TEXT$="What was that"]
+-- DESCRIPTION: [@APPEARANCE_MODE=1(1=Show-Fade/Disappear, 2=Show-Approach-Disappear, 3=Show-Face-Approach-Disappear, 4=Show-Move-Fade/Disappear, 5=Character Move-Once-No Collision)]
+-- DESCRIPTION: [APPEARANCE_LEVEL=80(1,100)] 
+-- DESCRIPTION: [#APPEARANCE_AURA=0.0(0.0,50)]
+-- DESCRIPTION: [#APPEARANCE_SPEED=0.02(0,5)]
+-- DESCRIPTION: [#APPEARANCE_TIME=3.0(0,10)]
+-- DESCRIPTION: [@DISAPPEARANCE_MODE=1(1=Fade, 2=Instant)]
+-- DESCRIPTION: [#MOVEMENT_SPEED=50.0(0,500)]
+-- DESCRIPTION: [#MOVEMENT_X=-0.0(-1000,1000)]
+-- DESCRIPTION: [#MOVEMENT_Z=-0.0(-1000,1000)]
 -- DESCRIPTION: [@IDLE_ANIMATION$=-1(0=AnimSetList)] [@MOVE_ANIMATION$=-1(0=AnimSetList)]]
 -- DESCRIPTION: [@ANIMATED_MODEL=3(1=Character Creator, 2=Legacy Character, 3=Non Animated)]
+-- DESCRIPTION: [MIN_APPROACH_RANGE=90(1,300)]
 -- DESCRIPTION: <Sound0> upon apperance
 -- DESCRIPTION: <Sound1> upon approach
 -- DESCRIPTION: <Sound2> upon disapperance
@@ -28,6 +36,7 @@
 	local idle_animation		= {}
 	local move_animation		= {}
 	local animated_model		= {}
+	local min_approach_range	= {}
 	
 	local current_level 		= {}	
 	local status 				= {}
@@ -39,8 +48,7 @@
 	local showtime 				= {}
 	local fullshow 				= {}
 
-function phantom_properties(e, prompt_text, appearance_mode, appearance_level, appearance_aura, appearance_speed, appearance_time, disappearance_mode, movement_speed, movement_x, movement_z, idle_animation, move_animation, animated_model)
-	phantom[e] = g_Entity[e]
+function phantom_properties(e, prompt_text, appearance_mode, appearance_level, appearance_aura, appearance_speed, appearance_time, disappearance_mode, movement_speed, movement_x, movement_z, idle_animation, move_animation, animated_model, min_approach_range)
 	phantom[e].prompt_text = prompt_text
 	phantom[e].appearance_mode	= appearance_mode
 	phantom[e].appearance_level = appearance_level
@@ -54,10 +62,11 @@ function phantom_properties(e, prompt_text, appearance_mode, appearance_level, a
 	phantom[e].idle_animation = "=" .. tostring(idle_animation)
 	phantom[e].move_animation = "=" .. tostring(move_animation)
 	phantom[e].animated_model = animated_model
+	phantom[e].min_approach_range = min_approach_range
 end 
 
 function phantom_init(e)
-	phantom[e] = g_Entity[e]
+	phantom[e] = {}
 	phantom[e].prompt_text 	= ""
 	phantom[e].appearance_mode	= 1
 	phantom[e].appearance_level = 80
@@ -71,6 +80,8 @@ function phantom_init(e)
 	phantom[e].idle_animation = ""
 	phantom[e].move_animation = ""
 	phantom[e].animated_model = 1
+	phantom[e].min_approach_range = 90
+	
 	status[e] = "init"
 	doonce[e] = 0
 	legacy[e] = 0
@@ -85,7 +96,7 @@ function phantom_init(e)
 end
 
 function phantom_main(e)
-	phantom[e] = g_Entity[e]
+	
 	if status[e] =="init" then	
 		SetEntityBaseAlpha(e,0)
 		current_level[e] = GetEntityBaseAlpha(e)
@@ -94,7 +105,7 @@ function phantom_main(e)
 	end
 
 	if g_Entity[e]['activated'] == 1 then
-		PlayerDist = GetPlayerDistance(e)
+		local PlayerDist = GetPlayerDistance(e)
 		
 		if showtime[e] == 0 then
 			showtime[e] = GetTimer(e) + (phantom[e].appearance_time*1000)
@@ -125,18 +136,23 @@ function phantom_main(e)
 						end							
 						if current_level[e] <= 0 then
 							current_level[e] = 0
+							CollisionOff(e)
+							Hide(e)	
 							Destroy(e)
 						end
 					end
 					if phantom[e].disappearance_mode == 2 then
-						CollisionOff(e)			
+						CollisionOff(e)
+						Hide(e)	
 						Destroy(e)
-					end					
+					end
+					PerformLogicConnections(e)
+					ActivateIfUsed(e)					
 				end
 			end	
 		end
 		
-		if phantom[e].appearance_mode == 2 then -- Show and Approach
+		if phantom[e].appearance_mode == 2 then -- Show and Approach then Dissapear
 			GravityOff(e)
 			CollisionOff(e)	
 			if current_level[e] < phantom[e].appearance_level then				
@@ -166,13 +182,16 @@ function phantom_main(e)
 				if phantom[e].animated_model == 3 then SetAnimationSpeedModulation (e,phantom[e].movement_speed/100) end
 				StopSound(e,0)
 				PlaySound(e,1)
-				if PlayerDist < 50 then
-					CollisionOff(e)					
+				if PlayerDist < phantom[e].min_approach_range then
+					CollisionOff(e)
+					Hide(e)
 					Destroy(e)
-				end			
+				end
+				PerformLogicConnections(e)
+				ActivateIfUsed(e)				
 			end
 		end
-		if phantom[e].appearance_mode == 3 then -- Show-Face and Approach	
+		if phantom[e].appearance_mode == 3 then -- Show-Face and Approach then Dissapear	
 			GravityOff(e)
 			if current_level[e] < phantom[e].appearance_level then			
 				SetEntityBaseAlpha(e,current_level[e])
@@ -208,10 +227,13 @@ function phantom_main(e)
 				if phantom[e].animated_model == 3 then SetAnimationSpeedModulation (e,phantom[e].movement_speed/100) end
 				StopSound(e,0)
 				PlaySound(e,1)
-				if PlayerDist < 50 then
-					CollisionOff(e)			
+				if PlayerDist < phantom[e].min_approach_range then
+					CollisionOff(e)
+					Hide(e)					
 					Destroy(e)
 				end
+				PerformLogicConnections(e)
+				ActivateIfUsed(e)
 			end
 		end
 		if phantom[e].appearance_mode == 4 then -- Show-Move-Disappear
@@ -246,7 +268,7 @@ function phantom_main(e)
 					end
 				end
 				if phantom[e].animated_model == 3 then SetAnimationSpeedModulation (e,phantom[e].movement_speed/100) end
-				StopSound(e,0)
+				StopSound(e,0)				
 			end
 			if fullshow[e] == 1 then 
 				if GetTimer(e) >= showtime[e] then
@@ -260,13 +282,18 @@ function phantom_main(e)
 						end							
 						if current_level[e] <= 0 then
 							current_level[e] = 0
+							CollisionOff(e)
+							Hide(e)	
 							Destroy(e)
 						end
 					end
 					if phantom[e].disappearance_mode == 2 then
-						CollisionOff(e)			
+						CollisionOff(e)
+						Hide(e)	
 						Destroy(e)
-					end					
+					end	
+					PerformLogicConnections(e)
+					ActivateIfUsed(e)					
 				end	
 			end
 		end
@@ -292,12 +319,14 @@ function phantom_main(e)
 				end
 				StopSound(e,0)
 				PlaySound(e,2)
-				if GetTimer(e) >= showtime[e] or PlayerDist < 50 then					
-					CollisionOff(e)				
+				if GetTimer(e) >= showtime[e] or PlayerDist < phantom[e].min_approach_range then					
+					CollisionOff(e)
+					Hide(e)					
 					Destroy(e)
 				end
+				PerformLogicConnections(e)
+				ActivateIfUsed(e)
 			end
 		end
 	end	
-	PerformLogicConnections(e)
 end

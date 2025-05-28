@@ -1,9 +1,9 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Atlas_Cycler v3
+-- Atlas_Cycler v4
 -- DESCRIPTION: Cycles an atlas images onto a object. Attach to the object.
 -- DESCRIPTION: Can be activated from a trigger or switch or set to always on.
 -- DESCRIPTION: [IMAGEFILE$="imagebank\\misc\\testimages\\red.png"]
--- DESCRIPTION: [DISPLAY_SPEED=50(0,100)]
+-- DESCRIPTION: [DISPLAY_SPEED=1(0,1000)]
 -- DESCRIPTION: [ATLAS_COLUMNS=3]
 -- DESCRIPTION: [ATLAS_ROWS=3]
 -- DESCRIPTION: [#EMISSIVE_STRENGTH=300(0,1000)]
@@ -85,7 +85,7 @@ function atlas_cycler_main(e)
 				
 		if status[e] == "process" then
 			if doonce[e] == 0 then
-				frame_time[e] = g_Time + (100-atlasobject[e].display_speed)
+				frame_time[e] = g_Time + atlasobject[e].display_speed
 				doonce[e] = 2
 			end
 			if string.len(atlasobject[e].imagefile)>0 then 							
@@ -93,7 +93,7 @@ function atlas_cycler_main(e)
 				SetEntityEmissiveStrength(e,atlasobject[e].emissive_strength)				
 			end
 			if g_Time > frame_time[e] then
-				frame_time[e] = g_Time + (100-atlasobject[e].display_speed)
+				frame_time[e] = g_Time + atlasobject[e].display_speed
 				if atlasobject[e].atlas_columns > 0 and atlasobject[e].atlas_rows > 0 then
 					change_frame[e] = change_frame[e] + 1
 					totalframes[e] = atlasobject[e].atlas_columns * atlasobject[e].atlas_rows

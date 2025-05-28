@@ -140,18 +140,20 @@ function moon_main(e)
 	end
 	if status[e] == "moon_process" then
 		RotateY(e,GetAnimationSpeed(e)*moon[e].moon_rotation/5)
-		if moon[e].orbit_planet_no ~= 0 then
-			-- ORBITAL ROTATION --	
-			if orbit[e] < 100 then 
+		if moon[e].orbit_planet_no ~= 0 then	
+			-- ORBITAL ROTATION --
+			if orbit[e] < 100 then 				
 				local new_x = moonposx[e] + math.sin(orbit[e]) * moon[e].orbit_distance
 				local new_y = moonposy[e]
 				local new_z = planetposz[e] + math.cos(orbit[e]) * moon[e].orbit_distance
+				
 				orbit[e] = orbit[e] + moon[e].orbit_speed/10000
 				PositionObject(g_Entity[e]['obj'],new_x,new_y,new_z)
-				if orbit[e] >= 100 then orbit[e] = 0 end
-			end	
-		end		
-
+				if orbit[e] > 100 then orbit[e] = 0 end
+			end
+			----------------------
+		end			
+		
 		if GetPlayerDistance(e) < adjustrange[e] then
 			if doonce[e] == 0 then
 				if moon[e].sense_trigger == 1 then
@@ -184,5 +186,7 @@ function moon_main(e)
 				endvid[e] = 0
 			end
 		end
+	end
+	if status[e] == "moon_end" then
 	end
 end

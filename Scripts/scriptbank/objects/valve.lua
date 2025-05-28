@@ -1,4 +1,4 @@
--- Valve v5 by Necrym59 
+-- Valve v6 by Necrym59 
 -- DESCRIPTION: The attached object will give the player a valve wheel resource if collected.
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -77,6 +77,8 @@ function valve_main(e)
 		tEnt[e] = g_tEnt
 		--end pinpoint select object--		
 		if PlayerDist <= valve[e].pickup_range and tEnt[e] ~= 0 then
+			if valve[e].prompt_display == 1 then PromptLocal(e,valve[e].prompt_text) end
+			if valve[e].prompt_display == 2 then Prompt(valve[e].prompt_text) end
 			if doonce[e] == 0 then
 				if GetEntityCollectable(tEnt[e]) == 0 then
 					if g_KeyPressE == 1 then
@@ -89,8 +91,6 @@ function valve_main(e)
 					end
 				end
 				if GetEntityCollectable(tEnt[e]) == 1 or GetEntityCollectable(tEnt[e]) == 2 then  -- if collectable or resource
-					if valve[e].prompt_display == 1 then PromptLocal(e,valve[e].collected_text) end
-					if valve[e].prompt_display == 2 then Prompt(valve[e].collected_text) end		
 					if g_KeyPressE == 1 then
 						Hide(e)
 						CollisionOff(e)

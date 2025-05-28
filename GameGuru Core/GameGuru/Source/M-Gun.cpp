@@ -1649,8 +1649,7 @@ void gun_loaddata ( void )
 					if( matched ) t.gun[t.gunid].settings.fVRWeaponAngleZ = t.value1;
 					
 
-					// New features.
-					
+					// New features.		
 					cmpStrConst(t_field_s, "emissivestrength");
 					if (matched) t.gun[t.gunid].settings.fEmissiveStrength = t.value1;
 

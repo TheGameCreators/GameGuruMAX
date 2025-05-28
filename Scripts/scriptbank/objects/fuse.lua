@@ -60,6 +60,7 @@ function fuse_main(e)
 				Hide(e)
 				CollisionOff(e)
 				collected[e] = 1
+				PlaySound(e,0)
 				PerformLogicConnections(e)
 				if fuse[e].prompt_display == 1 then PromptLocal(e,fuse[e].collected_text) end
 				if fuse[e].prompt_display == 2 then PromptDuration(fuse[e].collected_text,2000) end
@@ -69,6 +70,7 @@ function fuse_main(e)
 				Hide(e)
 				CollisionOff(e)
 				SetEntityCollected(e,1)
+				PlaySound(e,0)
 				collected[e] = 1
 				PerformLogicConnections(e)
 				if fuse[e].prompt_display == 1 then PromptLocal(e,fuse[e].collected_text) end

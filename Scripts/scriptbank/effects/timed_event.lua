@@ -3,7 +3,7 @@
 -- DESCRIPTION: Will activate timed delayed linked events.
 -- DESCRIPTION: Attach this behavior to an object. Link a zone or switch to activate this object.
 -- DESCRIPTION: Link from this object to other entities for delayed single or multiple activation.
--- DESCRIPTION: [EVENT_TEXT$="Event Underway"] Text to displaye when event activated
+-- DESCRIPTION: [EVENT_TEXT$="Event Underway"] Text to display when event activated
 -- DESCRIPTION: [EVENT_COUNT=1(1,1000)] Number of events
 -- DESCRIPTION: [EVENT_DELAY=5(1,100)] in seconds
 -- DESCRIPTION: [@VISIBILITY=2(1=Hide, 2=Show)]

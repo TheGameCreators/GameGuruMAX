@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Radio v2: by Necrym59
+-- Radio v3: by Necrym59
 -- DESCRIPTION: Will play sound/music from the radio selected channel.
 -- DESCRIPTION: [PROMPT_TEXT$="E to Use"]
 -- DESCRIPTION: [USE_RANGE=90(1,200)]
@@ -50,51 +50,59 @@ function radio_main(e)
 	svolume[e] = (3000-GetPlayerDistance(e))/30
 	SetSoundVolume(svolume[e])
 	
-	if radio[e].already_on == 1 and shutoff[e] == 0 then
-		radio_channel[e] = 0
-		LoopSound(e,radio_channel[e])
-		radio[e].already_on = 0
-	end	
-		
-	if PlayerDist < radio[e].use_range and doonce[e] == 0 then
-		local LookingAt = GetPlrLookingAtEx(e,1)	
-		if LookingAt == 1 then		
-			PromptLocal(e,radio[e].prompt_text)
-			if g_KeyPressE == 1 and shutoff[e] == 0 then				
-				PromptLocal(e,"Q to turn off")
-				if shutoff[e] == 0 then
-					if radio_channel[e] >= 0 and radio_channel[e] < 3 then
-						StopSound(e,radio_channel[e])
-						PlaySound(e,3)
-						radio_channel[e] = radio_channel[e] + 1
-						LoopSound(e,radio_channel[e])
-					end
-					if radio_channel[e] == 3 and g_KeyPressE == 1 then
-						StopSound(e,radio_channel[e])
-						PlaySound(e,3)
-						radio_channel[e] = 0
-						LoopSound(e,radio_channel[e])
-					end
-					wait[e] = g_Time + 1000
-					doonce[e] = 1
-				end	
-			end
-			if g_KeyPressQ == 1 then
-				StopSound(e,0)
-				StopSound(e,1)
-				StopSound(e,2)
-				StopSound(e,3)
-				shutoff[e] = 1
-				wait[e] = g_Time + 1000				
+	if g_Entity[e]['health'] > 0 then
+		if radio[e].already_on == 1 and shutoff[e] == 0 then
+			radio_channel[e] = 0
+			LoopSound(e,radio_channel[e])
+			radio[e].already_on = 0
+		end	
+			
+		if PlayerDist < radio[e].use_range and doonce[e] == 0 then
+			local LookingAt = GetPlrLookingAtEx(e,1)	
+			if LookingAt == 1 then		
+				PromptLocal(e,radio[e].prompt_text)
+				if g_KeyPressE == 1 and shutoff[e] == 0 then				
+					PromptLocal(e,"Q to turn off")
+					if shutoff[e] == 0 then
+						if radio_channel[e] >= 0 and radio_channel[e] < 3 then
+							StopSound(e,radio_channel[e])
+							PlaySound(e,3)
+							radio_channel[e] = radio_channel[e] + 1
+							LoopSound(e,radio_channel[e])
+						end
+						if radio_channel[e] == 3 and g_KeyPressE == 1 then
+							StopSound(e,radio_channel[e])
+							PlaySound(e,3)
+							radio_channel[e] = 0
+							LoopSound(e,radio_channel[e])
+						end
+						wait[e] = g_Time + 1000
+						doonce[e] = 1
+					end	
+				end
+				if g_KeyPressQ == 1 then
+					StopSound(e,0)
+					StopSound(e,1)
+					StopSound(e,2)
+					StopSound(e,3)
+					shutoff[e] = 1
+					wait[e] = g_Time + 1000				
+				end
 			end
 		end
+		if g_Time > wait[e] and shutoff[e] == 0 then		
+			doonce[e] = 0
+			shutoff[e] = 0
+		end
+		if g_Time > wait[e] and shutoff[e] == 1 then		
+			doonce[e] = 0
+			shutoff[e] = 0
+		end
 	end
-	if g_Time > wait[e] and shutoff[e] == 0 then		
-		doonce[e] = 0
-		shutoff[e] = 0
-	end
-	if g_Time > wait[e] and shutoff[e] == 1 then		
-		doonce[e] = 0
-		shutoff[e] = 0
-	end
+	if g_Entity[e]['health'] <= 0 then
+		StopSound(e,0)
+		StopSound(e,1)
+		StopSound(e,2)
+		StopSound(e,3)		
+	end	
 end

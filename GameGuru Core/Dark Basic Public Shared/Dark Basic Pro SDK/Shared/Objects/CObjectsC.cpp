@@ -2771,8 +2771,9 @@ DARKSDK void SetObjectStatic ( int iID , bool isStatic = true )
 	if ( g_ObjectList [ iID ] )
 	{
 		g_ObjectList [ iID ]->bIsStatic = isStatic;
-		//Update collision centre, because it won't get updated again
-		if ( isStatic )
+
+		// Update collision centre, because it won't get updated again
+		if ( isStatic ) 
 			UpdateColCenter ( g_ObjectList [ iID ] );
 	}
 }

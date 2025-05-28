@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Inactive Zone v4   by Necrym59
+-- Inactive Zone v4 by Necrym59
 -- DESCRIPTION: An inactive zone, when triggered will activate all linked entities to the zone and removes the zone afterwards.
 -- DESCRIPTION: Can be triggered by another zone or switch.
 -- DESCRIPTION: Enter the [PROMPT_TEXT$="Zone has been activated"]

@@ -1,10 +1,11 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Game Monitor v2 by Necrym59
+-- Game Monitor v3 by Necrym59
 -- DESCRIPTION: Will monitor a User Global Value and launch the designated game action.
 -- DESCRIPTION: Attach to an object set AlwaysActive=On.
--- DESCRIPTION: [USER_GLOBAL$=""] User Global used to monitor (eg; MyPoints)
+-- DESCRIPTION: [@@USER_GLOBAL$=""(0=globallist)] User Global used to monitor (eg; MyPoints)
 -- DESCRIPTION: [TRIGGER_VALUE=0] Value to trigger action
--- DESCRIPTION: [@TRIGGER_ACTION=1(1=Win Game, 2=Lose Game)]
+-- DESCRIPTION: [@TRIGGER_ACTION=1(1=Win Game, 2=Lose Game, 3=Go To Level)]
+-- DESCRIPTION: [@GoToLevelMode=1(1=Use Storyboard Logic, 2=Go to Specific Level)] controls whether the next level in the Storyboard, or another level is loaded.
 
 local gamemonitor 		= {}
 local user_global		= {}
@@ -48,7 +49,10 @@ function game_monitor_main(e)
 					end
 					if gamemonitor[e].trigger_action == 2 then
 						LoseGame()
-					end				
+					end
+					if gamemonitor[e].trigger_action == 3 then
+						JumpToLevelIfUsedEx(e,0)
+					end					
 				end
 				checktimer[e] = g_Time + 100
 			end

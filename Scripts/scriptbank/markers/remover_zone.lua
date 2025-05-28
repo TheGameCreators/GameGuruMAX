@@ -1,10 +1,10 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Remover Zone v3 by Necrym59
+-- Remover Zone v4 by Necrym59
 -- DESCRIPTION: When player enters the zone, displays a notification and will remove/destroy
 -- DESCRIPTION: named entity/entities, activates any logic links, then destroys this zone.
 -- DESCRIPTION: [NOTIFICATION$="Entity/Entities removed"]
 -- DESCRIPTION: [ENTITY_NAME$=""] Name of entity/entities.
--- DESCRIPTION: [@REMOVE_STYLE=1 (1=Instant, 2=Timed)]
+-- DESCRIPTION: [@REMOVE_STYLE=1 (1=Instant, 2=Timed, 3=Fade)]
 -- DESCRIPTION: [REMOVE_TIME=1(0,100)] Seconds
 -- DESCRIPTION: [ZONEHEIGHT=100] controls how far above the zone the player can be before the zone is not triggered
 -- DESCRIPTION: [SpawnAtStart!=1] if unchecked use a switch or other trigger to spawn this zone
@@ -27,6 +27,7 @@ local wait			= {}
 local doonce		= {}
 local dlonce		= {}
 local status		= {}
+local current_level = {}
 
 function remover_zone_properties(e, notification, entity_name, remove_style, remove_time, zoneheight, spawnatstart)
 	remover_zone[e].notification = notification
@@ -52,6 +53,7 @@ function remover_zone_init(e)
 	dlonce[e] = 0
 	ents[e] = 0
 	status[e] = "init"
+	current_level[e] = 100
 	wait[e] = math.huge
 	tableName[e] = "entlist" ..tostring(e)
 	_G[tableName[e]] = {}
@@ -66,7 +68,7 @@ function remover_zone_main(e)
 					if lower(GetEntityName(n)) == remover_zone[e].entity_name then
 						remover_zone[e].entity_no = n
 						ents[e] = ents[e] + 1
-						table.insert(_G[tableName[e]],n)
+						table.insert(_G[tableName[e]],n)						
 					end
 				end
 			end
@@ -78,7 +80,7 @@ function remover_zone_main(e)
 
 	if g_Entity[e]['activated'] == 1 then
 		if g_Entity[e]['plrinzone'] == 1 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+remover_zone[e].zoneheight then
-			if remover_zone[e].remove_style == 1 then
+			if remover_zone[e].remove_style == 1 then --Instant
 				if ents[e] > 0 then
 					for a,b in pairs (_G[tableName[e]]) do
 						if g_Entity[b] ~= nil then
@@ -102,7 +104,7 @@ function remover_zone_main(e)
 					dlonce[e] = 1
 				end
 			end
-			if remover_zone[e].remove_style == 2 then
+			if remover_zone[e].remove_style == 2 then -- Timed
 				if dlonce[e] == 0 then
 					for a,b in pairs (_G[tableName[e]]) do
 						if g_Entity[b] ~= nil then
@@ -113,17 +115,38 @@ function remover_zone_main(e)
 					dlonce[e] = 1
 				end
 			end
+			if remover_zone[e].remove_style == 3 then --Fade
+				if dlonce[e] == 0 then
+					for a,b in pairs (_G[tableName[e]]) do
+						if g_Entity[b] ~= nil then
+							ModulateSpeed(b,0)
+							SetEntityTransparency(b,1)
+						end
+						if current_level[e] > 0 then
+							SetEntityBaseAlpha(b,current_level[e])
+							current_level[e] = current_level[e] - 0.1
+							if current_level[e] <= 0 then								
+								current_level[e] = 0
+								Hide(b)
+								wait[e] = g_Time + 100
+								dlonce[e] = 1
+							end
+						end
+					end
+				end
+			end
 		end
 	end
 	if g_Time > wait[e] then
-		if remover_zone[e].remove_style == 2 then
+		if remover_zone[e].remove_style == 2 or remover_zone[e].remove_style == 3 then
 			if ents[e] > 0 then
 				for a,b in pairs (_G[tableName[e]]) do
 					if g_Entity[b] ~= nil then
 						Hide(b)
 						CollisionOff(b)
 						Destroy(b)
-						_G[tableName[e]][a] = nil
+						_G[tableName[e]][a] = nil						
+						current_level[e] = 100
 					end
 					ents[e] = 0
 				end

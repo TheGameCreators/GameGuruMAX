@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Particle Mover v7 by Necrym59
+-- Particle Mover v9 by Necrym59
 -- DESCRIPTION: Allows a particle to be attached to a moving object.
 -- DESCRIPTION: Attach to an object. Set Always Active ON.
 -- DESCRIPTION: [PARTICLE_NAME$=""] particle name
@@ -9,7 +9,9 @@
 -- DESCRIPTION: [ADJUST_Z_OFFSET=0(-100,100)] ajdust z offset
 -- DESCRIPTION: [!HIDE_OBJECT=0] hide the attached object
 
+local U = require "scriptbank\\utillib"
 local lower = string.lower
+local rad = math.rad
 local partmover = {}
 local particle_name = {}	
 local object_name = {}
@@ -59,48 +61,54 @@ function particle_mover_init(e)
 	offsety[e] = 0
 	offsetz[e] = 0
 	partattached[e] = 0
+	SetEntityAlwaysActive(e,1)
 	status[e] = "init"
 end
 
 function particle_mover_main(e)
 	if status[e] == "init" then
-		status[e] = "endinit"
-	end
-	
-	if partmover[e].object_name > "" and partmover[e].object_number == 0 then
-		for a = 1, g_EntityElementMax do
-			if a ~= nil and g_Entity[a] ~= nil then
-				if string.lower(GetEntityName(a)) == partmover[e].object_name then
-					partmover[e].object_number = a
-					attachTo[e] = partmover[e].object_number
-					if partmover[e].hide_object == 1 then Hide(a) end
-					break
+		if partmover[e].object_name > "" and partmover[e].object_number == 0 then
+			for a = 1, g_EntityElementMax do
+				if a ~= nil and g_Entity[a] ~= nil then
+					if string.lower(GetEntityName(a)) == partmover[e].object_name then
+						partmover[e].object_number = a
+						attachTo[e] = partmover[e].object_number					
+						if partmover[e].hide_object == 1 then Hide(a) end
+						break
+					end
 				end
 			end
 		end
-	end
-	if partmover[e].particle_name > "" and partmover[e].particle_number == 0then
-		for p = 1, g_EntityElementMax do
-			if p ~= nil and g_Entity[p] ~= nil then
-				if string.lower(GetEntityName(p)) == partmover[e].particle_name then
-					partmover[e].particle_number = p					
-					tpositionx[e], tpositiony[e], tpositionz[e] = GetEntityPosAng(partmover[e].particle_number)					
-					partattached[e] = 1						
-					break
+		if partmover[e].particle_name > "" and partmover[e].particle_number == 0then
+			for p = 1, g_EntityElementMax do
+				if p ~= nil and g_Entity[p] ~= nil then
+					if string.lower(GetEntityName(p)) == partmover[e].particle_name then
+						partmover[e].particle_number = p					
+						tpositionx[e], tpositiony[e], tpositionz[e] = GetEntityPosAng(partmover[e].particle_number)					
+						partattached[e] = 1	
+						break
+					end
 				end
-			end
-		end		
-	end	
-	if attachTo[e] == -1 then return end
+			end		
+		end
+		SetActivated(partmover[e].object_number,1)
+		if attachTo[e] == -1 then return end
+		status[e] = "endinit"
+	end
 	
 	if partattached[e] == 1 and g_Entity[partmover[e].object_number]['activated'] == 1 then
-		local x,y,z,Ax,Ay,Az = GetEntityPosAng(attachTo[e])
+		local x,y,z,Ax,Ay,Az = GetEntityPosAng(partmover[e].object_number)
+		local ox,oy,oz = U.Rotate3D(x,y,z,rad(Ax),rad(Ay),rad(Az))	
 		--Set Particle Position
 		ResetPosition(partmover[e].particle_number, x+offsetx[e]+partmover[e].adjust_x_offset, y+offsety[e]+partmover[e].adjust_y_offset, z+offsetz[e]+partmover[e].adjust_z_offset)
-		Show(partmover[e].particle_number)
+		ResetRotation(partmover[e].particle_number,Ax,Ay+oy,Az)
+		if g_Entity[partmover[e].particle_number]['activated'] == 1 then
+			Show(partmover[e].particle_number)
+		end
 	else
 		Hide(partmover[e].particle_number)
 	end
+	
 	if g_Entity[attachTo[e]]['health'] <= 0 then
 		Hide(partmover[e].particle_number)
 		Destroy(partmover[e].particle_number)

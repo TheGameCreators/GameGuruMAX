@@ -85,14 +85,14 @@ function teleswitch_main(e)
 				end
 			end
 			if g_KeyPressE == 1 then
-				if doonce[e] == 0 then
+				if doonce[e] == 0 then					
 					SetActivatedWithMP(e,101)
 					SetAnimationName(e,"on")
 					PlayAnimation(e)
 					PlaySound(e,0)
-					TransportToIfUsed(e)
-					SetGamePlayerControlFinalCameraAngley(dest_angle[e])
 					PerformLogicConnections(e)
+					TransportToIfUsed(e)
+					SetGamePlayerControlFinalCameraAngley(dest_angle[e])					
 					status = "init"
 					doonce[e] = 1
 				end	

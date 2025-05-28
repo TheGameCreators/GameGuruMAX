@@ -2564,12 +2564,8 @@ void entity_loaddata ( void )
 						cmpNStrConst(t_field_s, "customshaderparam1");
 						if (matched)
 						{
-							//int index = atoi(t_field_s + 12);
-							//if (index < MAXMESHMATERIALS)
-							//{
-								t.entityprofile[t.entid].WEMaterial.customShaderParam1 = t.value1_f;
-								t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
-							//}
+							t.entityprofile[t.entid].WEMaterial.customShaderParam1 = t.value1_f;
+							t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
 						}
 						cmpNStrConst(t_field_s, "customshaderparam2");
 						if (matched)
@@ -2988,23 +2984,6 @@ void entity_loaddata ( void )
 					cmpStrConst(t_field_s, "ammopool");
 					if (matched)  
 						t.entityprofile[t.entid].ammopool_s = t.value_s;
-					#ifdef VRTECH
-					#else
-					cmpStrConst( t_field_s, "handfirespotoffx" );
-					if (  matched  )  t.entityprofile[t.entid].handfirespotoffx = t.value1;
-					cmpStrConst( t_field_s, "handfirespotoffy" );
-					if (  matched  )  t.entityprofile[t.entid].handfirespotoffy = t.value1;
-					cmpStrConst( t_field_s, "handfirespotoffz" );
-					if (  matched  )  t.entityprofile[t.entid].handfirespotoffz = t.value1;
-					cmpStrConst( t_field_s, "handfirespotrotx" );
-					if (  matched  )  t.entityprofile[t.entid].handfirespotrotx = t.value1;
-					cmpStrConst( t_field_s, "handfirespotroty" );
-					if (  matched  )  t.entityprofile[t.entid].handfirespotroty = t.value1;
-					cmpStrConst( t_field_s, "handfirespotrotz" );
-					if (  matched  )  t.entityprofile[t.entid].handfirespotrotz = t.value1;
-					cmpStrConst( t_field_s, "handfirespotsize" );
-					if (  matched  )  t.entityprofile[t.entid].handfirespotsize = t.value1;
-					#endif
 					cmpStrConst( t_field_s, "hasequipment" );
 					if (  matched  )  t.entityprofile[t.entid].hasweapon_s = t.value_s;
 					cmpStrConst( t_field_s, "ishealth" );
@@ -4459,13 +4438,17 @@ void entity_fillgrideleproffromprofile ( void )
 
 	#ifdef WICKEDENGINE
 	//PE: Make sure when we create we use default variables in eleprof.
+	// Users don't want to have to enable custom materials before editing materials
+	// ...non-custom materials are also causing issues with emissive, so just enable by default
+	// LB: Preben, OLDFLAK argues that users WANT this off by default and was the previous default behavior
+	// so we will make this false for default and fix any new issues that may arise, including the new demand
+	// that other users want if ON by default :)  Perhaps something in editor pref settings ;)
+	// LB: Additional - Preben notes doing the above breaks many things, including FPE material settings, so restore and rethink
+	t.grideleprof.bCustomWickedMaterialActive = true;
 	//if (t.entityprofile[t.entid].WEMaterial.MaterialActive)
 	//	t.grideleprof.bCustomWickedMaterialActive = true;
 	//else
 	//	t.grideleprof.bCustomWickedMaterialActive = false;
-	// Users don't want to have to enable custom materials before editing materials
-	// ...non-custom materials are also causing issues with emissive, so just enable by default
-	t.grideleprof.bCustomWickedMaterialActive = true;
 	t.grideleprof.WEMaterial = t.entityprofile[t.entid].WEMaterial;
 
 	//Need default particle setup here. or if will use the last inside "t.grideleprof".
@@ -6687,6 +6670,27 @@ void c_entity_loadelementsdata ( void )
 									i2--;
 								}
 							}
+						}
+					}
+				}
+			}
+		}
+
+		// clean up for entityelement for impossible mode combinations!
+		if (g_iAddEntityElementsMode == 0)
+		{
+			for (t.e = 1; t.e <= g.entityelementlist; t.e++)
+			{
+				t.entid = t.entityelement[t.e].bankindex;
+				if (t.entid > 0)
+				{
+					// [A] Impossible to have a COLLISION MESH (collisionmode=8) and be DYNAMIC
+					if (t.entityelement[t.e].staticflag == 0)
+					{
+						if (t.entityprofile[t.entid].collisionmode == 8 || t.entityelement[t.e].eleprof.iOverrideCollisionMode == 8)
+						{
+							// so correct and set to STATIC
+							t.entityelement[t.e].staticflag = 1;
 						}
 					}
 				}
@@ -9487,6 +9491,13 @@ void preload_wicked_particle_effect(newparticletype* pParticle, int decal_id)
 	OPTICK_EVENT();
 #endif
 
+	// disable wicked particles (for testing/etc)
+	extern int g_iDisableWParticleSystem;
+	if (g_iDisableWParticleSystem == 1)
+	{
+		return;
+	}
+
 	//PE: Preload effects so there is no delays.
 	int MaxCachedDecals = MAXREADYDECALS;
 	if (pParticle->iMaxCache > 0 && pParticle->iMaxCache < MAXREADYDECALS)
@@ -10968,7 +10979,9 @@ extern std::vector<sWorkshopSteamUserName> g_workshopSteamUserNames;
 extern std::vector<PublishedFileId_t> g_workshopTrustedItems;
 bool workshop_verifyandorreplacescript(int e, int entid)
 {
-#ifndef OPTICK_ENABLE
+	return false;
+	/* no longer support duplicate scripts in core and workshop, was confusing in the end!
+	#ifndef OPTICK_ENABLE
 	bool bReplacedScript = false;
 	char pScriptFile[MAX_PATH];
 	strcpy(pScriptFile, "scriptbank\\");
@@ -11020,9 +11033,10 @@ bool workshop_verifyandorreplacescript(int e, int entid)
 		}
 	}
 	return bReplacedScript;
-#else
+	#else
 	return false;
-#endif
+	#endif
+	*/
 }
 #else
 bool workshop_verifyandorreplacescript(int e, int entid)

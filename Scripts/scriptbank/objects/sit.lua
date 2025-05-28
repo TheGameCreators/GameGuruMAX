@@ -1,4 +1,4 @@
--- Sit v9 by Necrym59
+-- Sit v10 by Necrym59
 -- DESCRIPTION: The attached object will allow the player to sit down
 -- DESCRIPTION: [USE_PROMPT$="Press E to sit/stand"]
 -- DESCRIPTION: [USE_RANGE=90(1,300)]
@@ -13,6 +13,7 @@
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: [@SIT_TRIGGER=0(0=None,1=Trigger,2=Trigger+Stand)]
+-- DESCRIPTION: [#SEATED_ANGLE_ADJUST=0(-180,180)]
 -- DESCRIPTION: <Sound0> when sitting down.
 
 local module_misclib = require "scriptbank\\module_misclib"
@@ -32,6 +33,7 @@ local vertical_view_limit	= {}
 local prompt_display		= {}
 local item_highlight		= {}
 local sit_trigger			= {}
+local seated_angle_adjust 	= {}
 
 local seat_posx	 			= {}
 local seat_posy	 			= {}
@@ -51,7 +53,7 @@ local tEnt					= {}
 local done					= {}
 local freezeangy			= {}
 
-function sit_properties(e, use_prompt, use_range, use_style, seated_x_position, seated_y_position, seated_z_position, stand_adjustment, seating_speed, horizontal_view_limit, vertical_view_limit, prompt_display, item_highlight, sit_trigger)
+function sit_properties(e, use_prompt, use_range, use_style, seated_x_position, seated_y_position, seated_z_position, stand_adjustment, seating_speed, horizontal_view_limit, vertical_view_limit, prompt_display, item_highlight, sit_trigger, seated_angle_adjust)
 	sit[e].use_prompt = use_prompt
 	sit[e].use_range = use_range
 	sit[e].use_style = use_style	
@@ -65,6 +67,7 @@ function sit_properties(e, use_prompt, use_range, use_style, seated_x_position, 
 	sit[e].prompt_display = prompt_display
 	sit[e].item_highlight =	item_highlight
 	sit[e].sit_trigger = sit_trigger
+	sit[e].seated_angle_adjust = seated_angle_adjust	
 end
 
 function sit_init(e)
@@ -81,7 +84,8 @@ function sit_init(e)
 	sit[e].vertical_view_limit = 50
 	sit[e].prompt_display = 1
 	sit[e].item_highlight =	0
-	sit[e].sit_trigger = 0	
+	sit[e].sit_trigger = 0
+	sit[e].seated_angle_adjust = 0
 
 	seat_posx[e] = 0
 	seat_posy[e] = 0
@@ -176,7 +180,7 @@ function sit_main(e)
 				SetCameraPosition(0,seat_posx[e]+sit[e].seated_x_position,seat_posy[e]+sit[e].seated_y_position,seat_posz[e]+sit[e].seated_z_position)	
 				sittime[e] = seat_posy[e]+sit[e].seated_y_position
 				sitstate[e] = 2
-				freezeangy[e] = seat_angy[e]
+				freezeangy[e] = g_Entity[e]['angley'] + sit[e].seated_angle_adjust
 				SetGamePlayerControlFinalCameraAngley(freezeangy[e])
 			end
 			sittime[e] = sittime[e] + sit[e].seating_speed/60
@@ -184,7 +188,7 @@ function sit_main(e)
 		if sitstate[e] == 2 then
 			SetCameraPosition(0,seat_posx[e]+sit[e].seated_x_position,seat_posy[e]+sit[e].seated_y_position,seat_posz[e]+sit[e].seated_z_position)			
 			SetCameraAngle(0,GetCameraAngleX(0),GetCameraAngleY(0)-180,GetCameraAngleZ(0))
-			SetFreezeAngle(GetCameraAngleX(0),GetCameraAngleY(0),GetCameraAngleZ(0))			
+			SetFreezeAngle(GetCameraAngleX(0),GetCameraAngleY(0),GetCameraAngleZ(0))
 			SetFreezePosition(GetCameraPositionX(0),sittime[e],GetCameraPositionZ(0))			
 			TransportToFreezePositionOnly()	
 			--Set Lateral View Limit

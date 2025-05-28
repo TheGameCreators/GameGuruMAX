@@ -5669,7 +5669,6 @@ void gun_load ( void )
 	//PE: Emissive.
 	WickedCall_SetObjectEmissiveStrength(pGunObject, t.gun[t.gunid].settings.fEmissiveStrength);
 
-
 	// until weapons are provided that have a SEPARATE transparent mesh for semi-opaque
 	// alpha clip transparency out so weapons can be included in the PREPASS to solve lightray issue
 	// WickedCall_SetObjectAlphaRef (pGunObject, 0.01f); // Wicked modified so prepass only renders transparent objects that have this LOW alpha ref
@@ -6445,7 +6444,6 @@ int preparegun ( int gunid, int index)
 
 	//PE: Emissive.
 	WickedCall_SetObjectEmissiveStrength(pObject, t.gun[t.gunid].settings.fEmissiveStrength);
-	
 
 	// success
 	return 1;

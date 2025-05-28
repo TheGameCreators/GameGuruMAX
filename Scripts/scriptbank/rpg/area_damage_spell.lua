@@ -1,9 +1,9 @@
 -- DESCRIPTION: When collected can be cast as an Area Damage effect, damaging anything within an area surrounding the player.
--- Area Damage Spell v23 by Necrym59 and Lee
+-- Area Damage Spell v24 by Necrym59 and Lee
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Area Damage Spell"]
 -- DESCRIPTION: [USEAGE_TEXT$="Area Damage Inflicted"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyMana"]
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] eg: MyMana
 -- DESCRIPTION: [MANA_COST=10(1,100)]
 -- DESCRIPTION: [CAST_DAMAGE=500(1,100)]
 -- DESCRIPTION: [CAST_RADIUS=50(1,100))]

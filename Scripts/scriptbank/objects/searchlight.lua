@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Searchlight v10 by Necrym59
+-- Searchlight v14 by Necrym59
 -- DESCRIPTION: The applied object will create a rotatable searchlight? Static Mode = No, Physics = On, Explodable = Yes, IsImobile = Yes
 -- DESCRIPTION: Change the [PROMPT_TEXT$="Secuity alert was started"], the detection [SCAN_RANGE=1000], [SCAN_RADIUS=136(1,360)], [SCAN_SPEED=3(1,10)]. Detection [@ALARM=2(1=Off, 2=On)] and [ALARM_RANGE=2000(1,3000)], Change its [@VISIBILITY=1(1=Visible, 2=Invisible)] <Sound0> - Scan Loop  <Sound1> - Alarm Loop  <Sound2> - Damaged Sound
 
@@ -24,8 +24,6 @@ local start_angle = {}
 local sweep = {}
 local status = {}
 local alert = {}
-local searchlightstart = {}
-local searchlightstop = {}
 local lightNum = {}
 local doonce = {}
 
@@ -39,7 +37,7 @@ function searchlight_properties(e, prompt_text, scan_range, scan_radius, scan_sp
 	g_searchlight[e]['alarm'] = alarm
 	g_searchlight[e]['alarm_range'] = alarm_range
 	g_searchlight[e]['visibility'] = visibility
-end -- End properties
+end 
 
 function searchlight_init(e)
 	g_searchlight[e] = g_Entity[e]
@@ -56,8 +54,7 @@ function searchlight_init(e)
 	sweep[e] = 0
 	status[e] = 'init'
 	alert[e] = 0
-	searchlightstart = 0
-	searchlightstop = 0
+	SetEntityAlwaysActive(e,1)
 	if g_Entity[e]['health'] < 100 then SetEntityHealth(e,g_Entity[e]['health']+100) end
 	doonce[e] = 0	
 end
@@ -70,7 +67,7 @@ function searchlight_main(e)
 		if g_searchlight[e]['visibility'] == nil then g_searchlight[e]['visibility'] = 1 end
 		if g_searchlight[e]['visibility'] == 1 then Show(e) end
 		if g_searchlight[e]['visibility'] == 2 then Hide(e) end
-		if g_Entity[e]['health'] < 100 then SetEntityHealth(e,g_Entity[e]['health']+100)
+		if g_Entity[e]['health'] < 100 then SetEntityHealth(e,g_Entity[e]['health']+100) end
 		current_angle[e] = start_angle[e]		
 		status[e] = 'scanning'		
 	end
@@ -96,6 +93,7 @@ function searchlight_main(e)
 		end			
 	end	
 	--check target enters range
+	GetEntityPlayerVisibility(e)
 	if GetPlayerDistance(e) <= g_searchlight[e]['scan_range'] and g_Entity[e]['health'] > 1 then
 		if current_angle[e] < g_searchlight[e]['scan_radius'] + start_angle[e] and sweep[e] == 0 then
 			current_angle[e] = current_angle[e] + (g_searchlight[e]['scan_speed']/10)
@@ -115,7 +113,7 @@ function searchlight_main(e)
 			if current_angle[e] <= start_angle[e] then sweep[e] = 0 end
 		end	
 
-		if EntityLookingAtPlayer(e,g_searchlight[e]['scan_range'],g_searchlight[e]['scan_radius']/8) == 1 then		 
+		if EntityLookingAtPlayer(e,g_searchlight[e]['scan_range'],g_searchlight[e]['scan_radius']/8) == 1 and g_Entity[e]['plrvisible'] == 1 then		 
 			x = g_PlayerPosX - g_Entity[e]['x']
 			z = g_PlayerPosZ - g_Entity[e]['z']
 			target_angle[e] = math.atan2(x,z)
@@ -204,35 +202,35 @@ function EntityLookingAtPlayer(e,dis,v)
 			elseif angle > 360 then
 				angle = angle - 360
 			end
-		while g_Entity[e]['angley'] < 0 or g_Entity[e]['angley'] > 360 do
-			if g_Entity[e]['angley'] <= 0 then
-				g_Entity[e]['angley'] = 360 + g_Entity[e]['angley']
-			elseif g_Entity[e]['angley'] > 360 then
-				g_Entity[e]['angley'] = g_Entity[e]['angley'] - 360
+			while g_Entity[e]['angley'] < 0 or g_Entity[e]['angley'] > 360 do
+				if g_Entity[e]['angley'] <= 0 then
+					g_Entity[e]['angley'] = 360 + g_Entity[e]['angley']
+				elseif g_Entity[e]['angley'] > 360 then
+					g_Entity[e]['angley'] = g_Entity[e]['angley'] - 360
+				end
 			end
-		end
-		local L = angle - v
-		local R = angle + v
-		if L <= 0 then
-			L = 360 + L 
-		elseif L > 360 then
-			L = L - 360
-		end
-		if R <= 0 then
-			R = 360 + R
-		elseif R > 360 then
-			R = R - 360
-		end
-		
-		if (L < R and math.abs(g_Entity[e]['angley']) > L and math.abs(g_Entity[e]['angley']) < R) then
-			return 1
-		elseif (L > R and (math.abs(g_Entity[e]['angley']) > L or math.abs(g_Entity[e]['angley']) < R)) then
-			return 1
+			local L = angle - v
+			local R = angle + v
+			if L <= 0 then
+				L = 360 + L 
+			elseif L > 360 then
+				L = L - 360
+			end
+			if R <= 0 then
+				R = 360 + R
+			elseif R > 360 then
+				R = R - 360
+			end
+			
+			if (L < R and math.abs(g_Entity[e]['angley']) > L and math.abs(g_Entity[e]['angley']) < R) then
+				return 1
+			elseif (L > R and (math.abs(g_Entity[e]['angley']) > L or math.abs(g_Entity[e]['angley']) < R)) then
+				return 1
+			else
+				return 0
+			end
 		else
 			return 0
 		end
-	else
-		return 0
-	end
 	end
 end

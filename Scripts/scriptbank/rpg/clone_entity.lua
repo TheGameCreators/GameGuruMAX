@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Clone_Entity v21 by Necrym59 and Lee
+-- Clone_Entity v22 by Necrym59 and Lee
 -- DESCRIPTION: Allows cloning of a Named Entity when triggered.
 -- DESCRIPTION: Attach to an object then logic link to a switch or zone to activate, or directly assign to a zone.
 -- DESCRIPTION: [CLONE_QUANTITY=1(1,100)]
@@ -69,6 +69,7 @@ function clone_entity_init(e)
 	clone_entity[e].entity_no = 0
 	
 	clone_entity[e].timetonextspawn = 0
+	
 	lifetimer[e] = math.huge
 	respawntimer[e] = math.huge
 	respawnactive[e] = 0
@@ -155,6 +156,9 @@ function clone_entity_main(e)
 				table.insert(_G[tableName[e]],newEntn)
 				if clones[e] >= clone_entity[e].clone_quantity then
 					CollisionOff(clone_entity[e].entity_no)
+					PerformLogicConnections(e)
+					ActivateIfUsed(e)
+					g_clonedEntities = clone_entity[e].clone_quantity
 					if clone_entity[e].clone_lifespan ~= 0 then
 						lifetimer[e] = g_Time + (clone_entity[e].clone_lifespan * 1000)*60
 						status[e] = "monitor_lifespan"

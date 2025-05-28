@@ -1,8 +1,8 @@
--- Crafting Kit v11   by Necrym59
+-- Crafting Kit v12   by Necrym59
 -- DESCRIPTION: The attached object can be used as a portable crafting kit.
 -- DESCRIPTION: Set object as Collectable.
 -- DESCRIPTION: [PICKUP_TEXT$="E to Pickup"] [PICKUP_RANGE=80(1,100)]
--- DESCRIPTION: [@PICKUP_STYLE=1(1=Automatic, 2=Manual)]
+-- DESCRIPTION: [@PICKUP_STYLE=1(1=Automatic, 2=Manual, 3=Already Carrying)]
 -- DESCRIPTION: [USEAGE_TEXT$="Press U to begin crafting"]
 -- DESCRIPTION: [USEAGE_KEY$="U"]
 -- DESCRIPTION: When use key is pressed, will open the [CRAFT_SCREEN$="HUD Screen 7"]
@@ -28,6 +28,7 @@ local prompt_display 	= {}
 local item_highlight 	= {}
 
 local have_crafting_kit = {}
+local status 			= {}
 local selectobj 		= {}
 local doonce 			= {}
 local tEnt 				= {}
@@ -63,9 +64,21 @@ function crafting_kit_init(e)
 	g_tEnt = 0
 	doonce[e] = 0
 	played[e] = 0
+	status[e] = "init"
 end
 
 function crafting_kit_main(e)
+
+	if status[e] == "init" then
+		if crafting_kit[e].pickup_style == 3 then
+			have_crafting_kit[e] = 1
+			SetEntityCollected(e,1)
+			SetEntityAlwaysActive(e,1)
+			CollisionOff(e)
+			Hide(e)
+		end
+		status[e] = "endinit"
+	end
 
 	PlayerDist = GetPlayerDistance(e)
 
@@ -120,7 +133,7 @@ function crafting_kit_main(e)
 			SetPosition(e,g_PlayerPosX,g_PlayerPosY+1000,g_PlayerPosZ)
 			if GetCurrentScreen() == -1 then
 				-- in the game
-				if GetInKey() == crafting_kit[e].useage_key then
+				if GetInKey() == string.upper(crafting_kit[e].useage_key) or GetInKey() == string.lower(crafting_kit[e].useage_key) then
 					g_craftstation = 1	-- for use of limiting crafts (not yet activated)
 					g_UserGlobalContainer = crafting_kit[e].craft_container
 					ScreenToggle(crafting_kit[e].craft_screen)					

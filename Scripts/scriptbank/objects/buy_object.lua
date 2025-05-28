@@ -1,4 +1,5 @@
--- Buy Object v6 Necrym59 and oosayeroo 
+-- LUA Script - precede every function and global member with lowercase name of script + '_main'
+-- Buy Object v7 Necrym59 and oosayeroo 
 -- DESCRIPTION: The object will act as a switch to trigger logic connection if the global affected variable amount is valid.
 -- DESCRIPTION: [USE_RANGE=80(1,100)]
 -- DESCRIPTION: [BUY_TEXT$="E to purchase"]
@@ -7,7 +8,7 @@
 -- DESCRIPTION: [@TEXT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: [BUY_COST=10(1,500)]
 -- DESCRIPTION: [@DELETE_ON_BUY=1(1=Yes, 2=No)]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] eg: MyMoney
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] eg: MyMoney
 -- DESCRIPTION: <Sound0> for buying sound.
 
 local module_misclib = require "scriptbank\\module_misclib"

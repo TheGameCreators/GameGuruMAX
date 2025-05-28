@@ -1,12 +1,13 @@
--- Door Rotate Multi - v25 Necrym59 and AmenMoses and Lee
+-- Door Rotate Multi - v26 Necrym59 and AmenMoses and Lee
 -- DESCRIPTION: Rotates a non-animating door by zone, switch or player.
--- DESCRIPTION: [@DOOR_STYLE=1(1=Manual,2=Switch/Zone, 3=Auto)]
+-- DESCRIPTION: [@DOOR_STYLE=1(1=Manual,2=Switch/Zone,3=Auto)]
 -- DESCRIPTION: Change the [OPEN_PROMPT$="Press E to open door"]
 -- DESCRIPTION: Change the [CLOSE_PROMPT$="Press E to close door"]
 -- DESCRIPTION: [@ROTATION_STYLE=1(1=Right,2=Left)]
 -- DESCRIPTION: [#ROTATION_SPEED=3.0(1.0,60.0)](seconds)
 -- DESCRIPTION: [USE_RANGE=80(1,300)]
 -- DESCRIPTION: [@PROMPT_DISPLAY=2(1=Local,2=Screen)]
+-- DESCRIPTION: [AUTO_CLOSE_DELAY=0(0,10)] 0=Auto close Off
 -- DESCRIPTION: Play <Sound0> when opening
 -- DESCRIPTION: Play <Sound1> when closing
 
@@ -29,16 +30,17 @@ local controlEnt		= {}
 local tEnt 				= {}
 local selectobj 		= {}
 
-function door_rotate_multi_properties( e, door_style, open_prompt, close_prompt, rotation_style, rotation_speed, use_range, prompt_display)
+function door_rotate_multi_properties( e, door_style, open_prompt, close_prompt, rotation_style, rotation_speed, use_range, prompt_display, auto_close_delay)
 	local door = doors[ e ]
 	if door == nil then return end
 	door.door_style = door_style
 	door.open_prompt  = open_prompt
 	door.close_prompt  = close_prompt
 	door.hinge = hingeTypes[ rotation_style ]
-	door.rotation_speed = rotation_speed * 1000 / 60
+	door.rotation_speed = rotation_speed * 1000 / 120
 	door.use_range = use_range
 	door.prompt_display = prompt_display
+	door.auto_close_delay = auto_close_delay or 0	
 end
 
 function door_rotate_multi_init( e )
@@ -127,6 +129,10 @@ function door_rotate_multi_main( e )
 
 	elseif
 	   door.state == 'open' then
+	    if door.auto_close_delay > 0 then
+			SetEntityActivated(e,1)
+			door.state = 'closing'
+		end
 		if Ent.activated == 0 then
 			door.state = 'closing'
 			PlaySound( e, 1 )
@@ -164,9 +170,8 @@ function door_rotate_multi_main( e )
 		else
 			door.state = 'open'
 			SetEntityActivated( e, 1 )
-			door.blocking = 2
+			door.blocking = 2			
 		end
-
 	elseif
 	   door.state == 'closing' then
 		if door.angle > 0 then

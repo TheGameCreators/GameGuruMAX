@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Planet v5 by Necrym59
+-- Planet v6 by Necrym59
 -- DESCRIPTION: Allows a planet object made using 3 identical sized spherical objects, a planet sphere, cloud sphere, atmosphere sphere, plus an optional circular rings object.
 -- DESCRIPTION: and can trigger Logic Linked or IfUsed game elements or change lavel.
 -- DESCRIPTION: Attach this behavior to the planet sphere object.
@@ -194,6 +194,7 @@ function planet_main(e)
 						endvid[e] = 1
 					end
 					if endvid[e] == 1 then
+						SetWeaponArmsVisible(0,0,0,0)
 						JumpToLevelIfUsedEx(e, planet[e].resetstates)					
 					end
 					doonce[e] = 1

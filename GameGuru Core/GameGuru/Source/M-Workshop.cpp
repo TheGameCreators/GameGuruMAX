@@ -623,6 +623,8 @@ cstr workshop_findtrustedreplacement(LPSTR pCoreScriptFile)
 //PE: Im getting a strange crash here witout OPTICK_ENABLE ? , moved this to m-entity.cpp fixed it ?
 bool workshop_verifyandorreplacescript2 ( int e, int entid )
 {
+	return false;
+	/* no longer support duplicate scripts in core and workshop, was confusing in the end!
 	#ifndef OPTICK_ENABLE
 	bool bReplacedScript = false;
 	char pScriptFile[MAX_PATH];
@@ -678,6 +680,7 @@ bool workshop_verifyandorreplacescript2 ( int e, int entid )
 	#else
 	return false;
 	#endif
+	*/
 }
 
 // Callback Functions for Steam Workshop

@@ -10204,6 +10204,14 @@ int WParticleEffectLoad(lua_State* L)
 	lua = L;
 	int n = lua_gettop(L);
 	if (n < 1) return 0;
+
+	// disable wicked particles (for testing/etc)
+	extern int g_iDisableWParticleSystem;
+	if (g_iDisableWParticleSystem == 1)
+	{
+		lua_pushnumber(L, 0);
+		return 1;
+	}
 	
 	Scene& scene = wiScene::GetScene();
 

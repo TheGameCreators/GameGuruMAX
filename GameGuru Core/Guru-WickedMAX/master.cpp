@@ -2297,7 +2297,7 @@ void MasterRenderer::Update(float dt)
 			else
 			{
 				// still need for terrain globals to update local params (for editable_size reading)
-				GGTerrain_Update_EmptyLevel(camera.Eye.x, camera.Eye.y, camera.Eye.z);
+				GGTerrain_Update_EmptyLevel(camera.Eye.x, camera.Eye.y, camera.Eye.z, cmd);
 			}
 			
 #ifdef WICKEDPARTICLESYSTEM

@@ -1,5 +1,5 @@
 -- DESCRIPTION: Allows to receive information about an object.
--- Investigate v9
+-- Investigate v10
 -- DESCRIPTION: [PROMPT_TEXT$="E to investigate"]
 -- DESCRIPTION: [USE_RANGE=80(1,100)]
 -- DESCRIPTION: [@INVESTIGATION_STYLE=1(1=Text, 2=Text+Sound, 3=Image+Sound, 4=Text+Image+Sound)]
@@ -10,6 +10,7 @@
 -- DESCRIPTION: [IMAGEFILE$="imagebank\\misc\\testimages\\investigate_01.png"]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
+-- DESCRIPTION: [IMAGE_SIZE=8(0,100)]
 -- DESCRIPTION: <Sound0> investigate narration sound file
 
 local module_misclib = require "scriptbank\\module_misclib"
@@ -27,6 +28,7 @@ local exit_text = {}
 local investigate_image = {}
 local prompt_display = {}
 local item_highlight = {}
+local image_size = {}
 
 local investigatesp = {}
 local status = {}
@@ -35,8 +37,11 @@ local imagesize = {}
 local played = {}
 local tEnt = {}
 local selectobj = {}
+local imgAspectRatio = {}
+local imgWidth = {}
+local imgHeight = {}
 
-function investigate_properties(e, prompt_text, use_range, investigation_style, investigation_text, text_position_y, freeze_screen, exit_text, investigation_image, prompt_display, item_highlight)
+function investigate_properties(e, prompt_text, use_range, investigation_style, investigation_text, text_position_y, freeze_screen, exit_text, investigation_image, prompt_display, item_highlight, image_size)
 	investigate[e].prompt_text = prompt_text
 	investigate[e].use_range = use_range
 	investigate[e].investigation_style = investigation_style
@@ -47,6 +52,7 @@ function investigate_properties(e, prompt_text, use_range, investigation_style, 
 	investigate[e].investigation_image = investigation_image or imagefile
 	investigate[e].prompt_display = prompt_display
 	investigate[e].item_highlight = item_highlight
+	investigate[e].image_size = image_size	
 end
 
 function investigate_init(e)
@@ -61,13 +67,16 @@ function investigate_init(e)
 	investigate[e].investigation_image = ""
 	investigate[e].prompt_display = 1
 	investigate[e].item_highlight = 0
+	investigate[e].image_size = 8
 	
-	imagesize[e] = 8
 	played[e] = 0
 	looking[e] = 0
 	tEnt[e] = 0
 	g_tEnt = 0	
 	selectobj[e] = 0
+	imgAspectRatio[e] = 0
+	imgWidth[e] = 0
+	imgHeight[e] = 0
 	status[e] = "init"
 end
 
@@ -76,11 +85,12 @@ function investigate_main(e)
 	if status[e] == "init" then
 		if investigate[e].investigation_style == 3 or investigate[e].investigation_style == 4 then
 			if investigate[e].investigation_image > "" then 
-				local imgAspectRatio = GetImageHeight(investigate[e].investigation_image) / GetImageWidth(investigate[e].investigation_image)
-				local imgWidth = imagesize[e]
-				local imgHeight = imgWidth * imgAspectRatio
+				imgAspectRatio[e] = GetImageHeight(investigate[e].investigation_image) / GetImageWidth(investigate[e].investigation_image)
+				imgWidth[e] = investigate[e].image_size
+				imgHeight[e] = imgWidth[e] * imgAspectRatio[e]
 				investigatesp[e] = CreateSprite(LoadImage(investigate[e].investigation_image))
-				SetSpriteSize(investigatesp[e],imgWidth,imgHeight)
+				SetSpriteSize(investigatesp[e],imgWidth[e],imgHeight[e])
+				SetSpriteDepth(investigatesp[e],100)
 				SetSpritePosition(investigatesp[e],500,500)
 			end
 		end
@@ -122,9 +132,9 @@ function investigate_main(e)
 			if GetPlayerDistance(e) > investigate[e].use_range*3 and looking[e] == 1 then SetGamePlayerStatePlrKeyForceKeystate(16) end
 			Prompt(investigate[e].exit_text)
 		end
-		if investigate[e].investigation_style == 3 then
+		if investigate[e].investigation_style == 3 then			
 			if investigate[e].investigation_image > "" then
-				PasteSpritePosition(investigatesp[e],50-(imagesize[e]/2),50-(imagesize[e]/2))	
+				PasteSpritePosition(investigatesp[e],50-imgWidth[e]/2,50-imgHeight[e]/2)				
 			end
 			if played[e] == 0 then
 				PlaySound(e,0)
@@ -133,11 +143,11 @@ function investigate_main(e)
 			if GetPlayerDistance(e) > investigate[e].use_range*3 and looking[e] == 1 then SetGamePlayerStatePlrKeyForceKeystate(16) end			
 			Prompt(investigate[e].exit_text)
 		end
-		if investigate[e].investigation_style == 4 then
-			TextCenterOnX(50,investigate[e].text_position_y,3,investigate[e].investigation_text)
+		if investigate[e].investigation_style == 4 then			
 			if investigate[e].investigation_image > "" then
-				PasteSpritePosition(investigatesp[e],50-(imagesize[e]/2),60-(imagesize[e]/2))
+				PasteSpritePosition(investigatesp[e],50-imgWidth[e]/2,50-imgHeight[e]/2)
 			end
+			TextCenterOnX(50,investigate[e].text_position_y,3,investigate[e].investigation_text)
 			if played[e] == 0 then
 				PlaySound(e,0)
 				played[e] = 1

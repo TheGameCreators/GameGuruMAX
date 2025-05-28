@@ -452,9 +452,7 @@ void ebe_init_newbuild ( int iBuildObj, int entid )
 	if (t.ebe.active == 0)
 	{
 		ebe_init(iBuildObj, entid);
-#ifdef WICKEDENGINE
 		t.grideleprof.bCustomWickedMaterialActive = false;
-#endif
 	}
 
 	// load TXP profile from entity data
@@ -1891,8 +1889,9 @@ void imgui_ebe_loop(void)
 				ImGui::Indent(10);
 				if (!t.grideleprof.bCustomWickedMaterialActive) 
 				{
-					ImGui::Checkbox("Enable Custom Materials", &t.grideleprof.bCustomWickedMaterialActive);
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Enable Custom Materials");
+					//LB: Explain what this tick box now does with more clarity!
+					ImGui::Checkbox("Custom Materials Used", &t.grideleprof.bCustomWickedMaterialActive);
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("This flag indicates the object has modified the original model, either through FPE level additions or changes within the level editor");
 
 					//PE: Copy master material settings to t.grideleprof.WEMaterial
 					if (t.grideleprof.bCustomWickedMaterialActive) 
@@ -1908,8 +1907,8 @@ void imgui_ebe_loop(void)
 				}
 				else 
 				{
-					ImGui::Checkbox("Enable Custom Materials", &t.grideleprof.bCustomWickedMaterialActive);
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Enable Custom Materials");
+					ImGui::Checkbox("Custom Materials Used", &t.grideleprof.bCustomWickedMaterialActive);
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("This flag indicates the object has modified the original model, either through FPE level additions or changes within the level editor");
 					Wicked_Change_Object_Material((void*)pObject, 3);
 				}
 				ImGui::Indent(-10);

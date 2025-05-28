@@ -1,4 +1,4 @@
--- Door Sliding v33 - Necrym59 and AmenMoses and Lee
+-- Door Sliding v34 - Necrym59 and AmenMoses and Lee
 -- DESCRIPTION: Open and close a sliding door. 
 -- DESCRIPTION: [MOVE_ANGLE=0(0,360)] 
 -- DESCRIPTION: [MOVE_DISTANCE=90] 
@@ -114,6 +114,7 @@ function door_sliding_init( e )
 	local x, y, z, xa, ya, za = GetObjectPosAng( door.obj )
 	door.pos = V.Create( x, y, z )
 	door.vec = V.FromEuler( xa, ya, za, true )
+	door.perf  = door.move_distance / door.move_period
 	local v = V.Add( door.pos, V.Mul( door.vec, door.raiseoffset ) )
 end
 	 
@@ -291,7 +292,6 @@ function door_sliding_main(e)
 				PlaySound(e,2)
 				SwitchScript(e,"no_behavior_selected.lua")
 			end
-				
 		end
 		PositionDoor(e,door)
 		SetEntityActivated(e,0)

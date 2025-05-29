@@ -1,6 +1,6 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Remover Zone v4 by Necrym59
--- DESCRIPTION: When player enters the zone, displays a notification and will remove/destroy
+-- Remover Zone v5 by Necrym59
+-- DESCRIPTION: When player enters the zone, displays a notification and will remove/destroy the
 -- DESCRIPTION: named entity/entities, activates any logic links, then destroys this zone.
 -- DESCRIPTION: [NOTIFICATION$="Entity/Entities removed"]
 -- DESCRIPTION: [ENTITY_NAME$=""] Name of entity/entities.

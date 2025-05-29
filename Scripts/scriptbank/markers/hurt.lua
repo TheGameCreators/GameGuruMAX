@@ -1,10 +1,10 @@
--- Hurt v6
+-- Hurt v7
 -- DESCRIPTION: Hurts the player over time or once only when they enter the zone.
 -- DESCRIPTION: Can also update a specified User Global by the same amount.
 -- DESCRIPTION: Set the Hurt [AMOUNT=1(1-20)] and the [TIMING=1(1,10)] and the [ZONEHEIGHT=100(1,500)]
 -- DESCRIPTION: [SpawnAtStart!=1] if unchecked use a switch or other trigger to spawn this zone
 -- DESCRIPTION: [HurtOnceOnly!=0] to hurt once only then zone is destroyed.
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] User global to also affect
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] eg; MyGlobal
 -- DESCRIPTION: <Sound0> for when entering the zone
 
 module_activationcontrol = require "scriptbank\\module_activationcontrol"

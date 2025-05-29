@@ -11,7 +11,6 @@
 #include "..\..\GameGuru\Imgui\imgui_gg_dx11.h"
 #endif
 
-#ifdef WICKEDENGINE
 #include "GGTerrain\GGTerrain.h"
 #include "GGTerrain\GGTrees.h"
 using namespace GGTerrain;
@@ -22,16 +21,10 @@ GGVECTOR3 g_vPlayAreaMax = GGVECTOR3(0, 0, 0);
 //bool g_bSculptingRequiresNewPhysics = false;
 bool g_bModifiedThisTerrainGrid[21][21];
 int g_iLastProgressPercentage = -1;
-
-//int g_iMaterialMapSize = 0;
-//float g_fMaterialMapRealSize = 0;
-//uint8_t* g_cMaterialMap = NULL;
 bool g_bMapMatIDToMatIndexAvailable = false;
 int g_iMapMatIDToMatIndex[32];
-
 int g_iSuccessfullyBlockedAtTime = 0;
-
-#endif
+bool g_bSpawningThisOneNow = false;
 
 #ifdef OPTICK_ENABLE
 #include "optick.h"
@@ -1364,6 +1357,14 @@ void physics_prepareentityforphysics ( void )
 				if ( t.entityprofile[t.entid].ischaracter == 1 && t.entityelement[t.e].eleprof.isimmobile == 0 )
 				{
 					//  physics objects belong to Ghost AI Objects (set outside of this function, i.e. LUA-Entity.cpp)
+					// except when you are spawning them in game and want physics sorted
+					if (g_bSpawningThisOneNow == true)
+					{
+						// you shall go to the ball, cinders!
+						t.tcollisionscaling = t.entityprofile[t.entid].collisionscaling;
+						t.tcollisionscalingxz = t.entityprofile[t.entid].collisionscalingxz;
+						physics_setupcharacter ();
+					}
 				}
 				else
 				{

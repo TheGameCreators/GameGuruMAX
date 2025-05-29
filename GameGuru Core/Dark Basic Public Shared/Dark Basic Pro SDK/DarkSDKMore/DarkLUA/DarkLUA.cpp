@@ -2807,7 +2807,10 @@ luaMessage** ppLuaMessages = NULL;
 	// clones always show at start
 	t.entityelement[t.e].eleprof.spawnatstart = 1;
 	iNewE = t.e;
+	extern bool g_bSpawningThisOneNow;
+	g_bSpawningThisOneNow = true;
 	physics_prepareentityforphysics ();
+	g_bSpawningThisOneNow = false;
 	t.entityelement[t.e].lua.firsttime = 0;
 	// clones need parent health at least top begin with
 	t.entityelement[t.e].health = t.entityelement[iEntityIndex].health;

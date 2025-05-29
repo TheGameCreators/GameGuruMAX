@@ -1,7 +1,7 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Spawn Locator v5 by Necrym59
+-- Spawn Locator v6 by Necrym59
 -- DESCRIPTION: Will relocate the player to a designated spawn marker. Place under the Player Start Marker.
--- DESCRIPTION: [SPAWN_MARKER_USER_GLOBAL$="MySpawnMarkers"] user global required for using spawn markers
+-- DESCRIPTION: [@@SPAWN_MARKER_USER_GLOBAL$=""(0=globallist)] user global required for using spawn markers (eg: MySpawnMarkers)
 
 local lower = string.lower
 local spawn_locator = {}

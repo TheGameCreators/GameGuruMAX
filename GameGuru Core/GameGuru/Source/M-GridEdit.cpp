@@ -29062,6 +29062,34 @@ void gridedit_load_map ( void )
 		}
 	}
 	*/
+	bool bAutoCleanUpOldCommunityCoreReferencesBackToStockLatest = true;
+	if (bAutoCleanUpOldCommunityCoreReferencesBackToStockLatest == true)
+	{
+		bool bReplacedAnyScript = false;
+		if (g.entityelementlist > 0)
+		{
+			for (int e = 1; e <= g.entityelementlist; e++)
+			{
+				char pCurrentScript[MAX_PATH];
+				strcpy(pCurrentScript, t.entityelement[e].eleprof.aimain_s.Get());
+				strlwr(pCurrentScript);
+				LPSTR pPatternToMatch = "community\\6704278\\core\\";
+				if ( strstr(pCurrentScript, pPatternToMatch) != NULL )
+				{
+					strcpy(pCurrentScript, t.entityelement[e].eleprof.aimain_s.Get() + strlen(pPatternToMatch));
+					t.entityelement[e].eleprof.aimain_s = pCurrentScript;
+					bReplacedAnyScript = true;
+				}
+			}
+		}
+		if (bReplacedAnyScript == true)
+		{
+			strcpy(cTriggerMessage, "Some core behaviors have been updated to the latest version");
+			iTriggerMessageDelay = 10;
+			bTriggerMessage = true;
+			iMessageTimer = 0;
+		}
+	}
 
 	// free usages
 	if ( ArrayCount(t.missingmedia_s) >= 0 ) 

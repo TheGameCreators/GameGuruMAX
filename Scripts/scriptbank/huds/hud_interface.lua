@@ -1,12 +1,12 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Hud_Interface v9 by Necrym59 and Lee
+-- Hud_Interface v10 by Necrym59 and Lee
 -- DESCRIPTION: Will this will enable to use a hud screen as an interface for the attached object. 
 -- DESCRIPTION: Ensure your Hud Button names match the ones you put in here and are set to "return id to lua".
 -- DESCRIPTION: Optionally reduce use range to 1 to allow HUD control anytime the specified HUD is visible.
 -- DESCRIPTION: If used by a zone, the specified HUD will show when the player enters the zone.
 -- DESCRIPTION: [USE_RANGE=80(1,100)]
 -- DESCRIPTION: [USE_TEXT$="E to Use"]
--- DESCRIPTION: [HUD_SCREEN$="HUD Screen 9"]
+-- DESCRIPTION: [@@HUD_SCREEN$=""(0=hudscreenlist)] Eg: HUD Screen 9
 -- DESCRIPTION: [HUD_BUTTON1$="Activate Link"]
 -- DESCRIPTION: [@HUD_ACTION1=0(0=Link 0,1=Link 1,2=Link 2,3=Link 3,4=Link 4,5=Link 5,6=Link 6,7=Link 7,8=Link 8,9=Link 9,10=Play Audio,11=Destroy Object,12=Activate IfUsed,13=Exit Hud)]
 -- DESCRIPTION: [HUD_ACTION1_TEXT$="Link Activated"]

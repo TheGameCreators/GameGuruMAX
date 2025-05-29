@@ -168,6 +168,7 @@ g_gameloop_StartHealth = 0
 g_gameloop_RegenRate = 0
 g_gameloop_RegenSpeed = 0
 g_gameloop_RegenDelay = 0
+g_gameloop_AnotherInit = 0
 
 -- Globals to track projectile explosion event
 g_projectileevent_explosion = 0
@@ -193,6 +194,7 @@ function GameLoopInit(invincible,sth,rra,rsp,rde)
  gameplayerspeed = require "scriptbank\\gameplayerspeed"
  gameplayerspeed.startgame()
  g_PlayerFrozen = 0
+ g_gameloop_AnotherInit = 1
 end
 
 function GlobalLoop(gameloopflag)

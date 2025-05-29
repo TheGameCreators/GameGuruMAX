@@ -42222,17 +42222,14 @@ void process_storeboard(bool bInitOnly)
 				
 				lpTexture = GetImagePointerView(STORYBOARD_HEADER);
 				ImVec2 vHeaderDim = { (float)preview_size_x, fHeaderHeight };
-//				static ImVec4 fade_heading = ImVec4(1.0, 1.0, 1.0, 0.5);
 				static ImVec4 fade_heading = ImVec4(1.0, 1.0, 1.0, 1.0); //New header no fading.
 				if (lpTexture)
 				{
 					ImGuiWindow* window = ImGui::GetCurrentWindow();
 					ImVec2 header_pos = ImGui::GetWindowPos() + ImVec2(0.0, fStartWinPosY);
 					window->DrawList->AddImage((ImTextureID)lpTexture, header_pos, header_pos + vHeaderDim, ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(fade_heading));
-				}
-				
+				}	
 				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0, fStartWinPosY + 6.0f));
-
 				ImVec2 vCurPos = ImGui::GetCursorPos();
 				ImVec2 vIconSize = { (float)ImGui::GetFontSize()*3.5f, (float)ImGui::GetFontSize()*3.5f };
 				ImGui::SetCursorPos(ImVec2(3.0f, fStartWinPosY + 1.0f));
@@ -43231,6 +43228,9 @@ void process_storeboard(bool bInitOnly)
 								//As outside of any specific node, cannot know if modification was to screen or level
 								//Storyboard.iChanged = true; //PE: Anything trigger a change in project.
 								//if (strlen(Storyboard.Nodes[i].levelnumber) == 0) Storyboard.iChanged = true; // Not for game levels
+								//LB: Agreed, it seems we cannot determine difference between a click to nowhere and a click that changed something
+								// so we opt for the one that provides the best chance for users NOT to lose their work
+								Storyboard.iChanged = 1;
 								bGetMouseDown = false;
 							}
 							if (ImGui::IsMouseDown(0)) bGetMouseDown = true; //PE: Anything trigger a change in project.

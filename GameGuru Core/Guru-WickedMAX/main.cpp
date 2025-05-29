@@ -607,12 +607,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (g_bDisableQuitFlag == false)
 			{
 				int iRet = 0;
-				#ifdef STORYBOARD
 				//PE: Save storyboard if changed.
 				int autosave_storyboard_project(void);
 				iRet = autosave_storyboard_project();
 				if (iRet == 2) return(0); //Cancel.
-				#endif
 				//Save changed level.
 				int AskSaveBeforeNewAction(void);
 				iRet = AskSaveBeforeNewAction();

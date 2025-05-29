@@ -20,11 +20,11 @@ namespace KMaths
 
 Matrix::Matrix( const float* pf )
 {
-#ifdef D3DX_DEBUG
+	// this can crash with certain models/sceanrios (unsafe in release mode)
+	//#ifdef D3DX_DEBUG
     if(!pf)
         return;
-#endif
-
+	//#endif
     memcpy(&_11, pf, sizeof(Matrix));
 }
 

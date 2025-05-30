@@ -1,9 +1,9 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Secret v3 by Necrym59
+-- Secret v4 by Necrym59
 -- DESCRIPTION: When activated an will inform the player they have found a secret, and can increment a user global by a set amount and can activate other connected logic and/or Activate IfUsed links.
 -- DESCRIPTION: Attach to an object and logic link from a switch or zone to activate.
 -- DESCRIPTION: [PROMPT_TEXT$="You have found a secret"]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] (eg: MySecretCounter)
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] (eg: MySecretCounter)
 -- DESCRIPTION: [USER_GLOBAL_VALUE=0(0,100)] value to apply.
 -- DESCRIPTION: <Sound0> - Secret found Sound
 

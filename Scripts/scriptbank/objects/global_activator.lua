@@ -1,10 +1,10 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Global Activator v5  by Necrym59
+-- Global Activator v6  by Necrym59
 -- DESCRIPTION: An activator to trigger other logic linked or IfUsed entities if the User Global is of a set value.
 -- DESCRIPTION: Attach to an entity. Trigger by switch, zone or range.
 -- DESCRIPTION: [@ACTIVATION_STYLE=1(1=Switch/Zone, 2=Ranged, 3=Always On)]
 -- DESCRIPTION: [#ACTIVATION_RANGE=0(0,100)]
--- DESCRIPTION: [USER_GLOBAL$=""] eg: MyGlobal
+-- DESCRIPTION: [@@USER_GLOBAL$=""(0=globallist)] eg: MyGlobal
 -- DESCRIPTION: [TRIGGER_VALUE=50(1,100)] value to triggered event
 -- DESCRIPTION: [TRIGGER_DELAY=0(0,100)] in seconds to delay triggered event.
 -- DESCRIPTION: [@VISIBILITY=1(1=Hide, 2=Show)]

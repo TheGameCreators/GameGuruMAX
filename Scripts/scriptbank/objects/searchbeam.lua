@@ -1,6 +1,6 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
 -- Search Beam v12
--- DESCRIPTION: Edit the settings, [BEAM_RANGE=3000], Attach to [BEAM_OBJECT_NAME$="searchlight1"]
+-- DESCRIPTION: Edit the settings, [BEAM_RANGE=3000], Attach to [BEAM_OBJECT_NAME$=""] (eg: "searchlight1")
 
 module_lightcontrol = require "scriptbank\\markers\\module_lightcontrol"
 local rad = math.rad
@@ -29,7 +29,7 @@ end -- End properties
 function searchbeam_init(e)
 	g_searchbeam[e] = {}		
 	g_searchbeam[e]['beam_range'] = 5000
-	g_searchbeam[e]['beam_object_name'] = "searchlight1"
+	g_searchbeam[e]['beam_object_name'] = ""
 	g_searchbeam[e]['beam_object'] = 0
 	attachTo[e] = 0	
 	anglex[e] = 45

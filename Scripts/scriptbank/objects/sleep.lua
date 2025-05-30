@@ -1,11 +1,11 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Sleep v6 by Necrym59
+-- Sleep v7 by Necrym59
 -- DESCRIPTION: Allows player to sleep for the time set
 -- DESCRIPTION: [USE_RANGE=80(0,300)]
 -- DESCRIPTION: [PROMPT_TEXT$="E to sleep"]
 -- DESCRIPTION: [USE_TEXT$="1-8 to set Hours, Press ENTER to confirm"]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] User Global to affect eg: MyFatigue
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] User Global to affect eg: MyFatigue
 -- DESCRIPTION: [@EFFECT=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: [EFFECT_AMOUNT=0(0,300)] for every hour sleep
 -- DESCRIPTION: [EFFECT_HEALTH!=0] with effect amount every hour sleep

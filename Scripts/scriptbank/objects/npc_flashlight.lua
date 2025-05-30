@@ -2,7 +2,7 @@
 -- Npc Flashlight v5
 -- DESCRIPTION: Attach to a spotlight and edit the settings.
 -- DESCRIPTION: [FLASHLIGHT_RANGE=3000]
--- DESCRIPTION: Attach to [NPC_OBJECT_NAME$="Tony1"]
+-- DESCRIPTION: Attach to [NPC_OBJECT_NAME$=""] Eg: Tony1
 -- DESCRIPTION: Select [@FLASHLIGHT_POSITION=1(1=Hand, 2=Shoulder, 3=Head)]
 
 	module_lightcontrol = require "scriptbank\\markers\\module_lightcontrol"

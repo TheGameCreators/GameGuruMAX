@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Particle Mover v9 by Necrym59
+-- Particle Mover v10 by Necrym59
 -- DESCRIPTION: Allows a particle to be attached to a moving object.
 -- DESCRIPTION: Attach to an object. Set Always Active ON.
 -- DESCRIPTION: [PARTICLE_NAME$=""] particle name
@@ -110,6 +110,7 @@ function particle_mover_main(e)
 	end
 	
 	if g_Entity[attachTo[e]]['health'] <= 0 then
+		EffectStop(partmover[e].particle_number)
 		Hide(partmover[e].particle_number)
 		Destroy(partmover[e].particle_number)
 	end

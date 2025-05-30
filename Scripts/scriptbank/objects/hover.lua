@@ -1,8 +1,8 @@
--- Hover v7
+-- Hover v8
 -- DESCRIPTION: The object will hover up and down it`s Y axis by [HoverHeight=20(1,100)] from it's [LowerHeight=0(0,100)] units at [Speed=100(1,200)].
 -- DESCRIPTION: [ActiveAtStart!=1] if unchecked use a switch or zone trigger to activate.
 -- DESCRIPTION: [@USE_VARIABLE_SWITCH=2(1=Yes,2=No)]
--- DESCRIPTION: [VARIABLE_SWITCH_USER_GLOBAL$="Variable_Switch1"]
+-- DESCRIPTION: [@@VARIABLE_SWITCH_USER_GLOBAL$=""(0=globallist)] The unique user global for this switch (eg; Variable_Switch1)
 
 g_hover_heightangle 	= {}
 g_hover 				= {}

@@ -67,10 +67,12 @@ function hud_zone_main(e)
 				-- in chest screen
 			end
 		end
+		
 		if g_Entity[e]['plrinzone'] ~= 1 and status[e] == "hudopened" then
-			ScreenToggle("")
-			played[e] = 0
-			status[e] = "hudclosed"
+			ScreenToggle("")			
+			StopSound(e,0)
+			status[e] = "hudclosed"			
+			played[e] = 0			
 		end	
 	end
 end

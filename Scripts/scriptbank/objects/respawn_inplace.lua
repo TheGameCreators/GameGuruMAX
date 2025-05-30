@@ -1,8 +1,8 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Repawn In-Place v5
+-- Repawn In-Place v6
 -- DESCRIPTION: Creates a in-place respawn marker when a player death occurs
--- DESCRIPTION: [SPAWN_MARKER_USER_GLOBAL$="MySpawnMarkers"] user global required for using spawn markers
--- DESCRIPTION: [SPAWN_MARKER_NAME$="Player Respawn"] name of spawn marker to dynamically respawn to
+-- DESCRIPTION: [@@SPAWN_MARKER_USER_GLOBAL$=""(0=globallist)] user global required for using spawn markers (eg: MySpawnMarkers)
+-- DESCRIPTION: [SPAWN_MARKER_NAME$=""] name of spawn marker to dynamically respawn to (eg: 'Player Respawn')
 
 local lower = string.lower
 local respawn					= {}

@@ -1,11 +1,11 @@
--- Money v9 By Necrym59
+-- Money v10 By Necrym59
 -- DESCRIPTION: The object will give the player money.
 -- DESCRIPTION: [PICKUP_TEXT$="E to Collect"]
 -- DESCRIPTION: [COLLECTED_TEXT$="Money Collected"]
 -- DESCRIPTION: [QUANTITY=10(0,100)]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
 -- DESCRIPTION: [@PICKUP_STYLE=1(1=Automatic, 2=Manual)]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyMoney"]
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] Eg: "MyMoney
 -- DESCRIPTION: [@EFFECT=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]

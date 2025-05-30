@@ -1,13 +1,13 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Kill Count v7 by Necrym59 and Lee
+-- Kill Count v8 by Necrym59 and Lee
 -- DESCRIPTION: Creates counters for all designated Npc types killed in a level.
--- DESCRIPTION: [LEVEL_COUNT_USER_GLOBAL$=""] User global for level kill count (eg: "MyLevelCounter").
--- DESCRIPTION: [TOTAL_COUNT_USER_GLOBAL$=""] User global for total game kill count (eg: "MyGameCounter").
+-- DESCRIPTION: [@@LEVEL_COUNT_USER_GLOBAL$=""(0=globallist)] User global for level kill count (eg: "MyLevelCounter").
+-- DESCRIPTION: [@@TOTAL_COUNT_USER_GLOBAL$=""(0=globallist)] User global for total game kill count (eg: "MyGameCounter").
 -- DESCRIPTION: [@ENTITY_ALLEGIENCE=0(0=Enemy, 1=Ally, 2=Neutral)]
 -- DESCRIPTION: [@ENTITY_TYPE=1(1=All, 2=Named Only)]
 -- DESCRIPTION: [ENTITY_NAME$="Rabbit"]
 -- DESCRIPTION: [RESET_TOTAL_COUNT!=0] Set ON to reset the counter to 0
--- DESCRIPTION: [EFFECTED_USER_GLOBAL$=""] User global for adjustment upon kill (eg: "MyReputation")
+-- DESCRIPTION: [@@EFFECTED_USER_GLOBAL$=""(0=globallist)] User global for adjustment upon kill (eg: "MyReputation")
 -- DESCRIPTION: [@EFFECT_STYLE=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: [EFFECT_VALUE=0(0,100)] to increment/deduct the User Global by.
 

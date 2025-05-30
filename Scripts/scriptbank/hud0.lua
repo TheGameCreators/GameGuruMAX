@@ -241,6 +241,12 @@ end
 
 function hud0.main()
 
+ -- trigger creation of all chests and containers each time enter new level (so can be populated)
+ if g_gameloop_AnotherInit == 1 then
+	hud0_populateallcontainers = 1
+	g_gameloop_AnotherInit = 0
+ end
+
  -- load in correct map image for level
  if hud0_mapView_LevelImage == -1 then
 	hud0_mapView_LevelImage = 0

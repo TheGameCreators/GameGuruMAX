@@ -1,8 +1,8 @@
--- No_Kill v3 by Necrym59
+-- No_Kill v4 by Necrym59
 -- DESCRIPTION: Global behavior will kill the player and/or add/deduct from a user global if they kill a NPC of the designated type. Attach to an object, set AlwaysActive=ON.
 -- DESCRIPTION: [@NPC_TYPE=1(0=Enemy, 1=Ally, 2=Neutral, 3=Ally+Neutral)]
 -- DESCRIPTION: [@KILL_EFFECT=1(1=None, 2=Kill Player)]
--- DESCRIPTION: [EFFECTED_USER_GLOBAL$=""] User global for adjustment upon kill (eg: "MyReputation")
+-- DESCRIPTION: [@@EFFECTED_USER_GLOBAL$=""(0=globallist)] User global for adjustment upon kill (eg: "MyReputation")
 -- DESCRIPTION: [@EFFECT_STYLE=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: [EFFECT_VALUE=0(0,100)] to increment/deduct the User Global by.
 

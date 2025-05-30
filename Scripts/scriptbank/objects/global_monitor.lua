@@ -2,7 +2,7 @@
 -- Global Monitor v12
 -- DESCRIPTION: Behavior to add or deduct a user global once or incrementally over time when activated.
 -- DESCRIPTION: Attach to an object. 
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] eg: MyGlobal
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] eg: MyGlobal
 -- DESCRIPTION: [ADJUST_AMOUNT=1] units
 -- DESCRIPTION: [TIME_INTERVAL=30] seconds (if 0 will apply only once)
 -- DESCRIPTION: [@EFFECT=1(1=Add, 2=Deduct)]

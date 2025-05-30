@@ -1,12 +1,12 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Global Affected Object v6 by Necrym59
+-- Global Affected Object v7 by Necrym59
 -- DESCRIPTION: The player user_globals can be affected by distance from this object
 -- DESCRIPTION: Attach to an object. Set AlwaysActive=ON
 -- DESCRIPTION: [IN_RANGE_TEXT$="In range of Affecting Object"]
 -- DESCRIPTION: [EFFECT_RANGE=500(1,3000)]
 -- DESCRIPTION: [@EFFECT=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: [EFFECT_MULTIPLIER=1(1,10)] per [SECONDS=1(1,60)]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] eg: MyGlobal
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] eg: MyGlobal
 -- DESCRIPTION: [@HEALTH_AFFECTED=1(1=None, 2=Add, 3=Deduct)]
 -- DESCRIPTION: [SpawnAtStart!=1] if unchecked use a switch or other trigger to spawn this object
 -- DESCRIPTION: <Sound0> - Loop Zone Effect Sound

@@ -1,10 +1,10 @@
--- Stop Watch v3 by Necrym59
+-- Stop Watch v4 by Necrym59
 -- DESCRIPTION: A time counter using a user global for display that when stopped can process an end action.
 -- DESCRIPTION: Attach to an object. Set Always Active ON. Trigger Start/Stop from a zone or switch.
 -- DESCRIPTION: [DISPLAY_USER_GLOBAL$=""] eg: MyTime
 -- DESCRIPTION: [@END_ACTION=1(1=None, 2=Terminate Player, 3=Hurt Player, 4=Activate Entities, 5=Lose Game, 6=Win Game, 7=Display Hud Screen)]
 -- DESCRIPTION: [@LAUNCH_WARNING=1(1=Off, 2=On)]
--- DESCRIPTION: [END_SCREEN$="HUD Screen #"]
+-- DESCRIPTION: [@@END_SCREEN$=""(0=hudscreenlist)] eg; HUD Screen 9
 -- DESCRIPTION: [@READOUT=1(1=Mins:Secs:MilliSecs, 2=Mins:Secs:Tenths, 3=Hrs:Mins:Secs:MilliSecs, 4=Hrs:Min:Sec:Tenths:MilliSecs)]
 -- DESCRIPTION: <Sound0> for commence sound
 -- DESCRIPTION: <Sound1> for end sound

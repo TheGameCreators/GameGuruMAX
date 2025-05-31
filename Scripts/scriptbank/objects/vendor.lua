@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- vendoror v20 by Necrym59
+-- vendoror v21 by Necrym59
 -- DESCRIPTION: Allows to use this object as a vendor to give the player the selected item.
 -- DESCRIPTION: [PROMPT_TEXT$="E to dispense item"]
 -- DESCRIPTION: [PROMPT_RANGE=90(0,100)]
@@ -9,7 +9,7 @@
 -- DESCRIPTION: [VENDORED_ENTITY_COST=0(0,100)]
 -- DESCRIPTION: [VENDORED_ENTITY_LIFESPAN=1(0,100)] Minutes (0=Eternal)
 -- DESCRIPTION: [VENDORED_ENTITY_NAME$=""]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] User global for payment (eg; MyMoney)
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] User Global for payment (eg; MyMoney)
 -- DESCRIPTION: [@WHEN_EMPTY=1(1=Nothing, 2=Destroy Vendor, 3=Event Triggers, 4=Lose Game, 5=Win Game)]
 -- DESCRIPTION: [VENDING_DELAY=0(0,100)] in seconds
 -- DESCRIPTION: [VENDING_FORCE=0(0,100)] forced in the angle of the vended object

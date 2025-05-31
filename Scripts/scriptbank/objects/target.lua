@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Target v17 by Necrym59 and BloodMoon
+-- Target v18 by Necrym59 and BloodMoon
 -- DESCRIPTION: Allows a target object to be shot and reset and can activate Linked or IfUsed entities.
 -- DESCRIPTION: Attach to an object/entity and set AlwaysActive=ON, IsImobile=YES
 -- DESCRIPTION: [HIT_TEXT$="Target Hit"]
@@ -12,7 +12,7 @@
 -- DESCRIPTION: [@TARGET_TRIGGER=2(1=Yes, 2=No, 3=Lose Game, 4=Win Game)]
 -- DESCRIPTION: [TARGET_POINTS=1(1,100)]
 -- DESCRIPTION: [@POINTS_ISSUANCE=1(1=Add, 2=Deduct)]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] eg: MyPoints
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] User Global eg: MyPoints
 -- DESCRIPTION: [TARGET_MOVE_DELAY=0(0,100)] Seconds
 -- DESCRIPTION: [@TARGET_FACING=1(1=Fixed, 2=Random)]
 -- DESCRIPTION: [@TARGET_ANIMATION=-1(0=AnimSetList)]

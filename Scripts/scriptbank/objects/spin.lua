@@ -1,4 +1,4 @@
--- Spin v4
+-- Spin v5
 -- DESCRIPTION: Spins the object on its selected axis at the spin rate in clockwise or anticlockwise direction.  
 -- DESCRIPTION: [SpinSpeed=10(1,500)]. 
 -- DESCRIPTION: [AntiClockwise!=0].
@@ -6,7 +6,7 @@
 -- DESCRIPTION: [y_axis!=1]
 -- DESCRIPTION: [z_axis!=0]
 -- DESCRIPTION: [@USE_VARIABLE_SWITCH=2(1=Yes,2=No)]
--- DESCRIPTION: [VARIABLE_SWITCH_USER_GLOBAL$="Variable_Switch1"]
+-- DESCRIPTION: [@@VARIABLE_SWITCH_USER_GLOBAL$=""(0=globallist)] The unique user global for this switch (eg; Variable_Switch1)
 
 g_spin = {}
 local use_variable_switch 			= {}

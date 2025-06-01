@@ -1,9 +1,9 @@
 -- DESCRIPTION: When collected can cast Lifetap effect to take health from the target and give to the player.
--- Lifetap Spell v23
+-- Lifetap Spell v24
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Lifetap Spell, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="You cast Lifetap and gained some health"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyMana"]
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] eg: MyMana
 -- DESCRIPTION: [MANA_COST=10(1,100)]
 -- DESCRIPTION: [CAST_DAMAGE=25(1,100)]
 -- DESCRIPTION: [CAST_RADIUS=5(1,100))]

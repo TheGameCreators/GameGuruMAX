@@ -1,9 +1,9 @@
+-- Direct Damage Spell v24
 -- DESCRIPTION: When collected can be cast as a Direct Damage effect to the target.
--- Direct Damage Spell v23
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Direct Damage Spell, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="Direct Damage Inflicted"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyMana"]
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] eg: MyMana
 -- DESCRIPTION: [MANA_COST=10(1,100)]
 -- DESCRIPTION: [CAST_DAMAGE=500(1,100)]
 -- DESCRIPTION: [CAST_RADIUS=5(1,100))]

@@ -1,6 +1,6 @@
--- Collection Count v10 by Necrym59 and Lee
+-- Collection Count v11 by Necrym59 and Lee
 -- DESCRIPTION: This behavior allows for a Collection Item for pickup
--- DESCRIPTION: Set a Collection Control behavior for a collection configuration
+-- DESCRIPTION: Setup a Collection Control behavior for a collection configuration
 -- DESCRIPTION: [OBJECTIVES=0(0,100)]
 -- DESCRIPTION: [PICKUP_RANGE=100(0,100)]
 -- DESCRIPTION: [PROMPT_DURATION=0(0,100)]
@@ -10,7 +10,7 @@
 -- DESCRIPTION: [HEALTH_PENALTY=0(0,100)] in units
 -- DESCRIPTION: [GLOBAL_BONUS=0(0,100)] in units
 -- DESCRIPTION: [GLOBAL_PENALTY=0(0,100)] in units
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] User Global eg: "MyPoints" 
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] User Global eg: "MyPoints" 
 -- DESCRIPTION: <Sound0> plays when objective picked up
 
 g_collection_count		= {}

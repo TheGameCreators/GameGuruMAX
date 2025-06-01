@@ -52,7 +52,13 @@ function wpe_area_main(e)
 				sndvol[e] = 100
 				played[e] = 1
 			end	
-		end	
+		end
+		if played[e] == 1 then
+			sndvol[e] = (1000-GetPlayerDistance(e))/10
+			LoopSound(e,0)
+			SetSoundVolume(sndvol[e])
+		end
+		Text(50,50,3,sndvol[e])
 		WParticleEffectPosition(wpearea[e].effectid,g_Entity[e]['x'],g_Entity[e]['y']+wpearea[e].offsety,g_Entity[e]['z'])
 		WParticleEffectVisible(wpearea[e].effectid,1)
 		WParticleEffectAction(wpearea[e].effectid,3)

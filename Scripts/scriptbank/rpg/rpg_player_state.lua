@@ -1,26 +1,26 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- RPG_Player State v11
+-- RPG_Player State v12
 -- DESCRIPTION: Incrementally adds or deducts the players globals over time.
 -- DESCRIPTION: Attach to an object, Set always active On.
--- DESCRIPTION: [USER_GLOBAL_AFFECTED1$="MyGlobal#1"]
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED1$="MyGlobal1"(0=globallist)] eg: MyGlobal1
 -- DESCRIPTION: [AMOUNT1=0] units
 -- DESCRIPTION: [TIME_INTERVAL1=0] seconds
 -- DESCRIPTION: [@EFFECT1=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: [DAMAGE_LEVEL1=0] units above/below to attribute damage
 -- DESCRIPTION: [DAMAGE_AMOUNT1=0] units of damage
--- DESCRIPTION: [USER_GLOBAL_AFFECTED2$="MyGlobal#2"]
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED2$="MyGlobal2"(0=globallist)] eg: MyGlobal2
 -- DESCRIPTION: [AMOUNT2=0] units
 -- DESCRIPTION: [TIME_INTERVAL2=0] seconds
 -- DESCRIPTION: [@EFFECT2=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: [DAMAGE_LEVEL2=0] units above/below to attribute damage
 -- DESCRIPTION: [DAMAGE_AMOUNT2=0] units of damage
--- DESCRIPTION: [USER_GLOBAL_AFFECTED3$="MyGlobal#3"]
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED3$="MyGlobal3"(0=globallist)] eg: MyGlobal3
 -- DESCRIPTION: [AMOUNT3=0] units
 -- DESCRIPTION: [TIME_INTERVAL3=0] seconds
 -- DESCRIPTION: [@EFFECT3=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: [DAMAGE_LEVEL3=0] units above/below to attribute damage
 -- DESCRIPTION: [DAMAGE_AMOUNT3=0] units of damage
--- DESCRIPTION: [USER_GLOBAL_AFFECTED4$="MyGlobal#4"]
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED4$="MyGlobal4"(0=globallist)] eg: MyGlobal4
 -- DESCRIPTION: [AMOUNT4=0] units
 -- DESCRIPTION: [TIME_INTERVAL4=0] seconds
 -- DESCRIPTION: [@EFFECT4=1(1=Add, 2=Deduct)]

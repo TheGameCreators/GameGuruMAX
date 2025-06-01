@@ -1,9 +1,9 @@
 -- DESCRIPTION: When collected can be cast to heal the player.
--- Heal Spell v23
+-- Heal Spell v24
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Healing Spell"]
 -- DESCRIPTION: [USEAGE_TEXT$="You gain some health"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyMana"]
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] eg: MyMana
 -- DESCRIPTION: [MANA_COST=10(1,100)]
 -- DESCRIPTION: [CAST_VALUE=500(1,100)]
 -- DESCRIPTION: [CAST_RADIUS=50(1,100))]

@@ -1,11 +1,11 @@
--- Chest Portable v11  by Necrym59
+-- Chest Portable v12  by Necrym59
 -- DESCRIPTION: The attached object can be used as a portable chest.
 -- DESCRIPTION: Set object as Collectable.
 -- DESCRIPTION: [PICKUP_TEXT$="E to Pickup"] [PICKUP_RANGE=80(1,100)]
 -- DESCRIPTION: [@PICKUP_STYLE=1(1=Automatic, 2=Manual)]
 -- DESCRIPTION: [USEAGE_TEXT$="Press Y to access"]
 -- DESCRIPTION: [USEAGE_KEY$="Y"]
--- DESCRIPTION: When use key is pressed, will open the [CHEST_SCREEN$="HUD Screen 6"]
+-- DESCRIPTION: When use key is pressed, will open the [@@CHEST_SCREEN$="HUD Screen 6"(0=hudscreenlist)] eg: HUD Screen 6
 -- DESCRIPTION: using [CHEST_CONTAINER$="chestportable"]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]

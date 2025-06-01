@@ -1,9 +1,9 @@
 -- DESCRIPTION: When collected can be cast as an Poison effect to damage the target.
--- Poison Spell v23
+-- Poison Spell v24
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Poison Spell, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="You cast Poison spell"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyMana"]
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] eg: MyMana
 -- DESCRIPTION: [MANA_COST=10(1,100)]
 -- DESCRIPTION: [CAST_DAMAGE=25(1,100)]
 -- DESCRIPTION: [CAST_RADIUS=5(1,100))]

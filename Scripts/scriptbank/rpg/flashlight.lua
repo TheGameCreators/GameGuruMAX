@@ -1,4 +1,4 @@
--- Flashlight v29: by Necrym59
+-- Flashlight v30: by Necrym59
 -- DESCRIPTION: Will give the player a Flashlight. Set AlwaysActive=ON.
 -- DESCRIPTION: [PICKUP_TEXT$="E to pickup"]
 -- DESCRIPTION: [PICKUP_RANGE=100(1,200)]
@@ -19,7 +19,7 @@
 -- DESCRIPTION: [@PICKUP_TRIGGER=1(1=Off, 2=On)]
 -- DESCRIPTION: [@DEPLETION_TRIGGER=1(1=None, 2=ActivateIfUsed, 3=Lose Game)]
 -- DESCRIPTION: [UltraVioletMode!=0] highlights transparent enemies.
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] (eg: MyBatteryEnergy)
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] eg: MyBatteryEnergy
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: [LightRangeKill!=0] will kill entity within light range and radius.
 -- DESCRIPTION: <Sound0> for Pickup sound

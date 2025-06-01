@@ -7,7 +7,7 @@
 -- DESCRIPTION: [@DISPLAY_HEALTH=2(1=Yes, 2=No)] to display health on npc
 -- DESCRIPTION: [@MONITOR_ACTIVE=1(1=Yes, 2=No)] if No then use a zone or switch to activate this monitor.
 -- DESCRIPTION: [ACTION_DELAY=2(0,100)] seconds delay before activating death action.
--- DESCRIPTION: [USER_GLOBAL$=""] user global to apply value (eg: MyGlobal).
+-- DESCRIPTION: [@@USER_GLOBAL$=""(0=globallist)] user global to apply value (eg: MyGlobal).
 -- DESCRIPTION: [USER_GLOBAL_VALUE=100(1,100)] value to apply.
 -- DESCRIPTION: [@GoToLevelMode=1(1=Use Storyboard Logic,2=Go to Specific Level)] controls whether the next level in the Storyboard, or another level is loaded.
 -- DESCRIPTION: [ResetStates!=0] when entering the new level

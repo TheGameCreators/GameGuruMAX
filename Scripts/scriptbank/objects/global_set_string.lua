@@ -1,7 +1,7 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Global Set String v1 by Lee
+-- Global Set String v2 by Lee and Necrym59
 -- DESCRIPTION: Sets a user defined global text to a new string
--- DESCRIPTION: [USER_GLOBAL$=""] eg: MyRewardText
+-- DESCRIPTION: [@@USER_GLOBAL$=""(0=globallist)] eg: MyRewardText
 -- DESCRIPTION: [NEW_STRING$=""]
 
 g_global_set_string = {}

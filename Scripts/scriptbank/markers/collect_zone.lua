@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Collect Zone v7 by Necrym59
+-- Collect Zone v8 by Necrym59
 -- DESCRIPTION: If an object entity enters the zone, displays a message and will remove/destroy the entity.
 -- DESCRIPTION: [@ENTITY_TYPE=3(1=Active Object Only, 2=Character Only, 3=Objects Only)]
 -- DESCRIPTION: [NOTIFICATION$="Entity collected"]
@@ -7,7 +7,7 @@
 -- DESCRIPTION: [@COUNT_STYLE=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: [@COUNT_TYPE=1(1=Fixed Value, 2=By Weight)]
 -- DESCRIPTION: [FIXED_VALUE=0(0,100)] to increment/deduct the User Global by.
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] User Global that will affected (eg; MyPoints)
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] User Global that will be affected (eg; MyPoints)
 -- DESCRIPTION: [!ACTIVATE_LOGIC=0]
 -- DESCRIPTION: Plays <Sound0> when triggered.
 

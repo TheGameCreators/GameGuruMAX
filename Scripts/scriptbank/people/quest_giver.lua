@@ -1,6 +1,6 @@
--- Quest Giver v11 by Necrym59 and Lee
+-- Quest Giver v12 by Necrym59 and Lee
 -- DESCRIPTION: When player is within [RANGE=100] distance, will show [QUEST_PROMPT$="Press E to Interact"] 
--- DESCRIPTION: When E is pressed, player will be shown [QUEST_SCREEN$="HUD Screen 8"] with
+-- DESCRIPTION: When E is pressed, player will be shown [@@QUEST_SCREEN$="HUD Screen 8"(0=hudscreenlist)] with
 -- DESCRIPTION: [@QuestChoice=1(0=QuestList)]
 -- DESCRIPTION: and play [SPEECH1$=""]
 -- DESCRIPTION: <Sound0> when quest completed.

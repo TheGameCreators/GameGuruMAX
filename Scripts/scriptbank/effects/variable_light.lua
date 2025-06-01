@@ -1,7 +1,7 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Variable Light v3
+-- Variable Light v4
 -- DESCRIPTION: A light for use with a variable switch. Attach to a light.
--- DESCRIPTION: Enter the name of the [VARIABLE_SWITCH_USER_GLOBAL$=""] User Global used to monitor (eg; Variable_Switch1)
+-- DESCRIPTION: Enter the name of the [@@VARIABLE_SWITCH_USER_GLOBAL$=""(0=globallist)]  User Global used to monitor (eg; Variable_Switch1)
 
 module_lightcontrol = require "scriptbank\\markers\\module_lightcontrol"
 local rad = math.rad

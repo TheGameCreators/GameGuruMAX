@@ -1,8 +1,8 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Global Update Zone v2 by Necrym59
+-- Global Update Zone v3 by Necrym59
 -- DESCRIPTION: Will update/replace a user global value when zone entered.
 -- DESCRIPTION: [PROMPT_TEXT$="Global Updated"]
--- DESCRIPTION: [USER_GLOBAL$=""] user global name (eg: MyLocation or MyValue)
+-- DESCRIPTION: [@@USER_GLOBAL$=""(0=globallist)] eg; MyLocation or MyValue
 -- DESCRIPTION: [@GLOBAL_TYPE=1(1=Text,2=Numeric)] user global variable type
 -- DESCRIPTION: [UPDATE_VALUE$=""] value to update user global.
 -- DESCRIPTION: [ZoneHeight=100(1,1000)]

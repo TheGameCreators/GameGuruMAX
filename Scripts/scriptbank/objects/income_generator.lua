@@ -1,4 +1,4 @@
--- Income Generator v7 by Necrym59 with thanks to oosayeroo
+-- Income Generator v8 by Necrym59 with thanks to oosayeroo
 -- DESCRIPTION: The object will give the player a generated income value over time to a User Global.
 -- DESCRIPTION: [COLLECTION_RANGE=80(1,100)]
 -- DESCRIPTION: [@COLLECTION_STYLE=1(1=Ranged, 2=Manual, 3=Automatic)]
@@ -8,7 +8,7 @@
 -- DESCRIPTION: [INCOME=10(0,500)]
 -- DESCRIPTION: [UPKEEP=10(0,500)]
 -- DESCRIPTION: [ELAPSE_TIME=10(1,100)]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] Your user global eg: 'MyMoney'
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] eg: 'MyMoney'
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: [ACTIVE_AT_START!=1] if unchecked use a switch or other trigger to activate this object

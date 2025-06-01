@@ -1,12 +1,12 @@
--- Live_Emitter v6 by Necrym59
+-- Live_Emitter v7 by Necrym59
 -- DESCRIPTION: Attached object can monitor a Named Objects health and pulse its emmisive texture
 -- DESCRIPTION: and run any inbuilt named animation in a response to being hurt.
 -- DESCRIPTION: [OBJECT_NAME$=""]
 -- DESCRIPTION: [PULSE_STRENGTH=1000(1,10000)]
 -- DESCRIPTION: [PULSE_SPEED=100(1,5000)]
 -- DESCRIPTION: [PULSE_DECAY=100(1,1000)]
--- DESCRIPTION: [IDLE_ANIMATION$=""] (case sensitive)
--- DESCRIPTION: [PULSE_ANIMATION$=""] (case sensitive)
+-- DESCRIPTION: [@IDLE_ANIMATION=-1(0=AnimSetList)]
+-- DESCRIPTION: [@PULSE_ANIMATION=-1(0=AnimSetList)]
 
 local lower = string.lower
 local lemitter				= {}
@@ -32,8 +32,8 @@ function live_emitter_properties(e, object_name, pulse_strength, pulse_speed, pu
 	lemitter[e].pulse_strength = pulse_strength
 	lemitter[e].pulse_speed = pulse_speed
 	lemitter[e].pulse_decay = pulse_decay
-	lemitter[e].idle_animation = idle_animation
-	lemitter[e].pulse_animation = pulse_animation	
+	lemitter[e].idle_animation = "=" .. tostring(idle_animation)
+	lemitter[e].pulse_animation = "=" .. tostring(pulse_animation)
 end
 
 function live_emitter_init(e)

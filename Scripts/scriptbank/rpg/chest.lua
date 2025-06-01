@@ -1,7 +1,7 @@
--- Chest v6
+-- Chest v7
 -- DESCRIPTION: When player is within [USE_RANGE=100], show
 -- DESCRIPTION: [USE_PROMPT$="Press E to open"] when use key is pressed,
--- DESCRIPTION: will display [CHEST_SCREEN$="HUD Screen 6"],
+-- DESCRIPTION: will display [@@CHEST_HUD_SCREEN$=""(0=hudscreenlist)] Eg: HUD Screen 6],
 -- DESCRIPTION: using [CHEST_CONTAINER$="chestunique"].
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
@@ -15,7 +15,7 @@ g_tEnt = {}
 local chest = {}
 local use_range = {}
 local use_prompt = {}
-local chest_screen = {}
+local chest_hud_screen = {}
 local chest_container = {}
 local prompt_display = {}
 local item_highlight = {}
@@ -25,10 +25,10 @@ local doonce = {}
 local tEnt = {}
 local selectobj = {}
 
-function chest_properties(e, use_range, use_prompt, chest_screen, chest_container, prompt_display, item_highlight)
+function chest_properties(e, use_range, use_prompt, chest_hud_screen, chest_container, prompt_display, item_highlight)
 	chest[e].use_range = use_range
 	chest[e].use_prompt = use_prompt
-	chest[e].chest_screen = chest_screen
+	chest[e].chest_hud_screen = chest_hud_screen
 	chest[e].chest_container = chest_container
 	chest[e].prompt_display = prompt_display or 1
 	chest[e].item_highlight = item_highlight
@@ -38,7 +38,7 @@ function chest_init(e)
 	chest[e] = {}
 	chest[e].use_range = 100
 	chest[e].use_prompt = "Press E to open"
-	chest[e].chest_screen = "HUD Screen 6"
+	chest[e].chest_hud_screen = "HUD Screen 6"
 	chest[e].chest_container = "chestunique"
 	chest[e].prompt_display = 1
 	chest[e].item_highlight = 0	
@@ -71,7 +71,7 @@ function chest_main(e)
 				else
 					g_UserGlobalContainer = chest[e].chest_container
 				end
-				ScreenToggle(chest[e].chest_screen)
+				ScreenToggle(chest[e].chest_hud_screen)
 				status[e] = "opened"				
 			end
 		end

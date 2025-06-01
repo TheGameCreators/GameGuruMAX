@@ -1,4 +1,4 @@
--- Security Cam Monitor v31  by Necrym59
+-- Security Cam Monitor v32  by Necrym59
 -- DESCRIPTION: Will give the player access to a Security Camera Monitor? Always active ON
 -- DESCRIPTION: [@MONITOR_MODE=1(1=Static, 2=Mobile)]
 -- DESCRIPTION: [ATTACHED_TO$=""]
@@ -6,7 +6,7 @@
 -- DESCRIPTION: [USEAGE_TEXT$="Press Q to exit, MouseWheel to Zoom"]
 -- DESCRIPTION: [USEAGE_RANGE=50(1,500)]
 -- DESCRIPTION: [@CAMERA_HUD=1(1=In-built, 2=Custom Image, 3=Hud Screen, 5=None)]
--- DESCRIPTION: [HUD_SCREEN$="HUD Screen ?"]
+-- DESCRIPTION: [@@HUD_SCREEN$=""(0=hudscreenlist)] eg: "Hud Screen 9"
 -- DESCRIPTION: [IMAGEFILE$="imagebank\\misc\\testimages\\camerahud01.png"]
 -- DESCRIPTION: [@CAMERA_FEED_ANGLE=1(1=Forward, 2=15-Degrees Down, 3=45-Degrees Down, 4=90-Degrees Down, 5=90-Degrees Up, 6=Backward)]
 -- DESCRIPTION: [ANGLE_CYCLE_KEY!=0] allows R to cycle

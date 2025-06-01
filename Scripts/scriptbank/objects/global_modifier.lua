@@ -1,12 +1,12 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Global Modifier v7: by Necrym59
+-- Global Modifier v8: by Necrym59
 -- DESCRIPTION: The attached object when activated will pass a global modifier value for use with other behaviors, such as countdowns or monitors.
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect"]
 -- DESCRIPTION: [COLLECTED_TEXT$="Modifier collected"]
 -- DESCRIPTION: [MODIFIER_LEVEL=10(1,30)]
 -- DESCRIPTION: [PICKUP_RANGE=90(1,100)]
 -- DESCRIPTION: [@ACTIVATION_STYLE=1(1=Automatic Pickup, 2=Manual Pickup, 3=External Triggered)]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] (eg: MyGlobalModifier)
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] eg: MyGlobal
 -- DESCRIPTION: [@EFFECT=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: [HEALTH_MODIFIER=0(0,100)]
 -- DESCRIPTION: [@WHEN ACTIVATED=1(1=Do Nothing, 2=Hide, 3=Show, 4=Destroy)]

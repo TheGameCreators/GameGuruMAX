@@ -1,11 +1,11 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Global Affected Zone v6 by Necrym59
--- DESCRIPTION: The player user_globals can be affected this Zone
+-- Global Affected Zone v7 by Necrym59
+-- DESCRIPTION: A user_global can be affected by this Zone when entered
 -- DESCRIPTION: Attach to a trigger Zone.
 -- DESCRIPTION: [PROMPT_TEXT$="In Affected Zone"]
 -- DESCRIPTION: [@EFFECT=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: [AMOUNT=1(1,500)] per [SECONDS=1(1,60)]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyGlobal"]
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] eg; MyGlobal
 -- DESCRIPTION: [@HEALTH_AFFECTED=1(1=None, 2=Add, 3=Deduct)]
 -- DESCRIPTION: Zone Height [ZoneHeight=100(0,1000)]
 -- DESCRIPTION: [SpawnAtStart!=1] if unchecked use a switch or other trigger to spawn this zone

@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Toxic Zone v21 by Necrym59
+-- Toxic Zone v22 by Necrym59
 -- DESCRIPTION: The player or npc will be effected with health loss while in this Zone unless using protection
 -- DESCRIPTION: Attach to a trigger Zone.
 -- DESCRIPTION: [PROMPT_TEXT$="In Toxic Zone use protection"]
@@ -7,7 +7,7 @@
 -- DESCRIPTION: [DAMAGE=1(0,1000)] per second
 -- DESCRIPTION: Zone Height [ZONEHEIGHT=100(0,1000)]
 -- DESCRIPTION: [@TOXIC_TO_NPC=1(1=Yes, 2=No)]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] (eg: MyUserGlobal)
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)](eg: MyUserGlobal)
 -- DESCRIPTION: [SpawnAtStart!=1] if unchecked use a switch or other trigger to spawn this zone
 -- DESCRIPTION: [@GLOBAL_AFFECT=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: <Sound0> - Zone Effect Sound

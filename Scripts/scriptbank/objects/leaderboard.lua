@@ -1,15 +1,15 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Leaderboard v5 by Necrym59
+-- Leaderboard v6 by Necrym59
 -- DESCRIPTION: Will create a leaderboard of highest scores using a designated UserGlobal.
 -- DESCRIPTION: Attach to an object set AlwaysActive=On.
--- DESCRIPTION: [CURRENT_SCORE_GLOBAL$=""] User Global used for current game score (eg; MyPoints)
--- DESCRIPTION: [TOTAL_SCORE_GLOBAL$=""] User Global used for total accrued game score (eg; MyTotalPoints)
--- DESCRIPTION: [HISCORE1_GLOBAL$=""] User Global used to display High Score 1
--- DESCRIPTION: [HISCORE2_GLOBAL$=""] User Global used to display High Score 2
--- DESCRIPTION: [HISCORE3_GLOBAL$=""] User Global used to display High Score 3
--- DESCRIPTION: [HISCORE4_GLOBAL$=""] User Global used to display High Score 4
--- DESCRIPTION: [HISCORE5_GLOBAL$=""] User Global used to display High Score 5
--- DESCRIPTION: [LEADERBOARD_HUD$=""] eg: "HUD Screen 3"
+-- DESCRIPTION: [@@CURRENT_SCORE_GLOBAL$=""(0=globallist)] User Global used for current game score (eg; MyPoints)
+-- DESCRIPTION: [@@TOTAL_SCORE_GLOBAL$=""(0=globallist)] User Global used for total accrued game score (eg; MyTotalPoints)
+-- DESCRIPTION: [@@HISCORE1_GLOBAL$=""(0=globallist)] User Global for High Score 1
+-- DESCRIPTION: [@@HISCORE2_GLOBAL$=""(0=globallist)] User Global for High Score 2
+-- DESCRIPTION: [@@HISCORE3_GLOBAL$=""(0=globallist)] User Global for High Score 3
+-- DESCRIPTION: [@@HISCORE4_GLOBAL$=""(0=globallist)] User Global for High Score 4
+-- DESCRIPTION: [@@HISCORE5_GLOBAL$=""(0=globallist)] User Global for High Score 5
+-- DESCRIPTION: [@@LEADERBOARD_HUD$=""(0=hudscreenlist)] eg: "HUD Screen 3"
 -- DESCRIPTION: [DISPLAY_AT_START!=0] will display hud at startup.
 -- DESCRIPTION: [RESET_TOTAL_SCORE!=0] Set ON to reset the total accrued game score total to 0
 

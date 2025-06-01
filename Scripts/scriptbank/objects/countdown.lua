@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Countdown v16 by Necrym59
+-- Countdown v17 by Necrym59
 -- DESCRIPTION: Countdown timer to count down to an end action.
 -- DESCRIPTION: Attach to an object. Set Always Active ON. Trigger from a zone or switch.
 -- DESCRIPTION: [#MAXIMUM_TIME=1.00(0.25,60.00)]
@@ -11,7 +11,7 @@
 -- DESCRIPTION: [@END_ACTION=1(1=Terminate Player, 2=Hurt Player, 3=Activate Entities, 4=Lose Game, 5=Win Game, 6=Display Hud Screen, 7=Go to Level)]
 -- DESCRIPTION: [@@USER_GLOBAL_MODIFIER$=""(0=globallist)] eg: MyGlobalModifier
 -- DESCRIPTION: [@LAUNCH_WARNING=1(1=Off, 2=On)]
--- DESCRIPTION: [END_HUD_SCREEN$=""]
+-- DESCRIPTION: [@@END_HUD_SCREEN$=""(0=hudscreenlist)] Eg: HUD Screen 9
 -- DESCRIPTION: [START_DISARMED!=1]
 -- DESCRIPTION: [@GoToLevelMode=1(1=Use Storyboard Logic,2=Go to Specific Level)] controls whether the next level in the Storyboard, or another level is loaded after the switch is turned on.
 -- DESCRIPTION: <Sound0> for commence sound

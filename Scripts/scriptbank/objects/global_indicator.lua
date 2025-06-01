@@ -1,9 +1,9 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Global Indicator v5 by Necrym59
+-- Global Indicator v6 by Necrym59
 -- DESCRIPTION: Will display and update a screen image indicator based on a global value.
 -- DESCRIPTION: Attach to an entity. Set to AlwaysActive
 -- DESCRIPTION: [@GLOBAL_TO_MONITOR=1(1=Health, 2=User Global)]
--- DESCRIPTION: [USER_GLOBAL$=""] eg; MyGlobal
+-- DESCRIPTION: [@@USER_GLOBAL$=""(0=globallist)] eg: MyGlobal
 -- DESCRIPTION: [SCREEN_POSITION_X=2(0,100)]
 -- DESCRIPTION: [SCREEN_POSITION_Y=10(0,100)]
 -- DESCRIPTION: [SCREEN_SCALE=50(1,100)]

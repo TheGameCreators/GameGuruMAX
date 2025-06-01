@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Hot_Key v4 by Necrym59
+-- Hot_Key v5 by Necrym59
 -- DESCRIPTION: Will display an icon image on screen for a specified resource and activation key
 -- DESCRIPTION: Attach to an entity. Set to AlwaysActive
 -- DESCRIPTION: [SCREEN_POSITION_X=2(0,100)]
@@ -10,7 +10,7 @@
 -- DESCRIPTION: [RESOURCE_NAME$=""] eg: "Potion" has to collectable
 -- DESCRIPTION: [RESOURCE_AMOUNT=10(0,100)] Amount to add
 -- DESCRIPTION: [@APPLIED_TO=1(1=Health, 2=User Global)]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] eg:(MyMana or MyStaminaMax)
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] eg:(MyMana or MyStaminaMax)
 -- DESCRIPTION: [ACTIVATION_KEY$="Z"] Bound key to activate
 -- DESCRIPTION: <Sound0> - Activation Sound
 

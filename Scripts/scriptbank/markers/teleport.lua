@@ -1,4 +1,4 @@
--- Teleport v18 - by Necrym59 and Lee
+-- Teleport v19 - by Necrym59 and Lee
 -- DESCRIPTION: Allows for a teleport to a local connected point or to another level.
 -- DESCRIPTION: [TELEPORT_ZONEHEIGHT=100]
 -- DESCRIPTION: [@TELEPORT_TYPE=1(1=Instant, 2=Delayed, 3=Delayed + Countdown)]
@@ -9,7 +9,7 @@
 -- DESCRIPTION: [PARTICLE_NAME$="TeleportParticle"]
 -- DESCRIPTION: [PLAYER_LEVEL=0(0,100))] player level to be able use this teleport
 -- DESCRIPTION: [@DESTINATION=1(1=Local, 2=Level)]
--- DESCRIPTION: [SPAWN_MARKER_USER_GLOBAL$=""] user global required for using inter-level spawn markers (eg: MySpawnMarkers)
+-- DESCRIPTION: [@@SPAWN_MARKER_USER_GLOBAL$=""(0=globallist)] user global required for using spawn markers (eg: MySpawnMarkers)
 -- DESCRIPTION: [SPAWN_MARKER_NAME$=""] for optional spawning using spawn markers
 -- DESCRIPTION: [SpawnAtStart!=1] if unchecked use a switch or other trigger to spawn this zone
 -- DESCRIPTION: [@GoToLevelMode=1(1=Use Storyboard Logic,2=Go to Specific Level)] controls whether the next level in the Storyboard, or another level is loaded after entry to the zone.

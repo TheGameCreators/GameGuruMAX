@@ -1,11 +1,11 @@
--- Destroy Object v8 by Necrym59
+-- Destroy Object v9 by Necrym59
 -- DESCRIPTION: Attached object can monitor a Named Objects health or destroy instantly when triggered by a linked switch or zone.
 -- DESCRIPTION: [MESSAGE$="Destroyed"]
 -- DESCRIPTION: [OBJECT_NAME$=""]
 -- DESCRIPTION: [PARTICLE_NAME$=""]
 -- DESCRIPTION: [!DESTROY_PARTICLE=0]
 -- DESCRIPTION: [!HEALTH_MONITOR=0]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] eg: MyGlobal
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)](eg: MyUserGlobal)
 -- DESCRIPTION: [@AFFECT_TYPE=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: [AFFECT_VALUE=1(1,100)] Value to add/deduct to User Global when destroyed.
 

@@ -1,4 +1,4 @@
--- Weight Switch v16 - Necrym59 with special thanks to Amen Moses
+-- Weight Switch v17 - Necrym59 with special thanks to Amen Moses
 -- DESCRIPTION: Attach to the Weight Switch Object? This object will be treated as a switch object for activating other objects or game elements.
 -- DESCRIPTION: Set Object to Physics=ON, Collision=BOX, IsImobile=ON. Use AlphaClipping to make invisible if required.
 -- DESCRIPTION: [PROMPT_TEXT$="Weight needed to activate"]
@@ -7,7 +7,7 @@
 -- DESCRIPTION: [PLAYER_WEIGHT=100(0,100)]
 -- DESCRIPTION: [MOVEMENT=3(1,10)]
 -- DESCRIPTION: [!RESET_SWITCH=0] after activation
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] User Global that will be affected by accumulated weight value (eg; MyWeight)
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] User Global that will be affected by accumulated weight value (eg; MyWeight)
 -- DESCRIPTION: [@PROCESS_AFFECT=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: <Sound0> when activated
 

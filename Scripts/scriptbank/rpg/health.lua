@@ -1,5 +1,5 @@
 -- DESCRIPTION: The object will give the player an health boost or deduction if used. Can be used as a resource  and a user global can also receive a value.
--- Health v21 by Necrym59 and Lee
+-- Health v22 by Necrym59 and Lee
 -- DESCRIPTION: [PROMPT_TEXT$="E to consume"]
 -- DESCRIPTION: [PROMPT_IF_COLLECTABLE$="E to collect"]
 -- DESCRIPTION: [USEAGE_TEXT$="Health applied"]
@@ -7,7 +7,7 @@
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
 -- DESCRIPTION: [@PICKUP_STYLE=1(1=Automatic, 2=Manual)]
 -- DESCRIPTION: [@EFFECT=1(1=Add, 2=Deduct)]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] for use with another User Global g: MyGlobal
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] for use with another User Global g: MyGlobal
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> for use sound.

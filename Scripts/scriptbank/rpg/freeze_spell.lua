@@ -1,9 +1,9 @@
 -- DESCRIPTION: When collected can be cast as a Freeze effect to damage the target.
--- Freeze Spell v23
+-- Freeze Spell v24
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Freeze Spell, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="You cast a Freeze spell"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyMana"]
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] eg: MyMana
 -- DESCRIPTION: [MANA_COST=10(1,100)]
 -- DESCRIPTION: [CAST_DAMAGE=25(1,100)]
 -- DESCRIPTION: [CAST_RADIUS=5(1,100))]

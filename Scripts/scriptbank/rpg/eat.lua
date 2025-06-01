@@ -1,11 +1,11 @@
--- Eat v9 by Necrym59
+-- Eat v10 by Necrym59
 -- DESCRIPTION: The object will give the player a health boost or loss if consumed and can also effect a user global if required.
 -- DESCRIPTION: Set AlwaysActive = On.
 -- DESCRIPTION: [PROMPT_TEXT$="Press E to consume"]
 -- DESCRIPTION: [QUANTITY=10(1,40)]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
 -- DESCRIPTION: [@EFFECT=1(1=Add, 2=Deduct)]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyGlobal"]
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)](eg: MyHealth)
 -- DESCRIPTION: [POISONING_EFFECT!=0]
 -- DESCRIPTION: [RESPAWNING=0!=0]
 -- DESCRIPTION: [RESPAWN_TIME=1(1,60)] in minutes

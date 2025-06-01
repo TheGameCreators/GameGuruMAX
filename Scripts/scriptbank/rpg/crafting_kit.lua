@@ -5,7 +5,7 @@
 -- DESCRIPTION: [@PICKUP_STYLE=1(1=Automatic, 2=Manual, 3=Already Carrying)]
 -- DESCRIPTION: [USEAGE_TEXT$="Press U to begin crafting"]
 -- DESCRIPTION: [USEAGE_KEY$="U"]
--- DESCRIPTION: When use key is pressed, will open the [CRAFT_SCREEN$="HUD Screen 7"]
+-- DESCRIPTION: When use key is pressed, will open the [@@CRAFT_SCREEN$="HUD Screen 7"(0=hudscreenlist)] Eg: HUD Screen 7
 -- DESCRIPTION: using [CRAFT_CONTAINER$="chest"]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]

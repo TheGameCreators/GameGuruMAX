@@ -1,10 +1,10 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Conveyor Script v8
+-- Conveyor Script v9
 -- DESCRIPTION:Creates a conveyor object to propell the player in conveyors direction?
 -- DESCRIPTION:[#MOVESPEED=5(1,200)] the conveyor move speed
 -- DESCRIPTION:[SHOW_CONVEYOR!=0] to hide/unhide conveyor object. 
 -- DESCRIPTION:[@USE_VARIABLE_SWITCH=2(1=Yes,2=No)]
--- DESCRIPTION:[VARIABLE_SWITCH_USER_GLOBAL$="Variable_Switch1"]
+-- DESCRIPTION:[@@VARIABLE_SWITCH_USER_GLOBAL$=""(0=globallist)]  User Global to monitor (eg; Variable_Switch1)
 -- DESCRIPTION:<Sound0> - for conveyor.
 
 local U = require "scriptbank\\utillib"

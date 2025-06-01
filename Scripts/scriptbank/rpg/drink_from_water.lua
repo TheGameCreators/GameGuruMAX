@@ -1,4 +1,4 @@
--- Drink From Water v7
+-- Drink From Water v8
 -- DESCRIPTION: Attach to an object set to ALWAYS ACTIVE
 -- DESCRIPTION: Allows drinking from a water plane within set range.
 -- DESCRIPTION: Restores set quantity of health every 2500 milliseconds
@@ -6,7 +6,7 @@
 -- DESCRIPTION: [QUANTITY=10(1,40)]
 -- DESCRIPTION: [WATER_RANGE=65(1,100)]
 -- DESCRIPTION: [@EFFECT=1(1=Add, 2=Deduct)]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyHealth"]
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)](eg: MyHealth)
 -- DESCRIPTION: <Sound0> when drinking.
 
 local drinkwater			= {}

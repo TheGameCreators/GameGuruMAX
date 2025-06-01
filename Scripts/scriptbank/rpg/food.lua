@@ -1,5 +1,5 @@
 -- DESCRIPTION: The object will give the player a food health boost or deduction if consumed.
--- Food v14
+-- Food v15
 -- DESCRIPTION: [PROMPT_TEXT$="E to consume"]
 -- DESCRIPTION: [PROMPT_IF_COLLECTABLE$="E to collect"]
 -- DESCRIPTION: [USEAGE_TEXT$="Food consumed"]
@@ -7,7 +7,7 @@
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
 -- DESCRIPTION: [@PICKUP_STYLE=2(1=Automatic, 2=Manual)]
 -- DESCRIPTION: [@EFFECT=1(1=Add, 2=Deduct)]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyGlobal"]
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] eg: MyGlobal
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> for useage sound.

@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Hack v6 by Necrym59
+-- Hack v7 by Necrym59
 -- DESCRIPTION: Will this will enable player to hack and activate a Logic Linked or ActivateIfUsed Entity?
 -- DESCRIPTION: [USE_RANGE=80(1,100)]
 -- DESCRIPTION: [USE_TEXT$="E to Hack"]
@@ -13,7 +13,7 @@
 -- DESCRIPTION: [NOISE_RANGE=500(0,5000)]
 -- DESCRIPTION: [@HACK_TRIGGER=1(1=Off, 2=On)]
 -- DESCRIPTION: [IMAGEFILE$="imagebank\\misc\\testimages\\search-bar.png"]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] eg: MyGlobal
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] User Global eg: "MyGlobal" 
 -- DESCRIPTION: [AFFECT_VALUE=1(1,100)] Value to add to User Global upon successful hack.
 -- DESCRIPTION: [NO_FAILURES!=0] If set on will dissallow success only
 -- DESCRIPTION: <Sound0> Hacking sound

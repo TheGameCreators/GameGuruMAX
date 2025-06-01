@@ -1,9 +1,9 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Shop v6 by Necrym59
+-- Shop v7 by Necrym59
 -- DESCRIPTION: The attached object can be used as a shop to trade goods.
 -- DESCRIPTION: When player is within [USE_RANGE=100],
 -- DESCRIPTION: show [USE_PROMPT$="Press E to shop"] and
--- DESCRIPTION: when use key is pressed, will open the [SHOP_SCREEN$="HUD Screen 5"]
+-- DESCRIPTION: when use key is pressed, will open the [@@SHOP_SCREEN$="HUD Screen 5"(0=hudscreenlist)] Eg: HUD Screen 5
 -- DESCRIPTION: using [SHOP_CONTAINER$=""] eg"shop"
 -- DESCRIPTION: The shop is called [SHOP_NAME$="The Shop"]
 -- DESCRIPTION: [LEVEL_BIAS!=0] Shop container renamed based on player level.  For example "shop" container would become "shop5" if level 5 player.

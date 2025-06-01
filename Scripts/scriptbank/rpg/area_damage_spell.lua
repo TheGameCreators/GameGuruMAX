@@ -1,5 +1,5 @@
--- DESCRIPTION: When collected can be cast as an Area Damage effect, damaging anything within an area surrounding the player.
 -- Area Damage Spell v24 by Necrym59 and Lee
+-- DESCRIPTION: When collected can be cast as an Area Damage effect, damaging anything within an area surrounding the player.
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Area Damage Spell"]
 -- DESCRIPTION: [USEAGE_TEXT$="Area Damage Inflicted"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]

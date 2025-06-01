@@ -1,8 +1,8 @@
--- Crafting Table v13 - Necrym59 and Lee
+-- Crafting Table v14 - Necrym59 and Lee
 -- DESCRIPTION: The attached object can be used as a crafting table.
 -- DESCRIPTION: When player is within [USE_RANGE=100] distance,
 -- DESCRIPTION: show [USE_PROMPT$="Press E to begin crafting"] and
--- DESCRIPTION: when use key is pressed, will open the [CRAFT_SCREEN$="HUD Screen 7"]
+-- DESCRIPTION: when use key is pressed, will open the [@@CRAFT_SCREEN$="HUD Screen 7"(0=hudscreenlist)] Eg: HUD Screen 7
 -- DESCRIPTION: using [CRAFT_CONTAINER$="chest"]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]

@@ -1,11 +1,11 @@
--- Drink v5
+-- Drink v6
 -- DESCRIPTION: The object will give the player a health boost or reduction if an object (e.g a fountain) is drunk from, every 2500 milliseconds)
 -- DESCRIPTION: and can also effect a user global if required.
 -- DESCRIPTION: Change [PROMPT_TEXT$="Press E to Drink"]
 -- DESCRIPTION: [QUANTITY=10(1,40)]
 -- DESCRIPTION: [DRINK_RANGE=80(1,100)]
 -- DESCRIPTION: [@EFFECT=1(1=Add, 2=Deduct)]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyHealth"]
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)](eg: MyHealth)
 -- DESCRIPTION: <Sound0> when drinking.
 
 local drink 				= {}

@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Kill Switch v11 by Necrym59
+-- Kill Switch v12 by Necrym59
 -- DESCRIPTION: Attach to an object and link to be activated by switch or zone.
 -- DESCRIPTION: When all enemies have been killed it then activates linked or IfUsed entitities and can increment a user global.
 -- DESCRIPTION: [EVENT_TEXT$="Kill all Targets in Area"]
@@ -9,7 +9,7 @@
 -- DESCRIPTION: [END_TEXT$="All Targets in Area Eliminated"]
 -- DESCRIPTION: [END_TEXT_DURATION=2(0,10)] Seconds
 -- DESCRIPTION: [HIDE_OBJECT!=0]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] "MyMoney" for example
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] User Global eg: "MyGlobal" 
 -- DESCRIPTION: [GLOBAL_AFFECTED_VALUE=100(1,100)]
 -- DESCRIPTION: <Sound0> will play at event start.
 -- DESCRIPTION: <Sound1> will play at event end.

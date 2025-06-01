@@ -6,7 +6,7 @@
 -- DESCRIPTION: [DAMAGE_RANGE=80(1,500)]
 -- DESCRIPTION: [DAMAGE_AMOUNT=50(0,500)] (0=Kill)
 -- DESCRIPTION: [@USE_VARIABLE_SWITCH=2(1=Yes,2=No)]
--- DESCRIPTION: [VARIABLE_SWITCH_USER_GLOBAL$="Variable_Switch1"]
+-- DESCRIPTION: [@@VARIABLE_SWITCH_USER_GLOBAL$=""(0=globallist)]  User Global to monitor (eg; Variable_Switch1)
 -- DESCRIPTION: <Sound0> for Crusher Loop
 -- DESCRIPTION: <Sound1> for Crush Sound
 -- DESCRIPTION: <Sound2> for Crusher hit

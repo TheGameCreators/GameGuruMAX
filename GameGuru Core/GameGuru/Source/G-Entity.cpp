@@ -3286,9 +3286,9 @@ void entity_applydamage ( void )
 void entity_applydecalfordamage ( int ee, float fX, float fY, float fZ)
 {
 	// create either material decal specified in FPE or blood decal
-	if ( 1 )//t.entityelement[ee].health > 10) statics have no strength!
+	int entid = t.entityelement[ee].bankindex;
+	if (entid > 0 && entid < t.entityprofile.size())
 	{
-		int entid = t.entityelement[ee].bankindex;
 		if (fX == -1 && fX == -1 && fX == -1)
 		{
 			// and only assume blood if called from a character/entity hurt function
@@ -3296,16 +3296,19 @@ void entity_applydecalfordamage ( int ee, float fX, float fY, float fZ)
 		}
 		if (t.entityprofile[entid].bloodscorch == 0)
 		{
-			if (t.entityprofile[entid].decalmax > 0 && t.entitydecal[entid][0] > 0)
+			if (entid < t.entitydecal.size())
 			{
-				t.tttriggerdecalimpact = 1;
-				t.decalglobal.impactid = t.entitydecal[entid][0];
+				if (t.entityprofile[entid].decalmax > 0 && t.entitydecal[entid][0] > 0)
+				{
+					t.tttriggerdecalimpact = 1;
+					t.decalglobal.impactid = t.entitydecal[entid][0];
+				}
 			}
 		}
 		float fTorseAreaX = t.entityelement[ee].x;
 		float fTorseAreaY = t.entityelement[ee].y + 50;
 		float fTorseAreaZ = t.entityelement[ee].z;
-		if (fX != -1 || fY != -1 || fZ != -1 )
+		if (fX != -1 || fY != -1 || fZ != -1)
 		{
 			fTorseAreaX = fX;
 			fTorseAreaY = fY;

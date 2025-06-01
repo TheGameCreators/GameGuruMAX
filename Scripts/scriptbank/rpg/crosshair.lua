@@ -1,9 +1,9 @@
--- Crosshair v11 by Necrym59
+-- Crosshair v12 by Necrym59
 -- DESCRIPTION: Will allow for an adaptive crosshair/hitmarker in gameplay. 
 -- DESCRIPTION: Apply to an object, set Always Active ON
 -- DESCRIPTION: [VIEW_RANGE=1000(0,3000)]
 -- DESCRIPTION: [CROSSHAIR_IMAGEFILE$="imagebank\\crosshairs\\crosshair.dds"]
--- DESCRIPTION: [CROSSHAIR_IMAGEFILE$="imagebank\\crosshairs\\hitmarker.dds"]
+-- DESCRIPTION: [HITMARKER_IMAGEFILE$="imagebank\\crosshairs\\hitmarker.dds"]
 -- DESCRIPTION: [HIGHLIGHTER!=0] If on enables active highlighting crosshairs 
 -- DESCRIPTION: [WEAPON_ACTIVE!=0] Only shows when using weapon
 -- DESCRIPTION: [ZOOM_HIDE!=0] Hides crosshair when weapon zoomed
@@ -12,7 +12,7 @@ local U = require "scriptbank\\utillib"
 local crosshairs 			= {}
 local view_range 			= {}
 local crosshair_imagefile 	= {}
-local crosshair_imagefile 	= {}
+local hitmarker_imagefile 	= {}
 local crosshair 			= {}
 local hitmarker 			= {}
 local highlighter			= {}

@@ -1359,7 +1359,7 @@ void mapfile_loadproject_fpm ( void )
 					if ( FileExist( cfgfile_s.Get() ) == 1  )  DeleteAFile ( cfgfile_s.Get() );
 					CopyAFile ( t.tttfile_s.Get(), cfgfile_s.Get() );
 				}
-				#ifdef WICKEDENGINE
+
 				//PE: Load locked objects.
 				extern std::vector<sRubberBandType> vEntityLockedList;
 				vEntityLockedList.clear();
@@ -1376,7 +1376,11 @@ void mapfile_loadproject_fpm ( void )
 					}
 					CloseFile(1);
 				}
-				#endif
+				//LB: I think the above list could carry around corrupt references, might be an idea
+				//to scan and sanitise this agains the known entityelement and object list to ensure
+				//bad refernces will not cause out of bounds errors. This will happen for older levels
+				//that exploited a bug that caused objects to be changed to unlocked, but stayed in
+				//the locked list and not removed, later being adopted by new objects added to level.
 
 			}
 		}

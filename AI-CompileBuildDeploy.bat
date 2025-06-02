@@ -6,7 +6,7 @@ echo ==========================================================
 echo ---
 
 echo Ask if PULLED LATEST from GITHUB Repo?
-choice /m "Have you pulled the latest from the GitHub repo?"
+choice /m "COPY NEW SCRIPTS BACK INTO BUILD AREA IF THEY HAVE BEEN UPDATED!!!!"
 if errorlevel 2 (
     echo Please pull the latest changes from GitHub before continuing.
     goto :eof

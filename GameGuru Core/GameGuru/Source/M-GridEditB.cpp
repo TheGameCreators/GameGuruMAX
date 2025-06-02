@@ -23679,12 +23679,18 @@ void ClearAllGroupLists(void)
 	for (int i = 0; i < vEntityLockedList.size(); i++)
 	{
 		int e = vEntityLockedList[i].e;
-		t.entityelement[e].editorlock = 0;
-		sObject* pObject;
-		if (t.entityelement[e].obj > 0) {
-			pObject = g_ObjectList[t.entityelement[e].obj];
-			if (pObject) {
-				WickedCall_SetObjectRenderLayer(pObject, GGRENDERLAYERS_NORMAL);
+		if (e > 0 && e < t.entityelement.size())
+		{
+			t.entityelement[e].editorlock = 0;
+			sObject* pObject;
+			int obj = t.entityelement[e].obj;
+			if (obj > 0 && obj < g_iObjectListCount)
+			{
+				pObject = g_ObjectList[obj];
+				if (pObject) 
+				{
+					WickedCall_SetObjectRenderLayer(pObject, GGRENDERLAYERS_NORMAL);
+				}
 			}
 		}
 	}

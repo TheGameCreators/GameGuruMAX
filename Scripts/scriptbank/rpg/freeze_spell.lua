@@ -1,5 +1,5 @@
--- DESCRIPTION: When collected can be cast as a Freeze effect to damage the target.
 -- Freeze Spell v24
+-- DESCRIPTION: When collected can be cast as a Freeze effect to damage the target.
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Freeze Spell, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="You cast a Freeze spell"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]

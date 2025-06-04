@@ -553,6 +553,7 @@ bool g_bRefreshGlobalList = false;
 std::vector<int> g_gameGlobalListNodeId;
 std::vector<int> g_gameGlobalListIndex;
 std::vector<int> g_gameGlobalListValue;
+std::vector<std::string> g_gameGlobalListValueString;
 
 // storyboard screen animation control
 int g_iStoryboardScreenVideoID = 0;
@@ -28369,6 +28370,8 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 		bool bSound1Mentioned = false;
 		bool bSound2Mentioned = false;
 		bool bSound3Mentioned = false;
+		bool bSound4Mentioned = false;
+		bool bSound5Mentioned = false;
 		bool bVideoSlotMentioned = false;
 		bool bIfUsedMentioned = false;
 		bool bUseKeyMentioned = false;
@@ -28393,6 +28396,8 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 		if (strstr(pCaptureAnyScriptDesc, "<Sound1>") != 0) bSound1Mentioned = true;
 		if (strstr(pCaptureAnyScriptDesc, "<Sound2>") != 0) bSound2Mentioned = true;
 		if (strstr(pCaptureAnyScriptDesc, "<Sound3>") != 0) bSound3Mentioned = true;
+		if (strstr(pCaptureAnyScriptDesc, "<Sound4>") != 0) bSound4Mentioned = true;
+		if (strstr(pCaptureAnyScriptDesc, "<Sound5>") != 0) bSound5Mentioned = true;
 		if (strstr(pCaptureAnyScriptDesc, "<Video Slot>") != 0) bVideoSlotMentioned = true;
 		if (strstr(pCaptureAnyScriptDesc, "<If Used>") != 0) bIfUsedMentioned = true;
 		if (strstr(pCaptureAnyScriptDesc, "<Use Key>") != 0) bUseKeyMentioned = true;
@@ -28405,7 +28410,7 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 		if (strstr(pCaptureAnyScriptDesc, "<Zombie Animations>") != 0) iAnimationSetMentioned = 3;
 		if (strstr(pCaptureAnyScriptDesc, "<Default Animations>") != 0) iAnimationSetMentioned = 4;		
 
-		if (bSound0Mentioned || bSound1Mentioned || bSound2Mentioned || bSound3Mentioned || bVideoSlotMentioned || bIfUsedMentioned || bUseKeyMentioned || bShootingWeaponMentioned || bMeleeWeaponMentioned || iAnimationSetMentioned>0)
+		if (bSound0Mentioned || bSound1Mentioned || bSound2Mentioned || bSound3Mentioned || bSound4Mentioned || bSound5Mentioned || bVideoSlotMentioned || bIfUsedMentioned || bUseKeyMentioned || bShootingWeaponMentioned || bMeleeWeaponMentioned || iAnimationSetMentioned>0)
 		{
 			if (bVideoSlotMentioned == true)
 			{
@@ -28467,6 +28472,8 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 			if (bSound1Mentioned == true) edit_grideleprof->soundset1_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset1_s.Get(), "Sound1", t.strarr_s[254].Get(), "audiobank\\", readonly);
 			if (bSound2Mentioned == true) edit_grideleprof->soundset2_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset2_s.Get(), "Sound2", t.strarr_s[254].Get(), "audiobank\\", readonly);
 			if (bSound3Mentioned == true) edit_grideleprof->soundset3_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset3_s.Get(), "Sound3", t.strarr_s[254].Get(), "audiobank\\", readonly);
+			if (bSound4Mentioned == true) edit_grideleprof->soundset5_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset5_s.Get(), "Sound4", t.strarr_s[254].Get(), "audiobank\\", readonly);
+			if (bSound5Mentioned == true) edit_grideleprof->soundset6_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset6_s.Get(), "Sound5", t.strarr_s[254].Get(), "audiobank\\", readonly);
 			if (bIfUsedMentioned == true)
 			{
 				if (t.entityprofile[entid].ischaracter != 1)
@@ -51709,6 +51716,8 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					g_gameGlobalListNodeId.clear();
 					g_gameGlobalListIndex.clear();
 					g_gameGlobalListValue.clear();
+					g_gameGlobalListValueString.clear();
+
 					for (int allhudscreensnodeid = 0; allhudscreensnodeid < STORYBOARD_MAXNODES; allhudscreensnodeid++)
 					{
 						if (strlen(Storyboard.Nodes[allhudscreensnodeid].lua_name) > 0 && strnicmp(Storyboard.Nodes[allhudscreensnodeid].lua_name, "hud", 3) == NULL)
@@ -51742,6 +51751,10 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 												g_gameGlobalListNodeId.push_back(allhudscreensnodeid);
 												g_gameGlobalListIndex.push_back(i);
 												g_gameGlobalListValue.push_back(Storyboard.Nodes[allhudscreensnodeid].widget_initial_value[i]);
+												if(stricmp(readout.c_str(), "User Defined Global Text") == NULL)
+													g_gameGlobalListValueString.push_back(Storyboard.Nodes[allhudscreensnodeid].widget_click_sound[i]);
+												else
+													g_gameGlobalListValueString.push_back("");
 											}
 										}
 									}
@@ -51759,11 +51772,28 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					char pUDGVar[256];
 					sprintf(pUDGVar, "##WidgetUDG%d-%d", allhudscreensnodeid, i);
 					float fValue = g_gameGlobalListValue[n];
-					ImGui::MaxSliderInputFloat(pUDGVar, &fValue, 0, 100, "Set Initial Value for this User Defined Global", 0, 100);
-					if (fValue != g_gameGlobalListValue[n])
+					if (stricmp(Storyboard.widget_readout[allhudscreensnodeid][i], "User Defined Global Text") == NULL)
 					{
-						g_gameGlobalListValue[n] = fValue;
-						bChangedAGameGlobal = true;
+						char storeEntry[MAX_PATH];
+						strcpy(storeEntry, g_gameGlobalListValueString[n].c_str());
+						ImGui::PushItemWidth(-10);
+						if (ImGui::InputText(pUDGVar, storeEntry, 250, ImGuiInputTextFlags_EnterReturnsTrue))
+						{
+							g_gameGlobalListValueString[n] = storeEntry;
+							strcpy(Storyboard.Nodes[allhudscreensnodeid].widget_click_sound[i], storeEntry);
+							bChangedAGameGlobal = true;
+						}
+						ImGui::PopItemWidth();
+					}
+					else
+					{
+						//PE: TEXT g_gameGlobalListValueString.push_back(Storyboard.Nodes[allhudscreensnodeid].widget_click_sound[i]);
+						ImGui::MaxSliderInputFloat(pUDGVar, &fValue, 0, 100, "Set Initial Value for this User Defined Global", 0, 100);
+						if (fValue != g_gameGlobalListValue[n])
+						{
+							g_gameGlobalListValue[n] = fValue;
+							bChangedAGameGlobal = true;
+						}
 					}
 				}
 				if (g_bRefreshGlobalList == true)
@@ -51793,7 +51823,14 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 													LPSTR pThisName = Storyboard.Nodes[thisnodeid].widget_label[index];
 													if (strcmp(pNewName, pThisName) == NULL)
 													{
-														Storyboard.Nodes[allhudscreensnodeid].widget_initial_value[i] = g_gameGlobalListValue[n];
+														if(stricmp(readout.c_str(), "User Defined Global Text") == NULL)
+														{
+															//g_gameGlobalListValueString[n]
+															strcpy(Storyboard.Nodes[allhudscreensnodeid].widget_click_sound[i], g_gameGlobalListValueString[n].c_str());
+															Storyboard.Nodes[allhudscreensnodeid].widget_initial_value[i] = 0;
+														}
+														else
+															Storyboard.Nodes[allhudscreensnodeid].widget_initial_value[i] = g_gameGlobalListValue[n];
 														break;
 													}
 												}

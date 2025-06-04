@@ -2413,9 +2413,16 @@ void mapfile_collectfoldersandfiles (cstr levelpathfolder)
 							{
 								addtocollection(Storyboard.Nodes[nodeid].widget_selected_thumb[i]);
 							}
-							if (strlen(Storyboard.Nodes[nodeid].widget_click_sound[i]) > 0)
+							//PE: We are going to reuse for widget_click_sound for default value for "Text Globals"
+							if (Storyboard.Nodes[nodeid].widget_type[i] == STORYBOARD_WIDGET_BUTTON
+								|| Storyboard.Nodes[nodeid].widget_type[i] == STORYBOARD_WIDGET_RADIOTYPE
+								|| Storyboard.Nodes[nodeid].widget_type[i] == STORYBOARD_WIDGET_TICKBOX)
 							{
-								addtocollection(Storyboard.Nodes[nodeid].widget_click_sound[i]);
+
+								if (strlen(Storyboard.Nodes[nodeid].widget_click_sound[i]) > 0)
+								{
+									addtocollection(Storyboard.Nodes[nodeid].widget_click_sound[i]);
+								}
 							}
 						}
 					}

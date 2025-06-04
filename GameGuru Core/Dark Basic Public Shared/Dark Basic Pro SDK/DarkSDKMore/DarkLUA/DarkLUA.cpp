@@ -7505,7 +7505,8 @@ int InitScreen(lua_State* L)
 					{
 						char pUserDefinedGlobal[256];
 						sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", Storyboard.Nodes[nodeid].widget_label[i]);
-						LuaSetString(pUserDefinedGlobal, ""); // can we get from initial_value in screen editor?
+						//PE: We now reuse widget_click_sound for initial_value.
+						LuaSetString(pUserDefinedGlobal, Storyboard.Nodes[nodeid].widget_click_sound[i]); // can we get from initial_value in screen editor?
 					}
 				}
 			}

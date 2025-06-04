@@ -11586,6 +11586,8 @@ void mapeditorexecutable_loop(void)
 							bool bSound1Mentioned = false;
 							bool bSound2Mentioned = false;
 							bool bSound3Mentioned = false;
+							bool bSound4Mentioned = false;
+							bool bSound5Mentioned = false;
 							bool bVideoSlotMentioned = false;
 							bool bIfUsedMentioned = false;
 							bool bUseKeyMentioned = false;
@@ -11609,6 +11611,8 @@ void mapeditorexecutable_loop(void)
 							if (strstr(pCaptureAnyScriptDesc, "<Sound1>") != 0) bSound1Mentioned = true;
 							if (strstr(pCaptureAnyScriptDesc, "<Sound2>") != 0) bSound2Mentioned = true;
 							if (strstr(pCaptureAnyScriptDesc, "<Sound3>") != 0) bSound3Mentioned = true;
+							if (strstr(pCaptureAnyScriptDesc, "<Sound4>") != 0) bSound4Mentioned = true;
+							if (strstr(pCaptureAnyScriptDesc, "<Sound5>") != 0) bSound5Mentioned = true;
 							if (strstr(pCaptureAnyScriptDesc, "<Video Slot>") != 0) bVideoSlotMentioned = true;
 							if (strstr(pCaptureAnyScriptDesc, "<If Used>") != 0) bIfUsedMentioned = true;
 							if (strstr(pCaptureAnyScriptDesc, "<Shooting Weapon>") != 0) bShootingWeaponMentioned = true;
@@ -11625,6 +11629,8 @@ void mapeditorexecutable_loop(void)
 							if (bSound1Mentioned == true) t.grideleprof.soundset1_s = imgui_setpropertyfile2(t.group, t.grideleprof.soundset1_s.Get(), "Sound1", t.strarr_s[254].Get(), "audiobank\\");
 							if (bSound2Mentioned == true) t.grideleprof.soundset2_s = imgui_setpropertyfile2(t.group, t.grideleprof.soundset2_s.Get(), "Sound2", t.strarr_s[254].Get(), "audiobank\\");
 							if (bSound3Mentioned == true) t.grideleprof.soundset3_s = imgui_setpropertyfile2(t.group, t.grideleprof.soundset3_s.Get(), "Sound3", t.strarr_s[254].Get(), "audiobank\\");
+							if (bSound4Mentioned == true) t.grideleprof.soundset5_s = imgui_setpropertyfile2(t.group, t.grideleprof.soundset5_s.Get(), "Sound4", t.strarr_s[254].Get(), "audiobank\\");
+							if (bSound5Mentioned == true) t.grideleprof.soundset6_s = imgui_setpropertyfile2(t.group, t.grideleprof.soundset6_s.Get(), "Sound5", t.strarr_s[254].Get(), "audiobank\\");
 							if (bIfUsedMentioned == true) t.grideleprof.ifused_s = imgui_setpropertystring2(t.group, t.grideleprof.ifused_s.Get(), t.strarr_s[437].Get(), t.strarr_s[226].Get());
 							if (bUseKeyMentioned == true) t.grideleprof.usekey_s = imgui_setpropertystring2(t.group, t.grideleprof.usekey_s.Get(), t.strarr_s[436].Get(), t.strarr_s[225].Get());
 							bool readonly = false;

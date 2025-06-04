@@ -7192,6 +7192,55 @@ void ParseLuaScriptWithElementID(entityeleproftype *tmpeleprof, char * script, i
 									//PE: Let some lists work on zones also.
 									if (labels.size() == 2)
 									{
+										if (stricmp(labels[1].c_str(), "effectlist") == NULL)
+										{
+											labels.clear();
+											labels.push_back(cVariable);
+											labels.push_back("None");
+
+											char writePath[MAX_PATH];
+											extern const char* GG_GetWritePath();
+											strcpy(writePath, GG_GetWritePath());
+
+											std::vector<std::string> effectFilesWrite, effectFilesDoc;
+											effectFilesWrite.clear();
+											effectFilesDoc.clear();
+											char writableEffect[MAX_PATH];
+											strcpy(writableEffect, writePath);
+											strcat(writableEffect, "Files\\particlesbank\\wpe");
+											CollectFilesWithExtension(".pe", writableEffect, &effectFilesWrite);
+
+											extern char szRootDir[MAX_PATH];
+											char docEffect[MAX_PATH];
+											strcpy(docEffect, szRootDir);
+											strcat(docEffect, "\\Files\\particlesbank\\wpe");
+											CollectFilesWithExtension(".pe", docEffect, &effectFilesDoc);
+
+											std::set<std::string> uniqueEffectFiles;
+											for (const std::string& file : effectFilesWrite) {
+												uniqueEffectFiles.insert(&file[strlen(writableEffect)-17]);
+											}
+											for (const std::string& file : effectFilesDoc) {
+												uniqueEffectFiles.insert(file);
+											}
+											for (const std::string& file : uniqueEffectFiles) {
+												labels.push_back(&file[strlen(docEffect)-17]);
+											}
+											uniqueEffectFiles.clear();
+											effectFilesWrite.clear();
+											effectFilesDoc.clear();
+
+											if (labels.size() > 1)
+											{
+												tmpeleprof->PropertiesVariable.VariableValueFrom[tmpeleprof->PropertiesVariable.iVariables] = 1;
+												tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = labels.size();
+											}
+											else
+											{
+												tmpeleprof->PropertiesVariable.VariableValueFrom[tmpeleprof->PropertiesVariable.iVariables] = 0;
+												tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = 0;
+											}
+										}
 										if (stricmp(labels[1].c_str(), "decallist") == NULL)
 										{
 											labels.clear();

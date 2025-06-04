@@ -43357,6 +43357,26 @@ void process_storeboard(bool bInitOnly)
 				char pToolTipForAddingNewScreens[256];
 				sprintf(pToolTipForAddingNewScreens, "The game project can contain up to %d screens or levels.", STORYBOARD_MAXNODES);
 
+				const float groupspacer = 4.0f;
+				static int ClassicConversion = 0;
+				static char pReconstructGameGuruRootFiles[MAX_PATH];
+
+				#ifdef INCLUDE_GAME_SETTINGS
+				//if (pref.iStoryboardAdvanced) // Necrym59 always visible.
+				{
+					if (ImGui::StyleCollapsingHeader("Game Project Settings", ImGuiTreeNodeFlags_DefaultOpen) || iStoryboardExecuteKey != 0) //"Add New"
+					{
+						ImGui::Indent(10);
+						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
+						if (ImGui::StyleButton("Edit Game Settings", ImVec2(buttonwide, 0.0f)))
+						{
+							bEditGameSettings = true;
+						}
+						ImGui::Indent(-10);
+					}
+				}
+				#endif
+
 				if (ImGui::StyleCollapsingHeader("Add and Edit Storyboard", ImGuiTreeNodeFlags_DefaultOpen) || iStoryboardExecuteKey != 0) //"Add New"
 				{
 					int iAutoConnectNode = -1;
@@ -43420,6 +43440,214 @@ void process_storeboard(bool bInitOnly)
 						}
 					}
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", pToolTipForAddingNewScreens);
+
+
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
+					if (ImGui::StyleButton("Add Existing Level", ImVec2(buttonwide, 0.0f)) || iStoryboardExecuteKey == 'L')
+					{
+						iStoryboardExecuteKey = 0;
+						cStr tOldDir = GetDir();
+
+						// we know we need to focus on the mapbank associated with the current storyboard
+						cstr correctFPMLocation_s = Storyboard.customprojectfolder;
+						if (correctFPMLocation_s.Len() > 0)
+						{
+							correctFPMLocation_s += Storyboard.gamename;
+							correctFPMLocation_s += "\\Files\\mapbank";
+						}
+						else
+						{
+							correctFPMLocation_s = g.mysystem.mapbankAbs_s.Get();
+						}
+						//cFileSelected = (char *)noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "fpm\0*.fpm\0", g.mysystem.mapbankAbs_s.Get(), NULL, true);
+						char* cFileSelected = (char*)noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "fpm\0*.fpm\0", correctFPMLocation_s.Get(), NULL, true);
+
+						SetDir(tOldDir.Get());
+						if (cFileSelected && strlen(cFileSelected) > 0)
+						{
+							t.returnstring_s = cFileSelected;
+							if (t.returnstring_s != "")
+							{
+								if (cstr(Lower(Right(t.returnstring_s.Get(), 4))) == ".fpm")
+								{
+
+									//Only relative.
+									char tmp[MAX_PATH];
+									strcpy(tmp, t.returnstring_s.Get());
+
+									//PE: Vaidate path, must be inside the mapbank to work.
+									extern char szRootDir[MAX_PATH];
+									extern char szWriteDir[MAX_PATH];
+									extern char szAddWriteDirAdditional[MAX_PATH];
+
+									bool bValidPath = false;
+									int rootLen = strlen(szWriteDir);
+									if (strnicmp(tmp, szWriteDir, rootLen) == 0)
+									{
+										bValidPath = true;
+									}
+									rootLen = strlen(szAddWriteDirAdditional);
+									if (!bValidPath && strnicmp(tmp, szAddWriteDirAdditional, rootLen) == 0)
+									{
+										bValidPath = true;
+									}
+									rootLen = strlen(szRootDir);
+									if (!bValidPath && strnicmp(tmp, szRootDir, rootLen) == 0)
+									{
+										bValidPath = true;
+									}
+
+
+									char* find = (char*)pestrcasestr(tmp, "mapbank\\");
+									if (find && find != &tmp[0]) strcpy(&tmp[0], find);
+
+									if (bValidPath && !find)
+									{
+										//PE: Must be located inside mapbank.
+										bValidPath = false;;
+									}
+
+									//PE: check if this is a Classic map we need to import.
+									bool bImportClassicMap = false;
+									{
+										strcpy(pReconstructGameGuruRootFiles, "");
+										char pReconstructGameGuruFolder[MAX_PATH];
+										strcpy(pReconstructGameGuruFolder, "");
+										char pReconstructGameGuruEXE[MAX_PATH];
+										strcpy(pReconstructGameGuruEXE, cFileSelected);
+										char* pFindClassicFolder = (char*)pestrcasestr(pReconstructGameGuruEXE, "Game Guru\\Files\\mapbank\\");
+										if (pFindClassicFolder != NULL)
+										{
+											*pFindClassicFolder = 0;
+											strcpy(pReconstructGameGuruRootFiles, pReconstructGameGuruEXE);
+											strcat(pReconstructGameGuruRootFiles, "Game Guru\\Files\\");
+											strcpy(pReconstructGameGuruFolder, pReconstructGameGuruEXE);
+											strcat(pReconstructGameGuruFolder, "Game Guru\\Files\\entitybank\\");
+											strcat(pReconstructGameGuruEXE, "Game Guru\\GameGuru.exe");
+											if (FileExist(pReconstructGameGuruEXE) == 1)
+											{
+												bImportClassicMap = true;
+												bValidPath = false;
+											}
+										}
+									}
+
+									if (!bValidPath)
+									{
+										if (bImportClassicMap)
+										{
+											int iAction = askBoxCancel("You have selected a classic map, do you want to import this level ?", "GameGuru Classic Map!"); //1==Yes 2=Cancel 0=No
+											if (iAction == 1)
+											{
+												//Import map.
+												ClassicConversion = 1;
+												sNextLevelToLoad = t.returnstring_s;
+											}
+										}
+										else
+										{
+											MessageBoxA(NULL, "All levels added to storyboard must be saved inside the default 'mapbank' folder.", "Error:", 0);
+										}
+									}
+									if (bValidPath)
+									{
+										std::string sLevelPath = &tmp[0];
+
+										//Dont actual load, just use filename.
+										int iPos;
+										for (iPos = strlen(tmp); iPos >= 0; iPos--)
+											if (tmp[iPos] == '\\') break;
+										if (iPos > 0) iPos++;
+										std::string sLevelTitle = &tmp[iPos];
+										replaceAll(sLevelTitle, ".fpm", "");
+
+										//PE: Find next level from nodes.
+										int iNextLevel = 0, levelname = -1, iFirstNodeFree = -1;
+										FindFreeLevelNode(iNextLevel, levelname, iFirstNodeFree);
+
+										if (iFirstNodeFree >= 0)
+										{
+											//Create new level.
+											char tmp[255];
+											int node = iFirstNodeFree;
+											int nodeposy = iNextLevel;
+											if (levelname > 0)
+											{
+												sprintf(tmp, "Level %d", levelname);
+												nodeposy = levelname - 1;
+											}
+											else
+												sprintf(tmp, "Level %d", iNextLevel + 1);
+
+											//PE: Make sure any old data is removed, also thumbs.
+											reset_single_node(node);
+
+											Storyboard.Nodes[node].used = true;
+											Storyboard.Nodes[node].type = STORYBOARD_TYPE_LEVEL;
+											Storyboard.Nodes[node].restore_position = ImVec2(preview_size_x * 0.5 - (fNodeWidth * 0.5) + ((fNodeWidth + NODE_WIDTH_PADDING) * 2.0), STORYBOARD_YSTART + ((fNodeHeight + 20.0 + NODE_HEIGHT_PADDING) * (nodeposy)));
+											Storyboard.Nodes[node].iEditEnable = true;
+											strcpy(Storyboard.Nodes[node].title, sLevelTitle.c_str());
+											strcpy(Storyboard.Nodes[node].level_name, sLevelPath.c_str());
+											strcpy(Storyboard.Nodes[node].levelnumber, tmp);
+
+											strcpy(Storyboard.Nodes[node].thumb, "");
+											//Input.
+											strcpy(Storyboard.Nodes[node].input_title[0], " Input ");
+											//Output.
+											strcpy(Storyboard.Nodes[node].output_title[0], " WIN LEVEL -> Connect to Scene ");
+											strcpy(Storyboard.Nodes[node].output_action[0], "loadlevel"); //Not defined this yet.
+											Storyboard.Nodes[node].output_can_link_to_type[0] = STORYBOARD_TYPE_SCREEN;
+											Storyboard.Nodes[node].output_linkto[0] = 0;
+
+											strcpy(Storyboard.Nodes[node].output_title[1], " GAME OVER -> Connect to Scene ");
+											strcpy(Storyboard.Nodes[node].output_action[1], "loadlevel"); //Not defined this yet.
+											Storyboard.Nodes[node].output_can_link_to_type[1] = STORYBOARD_TYPE_SCREEN;
+											Storyboard.Nodes[node].output_linkto[1] = 0;
+
+											strcpy(Storyboard.Nodes[node].output_title[2], " NEXT LEVEL -> Connect to Level ");
+											strcpy(Storyboard.Nodes[node].output_action[2], "loadlevel"); //Not defined this yet.
+											Storyboard.Nodes[node].output_can_link_to_type[2] = STORYBOARD_TYPE_LEVEL;
+											Storyboard.Nodes[node].output_linkto[2] = 0;
+											ImNodes::SetNodeGridSpacePos(Storyboard.Nodes[node].id, Storyboard.Nodes[node].restore_position);
+											iAutoConnectNode = node;
+											//Check if level already got a thumb.
+											CreateBackBufferCacheNameEx(Storyboard.Nodes[node].level_name, 512, 288, true);
+											if (FileExist(BackBufferCacheName.Get()))
+											{
+												if (CopyToProjectFolder(BackBufferCacheName.Get()))
+												{
+													//PE: Use relative projectbank filename.
+													if (FileExist(ProjectCacheName.Get()))
+														BackBufferCacheName = ProjectCacheName;
+												}
+
+												//PE: Load in old thumb.
+												SetMipmapNum(1); //PE: mipmaps not needed.
+												image_setlegacyimageloading(true);
+												LoadImageSize(BackBufferCacheName.Get(), Storyboard.Nodes[node].thumb_id, 512, 288);
+												image_setlegacyimageloading(false);
+												SetMipmapNum(-1); //PE: mipmaps not needed.
+												if (ImageExist(Storyboard.Nodes[node].thumb_id))
+												{
+													//PE: Success update thumb filename.
+													strcpy(Storyboard.Nodes[node].thumb, BackBufferCacheName.Get());
+												}
+											}
+										}
+										else
+										{
+											bShowNoMoreScreensError = true;
+										}
+									}
+								}
+							}
+						}
+					}
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", pToolTipForAddingNewScreens);
+
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + groupspacer);
+					//---- spacer ----
+
 
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
 					if (ImGui::StyleButton("Add New Screen", ImVec2(buttonwide, 0.0f)))
@@ -43668,211 +43896,9 @@ void process_storeboard(bool bInitOnly)
 					}
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", pToolTipForAddingNewScreens);
 
-					static int ClassicConversion = 0;
-					static char pReconstructGameGuruRootFiles[MAX_PATH];
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + groupspacer);
+					//---- spacer ----
 
-					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x*0.5) - (buttonwide*0.5), 0.0f));
-					if (ImGui::StyleButton("Add Existing Level", ImVec2(buttonwide, 0.0f)) || iStoryboardExecuteKey == 'L')
-					{
-						iStoryboardExecuteKey = 0;
-						cStr tOldDir = GetDir();
-
-						// we know we need to focus on the mapbank associated with the current storyboard
-						cstr correctFPMLocation_s = Storyboard.customprojectfolder;
-						if (correctFPMLocation_s.Len() > 0)
-						{
-							correctFPMLocation_s += Storyboard.gamename;
-							correctFPMLocation_s += "\\Files\\mapbank";
-						}
-						else
-						{
-							correctFPMLocation_s = g.mysystem.mapbankAbs_s.Get();
-						}
-						//cFileSelected = (char *)noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "fpm\0*.fpm\0", g.mysystem.mapbankAbs_s.Get(), NULL, true);
-						char* cFileSelected = (char*)noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "fpm\0*.fpm\0", correctFPMLocation_s.Get(), NULL, true);
-
-						SetDir(tOldDir.Get());
-						if (cFileSelected && strlen(cFileSelected) > 0)
-						{
-							t.returnstring_s = cFileSelected;
-							if (t.returnstring_s != "")
-							{
-								if (cstr(Lower(Right(t.returnstring_s.Get(), 4))) == ".fpm")
-								{
-
-									//Only relative.
-									char tmp[MAX_PATH];
-									strcpy(tmp, t.returnstring_s.Get());
-
-									//PE: Vaidate path, must be inside the mapbank to work.
-									extern char szRootDir[MAX_PATH];
-									extern char szWriteDir[MAX_PATH];
-									extern char szAddWriteDirAdditional[MAX_PATH];
-
-									bool bValidPath = false;
-									int rootLen = strlen(szWriteDir);
-									if (strnicmp(tmp, szWriteDir, rootLen) == 0)
-									{
-										bValidPath = true;
-									}
-									rootLen = strlen(szAddWriteDirAdditional);
-									if (!bValidPath && strnicmp(tmp, szAddWriteDirAdditional, rootLen) == 0)
-									{
-										bValidPath = true;
-									}
-									rootLen = strlen(szRootDir);
-									if (!bValidPath && strnicmp(tmp, szRootDir, rootLen) == 0)
-									{
-										bValidPath = true;
-									}
-
-
-									char *find = (char *)pestrcasestr(tmp, "mapbank\\");
-									if (find && find != &tmp[0]) strcpy(&tmp[0], find);
-
-									if (bValidPath && !find)
-									{
-										//PE: Must be located inside mapbank.
-										bValidPath = false;;
-									}
-
-									//PE: check if this is a Classic map we need to import.
-									bool bImportClassicMap = false;
-									{
-										strcpy(pReconstructGameGuruRootFiles, "");
-										char pReconstructGameGuruFolder[MAX_PATH];
-										strcpy(pReconstructGameGuruFolder, "");
-										char pReconstructGameGuruEXE[MAX_PATH];
-										strcpy(pReconstructGameGuruEXE, cFileSelected);
-										char* pFindClassicFolder = (char *) pestrcasestr(pReconstructGameGuruEXE, "Game Guru\\Files\\mapbank\\");
-										if (pFindClassicFolder != NULL)
-										{
-											*pFindClassicFolder = 0;
-											strcpy(pReconstructGameGuruRootFiles, pReconstructGameGuruEXE);
-											strcat(pReconstructGameGuruRootFiles, "Game Guru\\Files\\");
-											strcpy(pReconstructGameGuruFolder, pReconstructGameGuruEXE);
-											strcat(pReconstructGameGuruFolder, "Game Guru\\Files\\entitybank\\");
-											strcat(pReconstructGameGuruEXE, "Game Guru\\GameGuru.exe");
-											if (FileExist(pReconstructGameGuruEXE) == 1)
-											{
-												bImportClassicMap = true;
-												bValidPath = false;
-											}
-										}
-									}
-
-									if (!bValidPath)
-									{
-										if (bImportClassicMap)
-										{
-											int iAction = askBoxCancel("You have selected a classic map, do you want to import this level ?", "GameGuru Classic Map!"); //1==Yes 2=Cancel 0=No
-											if (iAction == 1)
-											{
-												//Import map.
-												ClassicConversion = 1;
-												sNextLevelToLoad = t.returnstring_s;
-											}
-										}
-										else
-										{
-											MessageBoxA(NULL, "All levels added to storyboard must be saved inside the default 'mapbank' folder.", "Error:", 0);
-										}
-									}
-									if (bValidPath)
-									{
-										std::string sLevelPath = &tmp[0];
-
-										//Dont actual load, just use filename.
-										int iPos;
-										for (iPos = strlen(tmp); iPos >= 0; iPos--)
-											if (tmp[iPos] == '\\') break;
-										if (iPos > 0) iPos++;
-										std::string sLevelTitle = &tmp[iPos];
-										replaceAll(sLevelTitle, ".fpm", "");
-
-										//PE: Find next level from nodes.
-										int iNextLevel = 0, levelname = -1, iFirstNodeFree = -1;
-										FindFreeLevelNode(iNextLevel, levelname, iFirstNodeFree);
-
-										if (iFirstNodeFree >= 0)
-										{
-											//Create new level.
-											char tmp[255];
-											int node = iFirstNodeFree;
-											int nodeposy = iNextLevel;
-											if (levelname > 0)
-											{
-												sprintf(tmp, "Level %d", levelname);
-												nodeposy = levelname - 1;
-											}
-											else
-												sprintf(tmp, "Level %d", iNextLevel + 1);
-
-											//PE: Make sure any old data is removed, also thumbs.
-											reset_single_node(node);
-
-											Storyboard.Nodes[node].used = true;
-											Storyboard.Nodes[node].type = STORYBOARD_TYPE_LEVEL;
-											Storyboard.Nodes[node].restore_position = ImVec2(preview_size_x*0.5 - (fNodeWidth*0.5) + ((fNodeWidth + NODE_WIDTH_PADDING)*2.0), STORYBOARD_YSTART + ((fNodeHeight + 20.0 + NODE_HEIGHT_PADDING) * (nodeposy)));
-											Storyboard.Nodes[node].iEditEnable = true;
-											strcpy(Storyboard.Nodes[node].title, sLevelTitle.c_str());
-											strcpy(Storyboard.Nodes[node].level_name, sLevelPath.c_str());
-											strcpy(Storyboard.Nodes[node].levelnumber, tmp);
-
-											strcpy(Storyboard.Nodes[node].thumb, "");
-											//Input.
-											strcpy(Storyboard.Nodes[node].input_title[0], " Input ");
-											//Output.
-											strcpy(Storyboard.Nodes[node].output_title[0], " WIN LEVEL -> Connect to Scene ");
-											strcpy(Storyboard.Nodes[node].output_action[0], "loadlevel"); //Not defined this yet.
-											Storyboard.Nodes[node].output_can_link_to_type[0] = STORYBOARD_TYPE_SCREEN;
-											Storyboard.Nodes[node].output_linkto[0] = 0;
-
-											strcpy(Storyboard.Nodes[node].output_title[1], " GAME OVER -> Connect to Scene ");
-											strcpy(Storyboard.Nodes[node].output_action[1], "loadlevel"); //Not defined this yet.
-											Storyboard.Nodes[node].output_can_link_to_type[1] = STORYBOARD_TYPE_SCREEN;
-											Storyboard.Nodes[node].output_linkto[1] = 0;
-
-											strcpy(Storyboard.Nodes[node].output_title[2], " NEXT LEVEL -> Connect to Level ");
-											strcpy(Storyboard.Nodes[node].output_action[2], "loadlevel"); //Not defined this yet.
-											Storyboard.Nodes[node].output_can_link_to_type[2] = STORYBOARD_TYPE_LEVEL;
-											Storyboard.Nodes[node].output_linkto[2] = 0;
-											ImNodes::SetNodeGridSpacePos(Storyboard.Nodes[node].id, Storyboard.Nodes[node].restore_position);
-											iAutoConnectNode = node;
-											//Check if level already got a thumb.
-											CreateBackBufferCacheNameEx(Storyboard.Nodes[node].level_name, 512, 288, true);
-											if (FileExist(BackBufferCacheName.Get()))
-											{
-												if (CopyToProjectFolder(BackBufferCacheName.Get()))
-												{
-													//PE: Use relative projectbank filename.
-													if (FileExist(ProjectCacheName.Get()))
-														BackBufferCacheName = ProjectCacheName;
-												}
-
-												//PE: Load in old thumb.
-												SetMipmapNum(1); //PE: mipmaps not needed.
-												image_setlegacyimageloading(true);
-												LoadImageSize(BackBufferCacheName.Get(), Storyboard.Nodes[node].thumb_id, 512, 288);
-												image_setlegacyimageloading(false);
-												SetMipmapNum(-1); //PE: mipmaps not needed.
-												if (ImageExist(Storyboard.Nodes[node].thumb_id))
-												{
-													//PE: Success update thumb filename.
-													strcpy(Storyboard.Nodes[node].thumb, BackBufferCacheName.Get());
-												}
-											}
-										}
-										else
-										{
-											bShowNoMoreScreensError = true;
-										}
-									}
-								}
-							}
-						}
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", pToolTipForAddingNewScreens);
 
 					if (ClassicConversion > 0 && bShowNoMoreScreensError == false)
 					{
@@ -44344,47 +44370,8 @@ void process_storeboard(bool bInitOnly)
 					#ifdef INCLUDE_GAME_SETTINGS
 					if (pref.iStoryboardAdvanced)
 					{
-						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x*0.5) - (buttonwide*0.5), 0.0f));
-						if (ImGui::StyleButton("Edit Game Settings", ImVec2(buttonwide, 0.0f)))
-						{
-							bEditGameSettings = true;
-						}
 						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
-						if (ImGui::StyleButton("Reset HUD Screens", ImVec2(buttonwide, 0.0f)))
-						{
-							// Force a reset of the In-Game HUD screen, and reset node position
-							for (int i = 0; i < STORYBOARD_MAXNODES; i++)
-							{
-								if (Storyboard.Nodes[i].used && Storyboard.Nodes[i].type == STORYBOARD_TYPE_HUD)
-								{
-									Storyboard.Nodes[i].used = false;
-								}
-							}
-							int areaWidth = ImGui::GetMainViewport()->Size.x - 300;
-							int nodeWidth = 180;
-							int nodeHeight = 150;
-							//PE: We cant force it to 13, it might overwrite another node.
-							iHUDScreenNodeID = storyboard_add_missing_nodex(13,areaWidth , nodeWidth, nodeHeight, false);
-							ImNodes::SetNodeGridSpacePos(Storyboard.Nodes[iHUDScreenNodeID].id, ImVec2(areaWidth * 0.5 - (nodeWidth * 0.5), STORYBOARD_YSTART + (nodeHeight + NODE_HEIGHT_PADDING) * 3));
-							iCurrentSelectedWidget = -1;
-							// Also ensure that any user defined globals are removed when resetting HUD screens
-							for (int i = 0; i < STORYBOARD_MAXNODES; i++)
-							{
-								if (strnicmp(Storyboard.Nodes[i].lua_name, "hud", 3) == NULL)
-								{
-									for (int j = 0; j < STORYBOARD_MAXWIDGETS; j++)
-									{
-										if (strnicmp(Storyboard.widget_readout[i][j], "user defined", 12) == 0)
-										{
-											Storyboard.widget_readout[i][j][0] = 0;
-										}
-									}
-								}
-							}
-							g_bRefreshGlobalList = true;
-						}
-						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
-						if (ImGui::StyleButton("Add RPG Screens", ImVec2(buttonwide, 0.0f)))
+						if (ImGui::StyleButton("Add RPG HUD Screens", ImVec2(buttonwide, 0.0f)))
 						{
 							g_bRefreshGlobalList = true;
 
@@ -44443,11 +44430,11 @@ void process_storeboard(bool bInitOnly)
 									bShowNoMoreScreensError = true;
 								}
 							}
-							if (bAllRPGScreensAlreadyExist == false && bShowNoMoreScreensError==false)
+							if (bAllRPGScreensAlreadyExist == false && bShowNoMoreScreensError == false)
 							{
 								// load in template screens from "RPG Template" project
 								char project[MAX_PATH];
-								
+
 								sprintf(project, "projectbank\\RPG Template\\project%d.dat", STORYBOARDVERSION);
 								FILE* projectfile = GG_fopen(project, "rb");
 								if (!projectfile)
@@ -44482,10 +44469,10 @@ void process_storeboard(bool bInitOnly)
 													for (int hudi = 1; hudi <= 9; hudi++)
 													{
 														// only add those that are missing
-														if (bRPGHUDSMissing[hudi] == true )
+														if (bRPGHUDSMissing[hudi] == true)
 														{
 															char pTitleLabel[256];
-															if ( hudi == 1 )
+															if (hudi == 1)
 																sprintf(pTitleLabel, "In-Game HUD");
 															else
 																sprintf(pTitleLabel, "HUD Screen %d", hudi);
@@ -44495,7 +44482,7 @@ void process_storeboard(bool bInitOnly)
 																int newnodeid = 0;
 																for (int i = 14; i < STORYBOARD_MAXNODES; i++)
 																{
-																	if (Storyboard.Nodes[i].used == 0 )
+																	if (Storyboard.Nodes[i].used == 0)
 																	{
 																		newnodeid = i;
 																		break;
@@ -44596,6 +44583,43 @@ void process_storeboard(bool bInitOnly)
 							}
 						}
 						if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", pToolTipForAddingNewScreens);
+
+						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
+						if (ImGui::StyleButton("Reset All HUD Screens", ImVec2(buttonwide, 0.0f)))
+						{
+							// Force a reset of the In-Game HUD screen, and reset node position
+							for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+							{
+								if (Storyboard.Nodes[i].used && Storyboard.Nodes[i].type == STORYBOARD_TYPE_HUD)
+								{
+									Storyboard.Nodes[i].used = false;
+								}
+							}
+							int areaWidth = ImGui::GetMainViewport()->Size.x - 300;
+							int nodeWidth = 180;
+							int nodeHeight = 150;
+							//PE: We cant force it to 13, it might overwrite another node.
+							iHUDScreenNodeID = storyboard_add_missing_nodex(13,areaWidth , nodeWidth, nodeHeight, false);
+							ImNodes::SetNodeGridSpacePos(Storyboard.Nodes[iHUDScreenNodeID].id, ImVec2(areaWidth * 0.5 - (nodeWidth * 0.5), STORYBOARD_YSTART + (nodeHeight + NODE_HEIGHT_PADDING) * 3));
+							iCurrentSelectedWidget = -1;
+							// Also ensure that any user defined globals are removed when resetting HUD screens
+							for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+							{
+								if (strnicmp(Storyboard.Nodes[i].lua_name, "hud", 3) == NULL)
+								{
+									for (int j = 0; j < STORYBOARD_MAXWIDGETS; j++)
+									{
+										if (strnicmp(Storyboard.widget_readout[i][j], "user defined", 12) == 0)
+										{
+											Storyboard.widget_readout[i][j][0] = 0;
+										}
+									}
+								}
+							}
+							g_bRefreshGlobalList = true;
+						}
+						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
+
 					}
 					#endif
 

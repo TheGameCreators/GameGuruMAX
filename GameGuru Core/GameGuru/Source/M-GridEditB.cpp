@@ -2963,16 +2963,16 @@ int fillgloballistwithcollectables (void)
 	return retvalue;
 }
 
-int fillgloballistwithdecals(void)
+int fillgloballistwithdecals(std::vector <cstr> & list_s)
 {
-	Dim(t.list_s, g.decalmax);
-	t.list_s[0] = "None";
+	Dim(list_s, g.decalmax);
+	list_s[0] = "None";
 	int retvalue = 1;
 	for (int i = 1; i <= g.decalmax; i++)
 	{
 		if (t.decal[i].name_s.Len() > 0)
 		{
-			t.list_s[retvalue] = t.decal[i].name_s;
+			list_s[retvalue] = t.decal[i].name_s;
 			retvalue++;
 		}
 	}
@@ -30043,7 +30043,7 @@ char* imgui_setpropertylist2c_v2(int group, int controlindex, char* data_s, char
 
 	if (listtype == 31)
 	{
-		listmax = fillgloballistwithdecals();
+		listmax = fillgloballistwithdecals(t.list_s);
 		for (int n = 0; n < listmax; n++)
 		{
 			if (ldata_s == t.list_s[n])

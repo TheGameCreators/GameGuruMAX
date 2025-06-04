@@ -1527,6 +1527,55 @@ luaMessage** ppLuaMessages = NULL;
 	 }
 	 return 0;
  }
+ //PE: SetCustomExplosion(e,effectname) sound is using <Sound5>. SetCustomExplosionShould only be called one time.
+ int SetCustomExplosion(lua_State* L)
+ {
+	 lua = L;
+	 int n = lua_gettop(L);
+	 if (n < 2) return 0;
+	 int iEntityIndex = lua_tonumber(L, 1);
+	 if (iEntityIndex > 0)
+	 {
+		 const char* pEffect = lua_tostring(L, 2);
+		 if (!pEffect)
+			 return 0;
+		 t.entityelement[iEntityIndex].eleprof.explodable_decalname = pEffect;
+		 //PE: Init effects.
+		 if (t.entityelement[iEntityIndex].soundset6 > 0) deleteinternalsound(t.entityelement[iEntityIndex].soundset6);
+		 t.entityelement[iEntityIndex].soundset6 = loadinternalsoundcore(t.entityelement[iEntityIndex].eleprof.soundset6_s.Get(), 1);
+		
+		 if (t.entityelement[iEntityIndex].eleprof.explodable_decalname.Len() > 0)
+		 {
+			 cstr explodename = t.entityelement[iEntityIndex].eleprof.explodable_decalname;
+			 if (explodename.Len() > 0)
+			 {
+				 for (int i = 1; i <= g.decalmax; i++)
+				 {
+					 if (t.decal[i].name_s == explodename)
+					 {
+						 int alreadyactive = t.decal[i].active;
+						 t.decal[i].active = 1;
+						 t.decal[i].newparticle.iMaxCache = 2; //PE: For now only 2 cached custom explosions.
+						 if (alreadyactive != 1)
+						 {
+							 //PE: Never change t. variables in lua.
+							 cstr oldtdecal_s = t.decal_s;
+							 int oldtdecalid = t.decalid;
+							 t.decal_s = t.decal[i].name_s;
+							 t.decalid = i;
+							 decal_load();
+							 t.decalid = oldtdecalid;
+							 t.decal_s = oldtdecal_s;
+						 }
+						 break;
+					 }
+				 }
+			 }
+		 }
+	 }
+	 return 0;
+ }
+
 
  int GetEntityExplodable(lua_State* L)
  {

@@ -12737,6 +12737,8 @@ void addFunctions()
 	lua_register(lua, "SetEntityExplodable", SetEntityExplodable);
 	lua_register(lua, "SetExplosionHeight", SetExplosionHeight);
 	lua_register(lua, "SetExplosionDamage", SetExplosionDamage);
+	lua_register(lua, "SetCustomExplosion", SetCustomExplosion);
+	
 
 	lua_register(lua, "GetEntityCollectable", GetEntityCollectable);
 	lua_register(lua, "GetEntityCollected", GetEntityCollected);

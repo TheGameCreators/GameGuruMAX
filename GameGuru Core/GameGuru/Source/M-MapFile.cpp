@@ -3147,7 +3147,8 @@ int mapfile_savestandalone_stage2c ( void )
 			mapfile_addallentityrelatedfiles(t.entid, &t.entityelement[t.e].eleprof);
 
 			// and purey entity element related files
-			if (t.entityelement[t.e].eleprof.bCustomWickedMaterialActive)
+			//if (t.entityelement[t.e].eleprof.bCustomWickedMaterialActive)
+			if (!t.entityelement[t.e].eleprof.bUseFPESettings)
 			{
 				// Also add any custom material textures
 				sObject* pObject = GetObjectData(t.entityelement[t.e].obj);

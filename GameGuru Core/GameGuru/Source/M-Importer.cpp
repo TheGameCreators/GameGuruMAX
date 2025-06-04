@@ -10528,7 +10528,7 @@ void importer_update_scale ( void )
 
 int update_all_count = 0;
 
-void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *edit_grideleprof, bool bFromCustomMaterials)
+void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *edit_grideleprof, bool bFromCustomMaterials,bool bReadOnly)
 {
 	//Mode 0 Allow selection of all meshes.
 	//Mode 1 (NOT USED) Single mesh , texture all meshes with the same material.
@@ -10734,6 +10734,12 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 	// with mesh available to edit
 	if (pChosenMesh)
 	{
+		if (bReadOnly)
+		{
+			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
+
 		// ensure we are aligned with the chosen mesh material
 		WickedSetMeshNumber(iSelectedMesh);
 
@@ -11333,9 +11339,14 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 									else
 									{
 										// Display the texture normally.
+										if (bReadOnly)
+										{
+											ImGui::PopItemFlag();
+											ImGui::PopStyleVar();
+										}
 										void* pmat = (void*)pObjectMaterial->textures[wickedTextureSlot].GetGPUResource();
 										if (ImGui::ImgBtnWicked((void*)pmat, ImVec2(preview_icon_size * 2.9f, preview_icon_size * 2.9f), ImColor(0, 0, 0, 255)))
-											if (mode != 3 && mode != 5)
+											if (mode != 3 && mode != 5 && !bReadOnly)
 											{
 												if (texslot >= 2 && texslot <= 4)
 												{
@@ -11355,6 +11366,11 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 											ImGui::BeginTooltip();
 											ImGui::ImgBtnWicked((void*)pmat, ImVec2(180, 180), ImColor(0, 0, 0, 255));
 											ImGui::EndTooltip();
+										}
+										if (bReadOnly)
+										{
+											ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+											ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 										}
 									}
 
@@ -11741,189 +11757,193 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 					}
 
 					#ifdef CUSTOMSHADERS
-					//PE: Add custom shader support here:
-					void importer_set_all_material_shader_id(int shaderID, float p1, float p2, float p3, float p4, float p5, float p6, float p7);
-						std::vector<wiRenderer::CustomShader> cshaders = wiRenderer::GetCustomShaders();
-					int current_selection = pObjectMaterial->customShaderID;
-					std::string comboselection = "None";
-					if (pObjectMaterial->customShaderID >= 0 && pObjectMaterial->customShaderID < cshaders.size())
-						comboselection = cshaders[pObjectMaterial->customShaderID].name;
-					ImGui::PushItemWidth(-10);
-					ImGui::TextCenter("Custom Shaders");
-					if (ImGui::BeginCombo("##ImporterCustomShaders", comboselection.c_str(), ImGuiComboFlags_PopupAlignLeft | ImGuiComboFlags_HeightLarge))
+					if (mode != 6)
 					{
-						if (ImGui::Selectable("None"))
+						//PE: Add custom shader support here:
+						void importer_set_all_material_shader_id(int shaderID, float p1, float p2, float p3, float p4, float p5, float p6, float p7);
+						std::vector<wiRenderer::CustomShader> cshaders = wiRenderer::GetCustomShaders();
+						int current_selection = pObjectMaterial->customShaderID;
+						std::string comboselection = "None";
+						if (pObjectMaterial->customShaderID >= 0 && pObjectMaterial->customShaderID < cshaders.size())
+							comboselection = cshaders[pObjectMaterial->customShaderID].name;
+						ImGui::PushItemWidth(-10);
+						ImGui::TextCenter("Custom Shaders");
+						if (ImGui::BeginCombo("##ImporterCustomShaders", comboselection.c_str(), ImGuiComboFlags_PopupAlignLeft | ImGuiComboFlags_HeightLarge))
 						{
-							pObjectMaterial->customShaderID = -1;
-							importer_set_all_material_shader_id(pObjectMaterial->customShaderID, pObjectMaterial->customShaderParam1, pObjectMaterial->customShaderParam2, pObjectMaterial->customShaderParam3, pObjectMaterial->customShaderParam4, pObjectMaterial->customShaderParam5, pObjectMaterial->customShaderParam6, pObjectMaterial->customShaderParam7);
-							bHaveMaterialUpdate = true;
-						}
-						for (int i = 0; i < cshaders.size(); i++)
-						{
-							bool bSelected = false;
-							if (cshaders[i].bActive)
+							if (ImGui::Selectable("None"))
 							{
-								if (pObjectMaterial->customShaderID == i)
-									bSelected = true;
-								if (ImGui::Selectable(cshaders[i].name.c_str(), bSelected))
+								pObjectMaterial->customShaderID = -1;
+								importer_set_all_material_shader_id(pObjectMaterial->customShaderID, pObjectMaterial->customShaderParam1, pObjectMaterial->customShaderParam2, pObjectMaterial->customShaderParam3, pObjectMaterial->customShaderParam4, pObjectMaterial->customShaderParam5, pObjectMaterial->customShaderParam6, pObjectMaterial->customShaderParam7);
+								bHaveMaterialUpdate = true;
+							}
+							for (int i = 0; i < cshaders.size(); i++)
+							{
+								bool bSelected = false;
+								if (cshaders[i].bActive)
 								{
-									pObjectMaterial->customShaderID = i;
-									if (i == 1)
+									if (pObjectMaterial->customShaderID == i)
+										bSelected = true;
+									if (ImGui::Selectable(cshaders[i].name.c_str(), bSelected))
 									{
-										//PE: Default parameters.
-										if (t.visuals.tree_wind > 0)
-											pObjectMaterial->customShaderParam1 = 1.0f;
-										else
-											pObjectMaterial->customShaderParam1 = 0.20f;
+										pObjectMaterial->customShaderID = i;
+										if (i == 1)
+										{
+											//PE: Default parameters.
+											if (t.visuals.tree_wind > 0)
+												pObjectMaterial->customShaderParam1 = 1.0f;
+											else
+												pObjectMaterial->customShaderParam1 = 0.20f;
+										}
+										if (i == 3)
+										{
+											//PE: Default glass parameters.
+											pObjectMaterial->customShaderParam1 = 1.3f;
+											pObjectMaterial->customShaderParam2 = 0.3f;
+											pObjectMaterial->customShaderParam3 = 2.0f;
+										}
+										importer_set_all_material_shader_id(pObjectMaterial->customShaderID, pObjectMaterial->customShaderParam1, pObjectMaterial->customShaderParam2, pObjectMaterial->customShaderParam3, pObjectMaterial->customShaderParam4, pObjectMaterial->customShaderParam5, pObjectMaterial->customShaderParam6, pObjectMaterial->customShaderParam7);
+										bHaveMaterialUpdate = true;
 									}
-									if (i == 3)
-									{
-										//PE: Default glass parameters.
-										pObjectMaterial->customShaderParam1 = 1.3f;
-										pObjectMaterial->customShaderParam2 = 0.3f;
-										pObjectMaterial->customShaderParam3 = 2.0f;
-									}
+									if (bSelected) ImGui::SetItemDefaultFocus();
+								}
+							}
+
+							ImGui::EndCombo();
+						}
+						ImGui::PopItemWidth();
+						if (pObjectMaterial->customShaderID != -1)
+						{
+							ImGui::PushItemWidth(-10);
+							ImGui::TextCenter("Custom Shaders Parameters");
+							//PE: Parameters to shaders.
+							int numpar = 0;
+							std::string param1 = "Parameter 1";
+							std::string param2 = "Parameter 2";
+							std::string param3 = "Parameter 3";
+							std::string param4 = "Parameter 4";
+							std::string param5 = "Parameter 5";
+							std::string param6 = "Parameter 6";
+							std::string param7 = "Parameter 7";
+							if (pObjectMaterial->customShaderID == 1)
+							{
+								numpar = 1;
+								param1 = "Object Wind";
+							}
+							if (pObjectMaterial->customShaderID == 2)
+							{
+								numpar = 7;
+								param1 = "UV Scale";
+								param2 = "UV Speed";
+								param3 = "Distorsion";
+								param4 = "Direction";
+								param5 = "TEX Scroll";
+								param6 = "Foam Size";
+								param7 = "TEX Scale";
+							}
+							if (pObjectMaterial->customShaderID == 3)
+							{
+								numpar = 3;
+								param1 = "Transmission";
+								param2 = "Refraction";
+								param3 = "Brighten";
+							}
+
+							if (numpar > 0)
+							{
+								ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
+								ImGui::Text(param1.c_str());
+								ImGui::SameLine();
+								ImGui::SetCursorPos(ImVec2(help_start + 20, ImGui::GetCursorPosY() - 5));
+								if (ImGui::SliderFloat("##CuShaPa1", &pObjectMaterial->customShaderParam1, 0.0, 2.0))
+								{
 									importer_set_all_material_shader_id(pObjectMaterial->customShaderID, pObjectMaterial->customShaderParam1, pObjectMaterial->customShaderParam2, pObjectMaterial->customShaderParam3, pObjectMaterial->customShaderParam4, pObjectMaterial->customShaderParam5, pObjectMaterial->customShaderParam6, pObjectMaterial->customShaderParam7);
+									pObjectMaterial->SetDirty();
 									bHaveMaterialUpdate = true;
 								}
-								if (bSelected) ImGui::SetItemDefaultFocus();
 							}
-						}
 
-						ImGui::EndCombo();
-					}
-					ImGui::PopItemWidth();
-					if (pObjectMaterial->customShaderID != -1)
-					{
-						ImGui::PushItemWidth(-10);
-						ImGui::TextCenter("Custom Shaders Parameters");
-						//PE: Parameters to shaders.
-						int numpar = 0;
-						std::string param1 = "Parameter 1";
-						std::string param2 = "Parameter 2";
-						std::string param3 = "Parameter 3";
-						std::string param4 = "Parameter 4";
-						std::string param5 = "Parameter 5";
-						std::string param6 = "Parameter 6";
-						std::string param7 = "Parameter 7";
-						if (pObjectMaterial->customShaderID == 1)
-						{
-							numpar = 1;
-							param1 = "Object Wind";
-						}
-						if (pObjectMaterial->customShaderID == 2)
-						{
-							numpar = 6;
-							param1 = "UV Scale";
-							param2 = "UV Speed";
-							param3 = "Distorsion";
-							param4 = "Direction";
-							param5 = "TEX Scroll";
-							param6 = "Foam Size";
-						}
-						if (pObjectMaterial->customShaderID == 3)
-						{
-							numpar = 3;
-							param1 = "Transmission";
-							param2 = "Refraction";
-							param3 = "Brighten";
-						}
-						
-						if (numpar > 0)
-						{
-							ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
-							ImGui::Text(param1.c_str());
-							ImGui::SameLine();
-							ImGui::SetCursorPos(ImVec2(help_start + 20, ImGui::GetCursorPosY() - 5));
-							if (ImGui::SliderFloat("##CuShaPa1", &pObjectMaterial->customShaderParam1, 0.0, 2.0))
+							if (numpar > 1)
 							{
-								importer_set_all_material_shader_id(pObjectMaterial->customShaderID, pObjectMaterial->customShaderParam1, pObjectMaterial->customShaderParam2, pObjectMaterial->customShaderParam3, pObjectMaterial->customShaderParam4, pObjectMaterial->customShaderParam5, pObjectMaterial->customShaderParam6, pObjectMaterial->customShaderParam7);
-								pObjectMaterial->SetDirty();
-								bHaveMaterialUpdate = true;
+								ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
+								ImGui::Text(param2.c_str());
+								ImGui::SameLine();
+								ImGui::SetCursorPos(ImVec2(help_start + 20, ImGui::GetCursorPosY() - 5));
+								if (ImGui::SliderFloat("##CuShaPa2", &pObjectMaterial->customShaderParam2, 0.0, 2.0))
+								{
+									importer_set_all_material_shader_id(pObjectMaterial->customShaderID, pObjectMaterial->customShaderParam1, pObjectMaterial->customShaderParam2, pObjectMaterial->customShaderParam3, pObjectMaterial->customShaderParam4, pObjectMaterial->customShaderParam5, pObjectMaterial->customShaderParam6, pObjectMaterial->customShaderParam7);
+									pObjectMaterial->SetDirty();
+									bHaveMaterialUpdate = true;
+								}
 							}
-						}
+							if (numpar > 2)
+							{
+								ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
+								ImGui::Text(param3.c_str());
+								ImGui::SameLine();
+								ImGui::SetCursorPos(ImVec2(help_start + 20, ImGui::GetCursorPosY() - 5));
+								if (ImGui::SliderFloat("##CuShaPa3", &pObjectMaterial->customShaderParam3, 0.0, 2.0))
+								{
+									importer_set_all_material_shader_id(pObjectMaterial->customShaderID, pObjectMaterial->customShaderParam1, pObjectMaterial->customShaderParam2, pObjectMaterial->customShaderParam3, pObjectMaterial->customShaderParam4, pObjectMaterial->customShaderParam5, pObjectMaterial->customShaderParam6, pObjectMaterial->customShaderParam7);
+									pObjectMaterial->SetDirty();
+									bHaveMaterialUpdate = true;
+								}
+							}
+							if (numpar > 3)
+							{
+								ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
+								ImGui::Text(param4.c_str());
+								ImGui::SameLine();
+								ImGui::SetCursorPos(ImVec2(help_start + 20, ImGui::GetCursorPosY() - 5));
+								if (ImGui::SliderFloat("##CuShaPa4", &pObjectMaterial->customShaderParam4, 0.0, 2.0))
+								{
+									importer_set_all_material_shader_id(pObjectMaterial->customShaderID, pObjectMaterial->customShaderParam1, pObjectMaterial->customShaderParam2, pObjectMaterial->customShaderParam3, pObjectMaterial->customShaderParam4, pObjectMaterial->customShaderParam5, pObjectMaterial->customShaderParam6, pObjectMaterial->customShaderParam7);
+									pObjectMaterial->SetDirty();
+									bHaveMaterialUpdate = true;
+								}
+							}
+							if (numpar > 4)
+							{
+								ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
+								ImGui::Text(param5.c_str());
+								ImGui::SameLine();
+								ImGui::SetCursorPos(ImVec2(help_start + 20, ImGui::GetCursorPosY() - 5));
+								if (ImGui::SliderFloat("##CuShaPa5", &pObjectMaterial->customShaderParam5, 0.0, 2.0))
+								{
+									importer_set_all_material_shader_id(pObjectMaterial->customShaderID, pObjectMaterial->customShaderParam1, pObjectMaterial->customShaderParam2, pObjectMaterial->customShaderParam3, pObjectMaterial->customShaderParam4, pObjectMaterial->customShaderParam5, pObjectMaterial->customShaderParam6, pObjectMaterial->customShaderParam7);
+									pObjectMaterial->SetDirty();
+									bHaveMaterialUpdate = true;
+								}
+							}
+							if (numpar > 5)
+							{
+								ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
+								ImGui::Text(param6.c_str());
+								ImGui::SameLine();
+								ImGui::SetCursorPos(ImVec2(help_start + 20, ImGui::GetCursorPosY() - 5));
+								if (ImGui::SliderFloat("##CuShaPa6", &pObjectMaterial->customShaderParam6, 0.0, 2.0))
+								{
+									importer_set_all_material_shader_id(pObjectMaterial->customShaderID, pObjectMaterial->customShaderParam1, pObjectMaterial->customShaderParam2, pObjectMaterial->customShaderParam3, pObjectMaterial->customShaderParam4, pObjectMaterial->customShaderParam5, pObjectMaterial->customShaderParam6, pObjectMaterial->customShaderParam7);
+									pObjectMaterial->SetDirty();
+									bHaveMaterialUpdate = true;
+								}
+							}
+							if (numpar > 6)
+							{
+								ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
+								ImGui::Text(param7.c_str());
+								ImGui::SameLine();
+								ImGui::SetCursorPos(ImVec2(help_start + 20, ImGui::GetCursorPosY() - 5));
+								if (ImGui::SliderFloat("##CuShaPa7", &pObjectMaterial->customShaderParam7, 0.0, 2.0))
+								{
+									importer_set_all_material_shader_id(pObjectMaterial->customShaderID, pObjectMaterial->customShaderParam1, pObjectMaterial->customShaderParam2, pObjectMaterial->customShaderParam3, pObjectMaterial->customShaderParam4, pObjectMaterial->customShaderParam5, pObjectMaterial->customShaderParam6, pObjectMaterial->customShaderParam7);
+									pObjectMaterial->SetDirty();
+									bHaveMaterialUpdate = true;
+								}
+							}
 
-						if (numpar > 1)
-						{
-							ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
-							ImGui::Text(param2.c_str());
-							ImGui::SameLine();
-							ImGui::SetCursorPos(ImVec2(help_start + 20, ImGui::GetCursorPosY() - 5));
-							if (ImGui::SliderFloat("##CuShaPa2", &pObjectMaterial->customShaderParam2, 0.0, 2.0))
-							{
-								importer_set_all_material_shader_id(pObjectMaterial->customShaderID, pObjectMaterial->customShaderParam1, pObjectMaterial->customShaderParam2, pObjectMaterial->customShaderParam3, pObjectMaterial->customShaderParam4, pObjectMaterial->customShaderParam5, pObjectMaterial->customShaderParam6, pObjectMaterial->customShaderParam7);
-								pObjectMaterial->SetDirty();
-								bHaveMaterialUpdate = true;
-							}
-						}
-						if (numpar > 2)
-						{
-							ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
-							ImGui::Text(param3.c_str());
-							ImGui::SameLine();
-							ImGui::SetCursorPos(ImVec2(help_start + 20, ImGui::GetCursorPosY() - 5));
-							if (ImGui::SliderFloat("##CuShaPa3", &pObjectMaterial->customShaderParam3, 0.0, 2.0))
-							{
-								importer_set_all_material_shader_id(pObjectMaterial->customShaderID, pObjectMaterial->customShaderParam1, pObjectMaterial->customShaderParam2, pObjectMaterial->customShaderParam3, pObjectMaterial->customShaderParam4, pObjectMaterial->customShaderParam5, pObjectMaterial->customShaderParam6, pObjectMaterial->customShaderParam7);
-								pObjectMaterial->SetDirty();
-								bHaveMaterialUpdate = true;
-							}
-						}
-						if (numpar > 3)
-						{
-							ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
-							ImGui::Text(param4.c_str());
-							ImGui::SameLine();
-							ImGui::SetCursorPos(ImVec2(help_start + 20, ImGui::GetCursorPosY() - 5));
-							if (ImGui::SliderFloat("##CuShaPa4", &pObjectMaterial->customShaderParam4, 0.0, 2.0))
-							{
-								importer_set_all_material_shader_id(pObjectMaterial->customShaderID, pObjectMaterial->customShaderParam1, pObjectMaterial->customShaderParam2, pObjectMaterial->customShaderParam3, pObjectMaterial->customShaderParam4, pObjectMaterial->customShaderParam5, pObjectMaterial->customShaderParam6, pObjectMaterial->customShaderParam7);
-								pObjectMaterial->SetDirty();
-								bHaveMaterialUpdate = true;
-							}
-						}
-						if (numpar > 4)
-						{
-							ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
-							ImGui::Text(param5.c_str());
-							ImGui::SameLine();
-							ImGui::SetCursorPos(ImVec2(help_start + 20, ImGui::GetCursorPosY() - 5));
-							if (ImGui::SliderFloat("##CuShaPa5", &pObjectMaterial->customShaderParam5, 0.0, 2.0))
-							{
-								importer_set_all_material_shader_id(pObjectMaterial->customShaderID, pObjectMaterial->customShaderParam1, pObjectMaterial->customShaderParam2, pObjectMaterial->customShaderParam3, pObjectMaterial->customShaderParam4, pObjectMaterial->customShaderParam5, pObjectMaterial->customShaderParam6, pObjectMaterial->customShaderParam7);
-								pObjectMaterial->SetDirty();
-								bHaveMaterialUpdate = true;
-							}
-						}
-						if (numpar > 5)
-						{
-							ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
-							ImGui::Text(param6.c_str());
-							ImGui::SameLine();
-							ImGui::SetCursorPos(ImVec2(help_start + 20, ImGui::GetCursorPosY() - 5));
-							if (ImGui::SliderFloat("##CuShaPa6", &pObjectMaterial->customShaderParam6, 0.0, 2.0))
-							{
-								importer_set_all_material_shader_id(pObjectMaterial->customShaderID, pObjectMaterial->customShaderParam1, pObjectMaterial->customShaderParam2, pObjectMaterial->customShaderParam3, pObjectMaterial->customShaderParam4, pObjectMaterial->customShaderParam5, pObjectMaterial->customShaderParam6, pObjectMaterial->customShaderParam7);
-								pObjectMaterial->SetDirty();
-								bHaveMaterialUpdate = true;
-							}
-						}
-						if (numpar > 6)
-						{
-							ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
-							ImGui::Text(param7.c_str());
-							ImGui::SameLine();
-							ImGui::SetCursorPos(ImVec2(help_start + 20, ImGui::GetCursorPosY() - 5));
-							if (ImGui::SliderFloat("##CuShaPa7", &pObjectMaterial->customShaderParam7, 0.0, 2.0))
-							{
-								importer_set_all_material_shader_id(pObjectMaterial->customShaderID, pObjectMaterial->customShaderParam1, pObjectMaterial->customShaderParam2, pObjectMaterial->customShaderParam3, pObjectMaterial->customShaderParam4, pObjectMaterial->customShaderParam5, pObjectMaterial->customShaderParam6, pObjectMaterial->customShaderParam7);
-								pObjectMaterial->SetDirty();
-								bHaveMaterialUpdate = true;
-							}
-						}
+							ImGui::PopItemWidth();
 
-						ImGui::PopItemWidth();
-
+						}
 					}
 					#endif				
 
@@ -11939,6 +11959,13 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 				}
 			}
 		}
+
+		if (bReadOnly)
+		{
+			ImGui::PopItemFlag();
+			ImGui::PopStyleVar();
+		}
+
 	}
 
 	// in mode 6, can make changes that will affect ALL objects in rubber band (All Materials)

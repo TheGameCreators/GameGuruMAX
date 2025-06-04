@@ -37598,7 +37598,9 @@ void SetupDecalObject(int obj, int elementID)
 		WickedCall_SetObjectCullmode(pObject);
 		WickedCall_SetObjectCastShadows(pObject, false); //PE: No shadows on particles for now.
 
-		if(!t.entityelement[elementID].eleprof.bCustomWickedMaterialActive) // ZJ: Only reset this if not using custom materials for this decal.
+		
+		//if(!t.entityelement[elementID].eleprof.bCustomWickedMaterialActive) // ZJ: Only reset this if not using custom materials for this decal.
+		if (t.entityelement[elementID].eleprof.bUseFPESettings) // ZJ: Only reset this if not using custom materials for this decal.
 		{
 			//PE: Use unlit shader.
 			for (int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++)
@@ -53047,12 +53049,35 @@ void ReloadEntityIDInSitu ( int entIndex)
 		}
 	}
 
+	//PE: bCustomWickedMaterialActive = false only if dbo changes.
 	// as a final step, ensure all custom material settings are removed as the replaced object may not line up with old one
 	for (int e = 1; e < t.entityelement.size(); e++)
 	{
 		if (t.entityelement[e].bankindex == entIndex)
 		{
-			t.entityelement[e].eleprof.bCustomWickedMaterialActive = false;
+			if (t.entityelement[e].eleprof.bUseFPESettings)
+			{
+				int iMasterID = t.entityelement[e].bankindex;
+				if (iMasterID > 0 && iMasterID < t.entityprofile.size())
+				{
+					sObject* pMasterObject = g_ObjectList[g.entitybankoffset + iMasterID];
+					if (pMasterObject)
+					{
+						Wicked_Copy_Material_To_Grideleprof((void*)pMasterObject, 0, &t.entityelement[e].eleprof);
+						int tobj = t.entityelement[e].obj;
+						if (tobj > 0)
+						{
+							if (t.entityprofile[iMasterID].WEMaterial.dwBaseColor[0] == -1)
+								SetObjectDiffuse(tobj, Rgb(255, 255, 255));
+							sObject* pObject = g_ObjectList[tobj];
+							Wicked_Set_Material_From_grideleprof((void*)pObject, 0, &t.entityelement[e].eleprof);
+							t.entityelement[e].eleprof.WEMaterial.MaterialActive = false;
+						}
+					}
+				}
+			}
+			//PE: Moved to bUseFPESettings.
+			//t.entityelement[e].eleprof.bCustomWickedMaterialActive = false;
 		}
 	}
 }

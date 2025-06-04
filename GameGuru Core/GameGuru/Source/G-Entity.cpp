@@ -4438,13 +4438,23 @@ void entity_createobj ( void )
 		#endif
 
 		#ifdef WICKEDENGINE
+		if (t.tupdatee != -1 && t.entityelement[t.tupdatee].eleprof.bUseFPESettings)
+		{
+			//PE: Make sure to copy over master object to entity material.
+			//PE: This also insures that bUseInstancing is used for all object that have this flag.
+			sObject* pMasterObject = g_ObjectList[t.sourceobj];
+			int iMasterID = t.entityelement[t.tupdatee].bankindex;
+			if (pMasterObject && iMasterID > 0 && iMasterID < t.entityprofile.size())
+			{
+				Wicked_Copy_Material_To_Grideleprof((void*)pMasterObject, 0, &t.entityelement[t.tupdatee].eleprof);
+			}
+		}
 		extern bool bUseInstancing;
 		extern int iUseMasterObjectID;
 		extern bool bNextObjectMustBeClone;
 		//PE: InstanceObject - If this object has a custom "Materials" always create as clone.
 		if (t.tupdatee != -1)
 		{
-			if (t.entityelement[t.tupdatee].eleprof.bCustomWickedMaterialActive) bCreateAsClone = true;
 			WickedSetElementId(t.tupdatee);
 			WickedSetEntityId(t.entityelement[t.tupdatee].bankindex);
 			iUseMasterObjectID = t.sourceobj;

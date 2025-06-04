@@ -111,7 +111,7 @@ void importer_update_scale ( void );
 void importer_find_floor(void);
 void importer_delete_old_surface_files();
 float GetScaleMultiply(int iObj);
-void Wicked_Change_Object_Material(void* pObject, int mode, entityeleproftype *edit_grideleprof = NULL, bool bFromCustomMaterials = true);
+void Wicked_Change_Object_Material(void* pObject, int mode, entityeleproftype *edit_grideleprof = NULL, bool bFromCustomMaterials = true, bool bReadOnly = false);
 void Wicked_Set_Material_Defaults(void* pVObject, int mode);
 void Wicked_Copy_Material_To_Grideleprof(void* pVObject, int mode, entityeleproftype *edit_grideleprof = NULL);
 void Wicked_Copy_JustTextureNames_To_Grideleprof(void* pVObject, int mode);

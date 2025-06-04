@@ -6494,6 +6494,7 @@ struct entityeleproftype
 	int weaponpropres2;
 	int blendmode;
 	cstr explodable_decalname;
+	bool bUseFPESettings;
 	// Constructor
 	entityeleproftype ( )
 	{
@@ -6650,6 +6651,7 @@ struct entityeleproftype
 		 //aiinit_s = "";
 		 name_s = "";
 		 explodable_decalname = "";
+		 bUseFPESettings = true;
 	}
 	// End of Constructor
 

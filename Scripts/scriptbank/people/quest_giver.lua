@@ -1,9 +1,8 @@
--- Quest Giver v12 by Necrym59 and Lee
+-- Quest Giver v13 by Necrym59 and Lee
 -- DESCRIPTION: When player is within [RANGE=100] distance, will show [QUEST_PROMPT$="Press E to Interact"] 
--- DESCRIPTION: When E is pressed, player will be shown [@@QUEST_SCREEN$="HUD Screen 8"(0=hudscreenlist)] with
--- DESCRIPTION: [@QuestChoice=1(0=QuestList)]
--- DESCRIPTION: and play [SPEECH1$=""]
--- DESCRIPTION: <Sound0> when quest completed.
+-- DESCRIPTION: When E is pressed, player will be shown [@@QUEST_SCREEN$="HUD Screen 8"(0=hudscreenlist)]
+-- DESCRIPTION: with [@QuestChoice=1(0=QuestList)] and play [SPEECH1$=""]
+-- DESCRIPTION: and will play <Sound0> when quest is completed.
 -- DESCRIPTION: [!SpawnQuestObj=1] when quest accepted.
 
 master_interpreter_core = require "scriptbank\\masterinterpreter"
@@ -22,6 +21,7 @@ local check_quantity	= {}
 local check_timer		= {}
 local play_once			= {}
 local doonce			= {}
+local anim_once			= {}
 local prompt_once		= {}
 
 function quest_giver_init_file(e,scriptfile)
@@ -38,6 +38,7 @@ function quest_giver_init_file(e,scriptfile)
 	play_once[e] = 0
 	doonce[e] = 0	
 	prompt_once[e] = 0
+	anim_once[e] = 0
 	g_ActivateQuestComplete = 0	
 end
 
@@ -59,7 +60,8 @@ function quest_giver_properties(e, range, questprompt, questscreen, questchoice,
 	g_quest_giver[e]['questquantity'] = ""
 	g_quest_giver[e]['questendtext'] = "Quest Completed"
 	g_quest_giver[e]['ischaracter'] = 1
-	g_quest_giver[e]['name'] = "Quest Giver 57"	
+	--g_quest_giver[e]['name'] = "Quest Giver 57"
+	g_quest_giver[e]['name'] = GetEntityName(e)
 	--a dangerous precident to run BYC and regular LUA alongside each other!
 	--master_interpreter_core.masterinterpreter_restart (g_quest_giver[e], g_Entity[e])
 end
@@ -73,6 +75,11 @@ function quest_giver_main(e)
 	--	end
 	--end
 	SetEntityAlwaysActive(e,1)
+	if anim_once[e] == 0 then
+		SetAnimationName(e,"idle")
+		LoopAnimation(e)
+		anim_once[e] = 1
+	end	
 	if g_quest_giver[e]['questtitle'] == "" then
 		local totalquests = GetCollectionQuestQuantity()
 		if totalquests ~= nil then
@@ -94,6 +101,7 @@ function quest_giver_main(e)
 			end
 		end
 	end
+	
 	if g_UserGlobalQuestTitleActive == nil then g_UserGlobalQuestTitleActive = "" end
 	if g_UserGlobalQuestTitleActive ~= nil then
 		if g_quest_giver[e]['queststarted'] == 0 then
@@ -108,15 +116,19 @@ function quest_giver_main(e)
 			end
 			local PlayerDist = GetPlayerDistance(e)
 			if PlayerDist < g_quest_giver[e]['range'] then
-				PromptDuration(g_quest_giver[e]['questprompt'] ,1000)
+				LookAtPlayer(e,10)
+				PromptDuration(g_quest_giver[e]['questprompt'],1000)				
+				--PromptDuration(g_quest_giver[e]['questprompt'] ,1000)
 				if g_KeyPressE == 1 then
 					-- set game to this quest
 					-- PromptGuruMeditation("PLAY SPEECH AND ANIM WITHIN REGULAR SCRIPT")
-					SetAnimationName(e,"idle")
-					LoopAnimation(e)
-					PlaySound(e,1)
-					PlaySpeech(e,1)
-					LookAtPlayer(e,10)
+					SetAnimationName(e,"idle")					
+					LoopAnimation(e)		
+					if play_once[e] == 0 then 
+						PlaySound(e,1)
+						PlaySpeech(e,1)
+						play_once[e] = 1
+					end											
 					g_UserGlobalQuestTitleShowing = g_quest_giver[e]['questtitle']
 					g_UserGlobalQuestTitleShowingObject = g_quest_giver[e]['questobject']
 					g_UserGlobalQuestTitleShowingObject2 = g_quest_giver[e]['questreceiver']

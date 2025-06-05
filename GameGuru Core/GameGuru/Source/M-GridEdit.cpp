@@ -9534,20 +9534,27 @@ void mapeditorexecutable_loop(void)
 
 									ImGui::Indent(10);
 
-									if (ImGui::Checkbox("Custom Materials Used##2", &t.entityelement[iEntityIndex].eleprof.bCustomWickedMaterialActive))
-									{
-										bNeedMaterialUpdate = true;
-										t.importer.bModelMeshNamesSet = false;
-										t.importer.cModelMeshNames.clear();
-									}
-									if (ImGui::IsItemHovered()) ImGui::SetTooltip("This flag indicates the object has modified the original model, either through FPE level additions or changes within the level editor");
+									//if (ImGui::Checkbox("Custom Materials Used##2", &t.entityelement[iEntityIndex].eleprof.bCustomWickedMaterialActive))
+									//{
+									//	bNeedMaterialUpdate = true;
+									//	t.importer.bModelMeshNamesSet = false;
+									//	t.importer.cModelMeshNames.clear();
+									//}
+									//if (ImGui::IsItemHovered()) ImGui::SetTooltip("This flag indicates the object has modified the original model, either through FPE level additions or changes within the level editor");
 
-									if (t.entityelement[iEntityIndex].eleprof.bCustomWickedMaterialActive)
+									//if (t.entityelement[iEntityIndex].eleprof.bCustomWickedMaterialActive)
 									{
 										// display custom material settings
 										WickedSetEntityId(iMasterID);
 										WickedSetElementId(iEntityIndex);
-										Wicked_Change_Object_Material((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
+										Wicked_Change_Object_Material((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof,true, t.entityelement[iEntityIndex].eleprof.bUseFPESettings);
+
+										if (ImGui::Checkbox("Always use Original Object Settings##2", &t.entityelement[iEntityIndex].eleprof.bUseFPESettings))
+										{
+											bNeedMaterialUpdate = true;
+											t.importer.bModelMeshNamesSet = false;
+											t.importer.cModelMeshNames.clear();
+										}
 										WickedSetEntityId(-1);
 										WickedSetElementId(0);
 									}
@@ -9556,16 +9563,19 @@ void mapeditorexecutable_loop(void)
 								}
 								if (bNeedMaterialUpdate)
 								{
-									if (!t.entityelement[iEntityIndex].eleprof.bCustomWickedMaterialActive)
+									if (t.entityelement[iEntityIndex].eleprof.bUseFPESettings || !t.entityelement[iEntityIndex].eleprof.bCustomWickedMaterialActive)
 									{
 										// Set material settings from master object.
 										sObject* pMasterObject = g_ObjectList[g.entitybankoffset + iMasterID];
-										Wicked_Copy_Material_To_Grideleprof((void*)pMasterObject, 0, &t.entityelement[iEntityIndex].eleprof);
-										if (t.entityprofile[iMasterID].WEMaterial.dwBaseColor[0] == -1)
-											SetObjectDiffuse(iActiveObj, Rgb(255, 255, 255));
+										if (pMasterObject && iMasterID > 0 && iMasterID < t.entityprofile.size())
+										{
+											Wicked_Copy_Material_To_Grideleprof((void*)pMasterObject, 0, &t.entityelement[iEntityIndex].eleprof);
+											if (t.entityprofile[iMasterID].WEMaterial.dwBaseColor[0] == -1)
+												SetObjectDiffuse(iActiveObj, Rgb(255, 255, 255));
 
-										Wicked_Set_Material_From_grideleprof((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
-										t.grideleprof.WEMaterial.MaterialActive = false;
+											Wicked_Set_Material_From_grideleprof((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
+											t.grideleprof.WEMaterial.MaterialActive = false;
+										}
 									}
 									else
 									{
@@ -9589,28 +9599,33 @@ void mapeditorexecutable_loop(void)
 
 									// any custom flags sets ALL of them (or none of them)
 									bool bAnyCustomMaterials = false;
+									bool bAnyUseFPESettings = false;
 									for (int ii = 0; ii < g.entityrubberbandlist.size(); ii++)
 									{
 										int ee = g.entityrubberbandlist[ii].e;
 										if (t.entityelement[ee].eleprof.bCustomWickedMaterialActive == true)
 										{
 											bAnyCustomMaterials = true;
-											break;
+											//break;
 										}
-									}
-									if (ImGui::Checkbox("Custom Materials Used##3", &bAnyCustomMaterials))
-									{
-										// set all materials as custom or not
-										for (int ii = 0; ii < g.entityrubberbandlist.size(); ii++)
+										if (t.entityelement[ee].eleprof.bUseFPESettings)
 										{
-											int ee = g.entityrubberbandlist[ii].e;
-											t.entityelement[ee].eleprof.bCustomWickedMaterialActive = bAnyCustomMaterials;
+											bAnyUseFPESettings = true;
 										}
 									}
-									if (ImGui::IsItemHovered()) ImGui::SetTooltip("This flag indicates the object has modified the original model, either through FPE level additions or changes within the level editor");
+									//if (ImGui::Checkbox("Custom Materials Used##3", &bAnyCustomMaterials))
+									//{
+									//	// set all materials as custom or not
+									//	for (int ii = 0; ii < g.entityrubberbandlist.size(); ii++)
+									//	{
+									//		int ee = g.entityrubberbandlist[ii].e;
+									//		t.entityelement[ee].eleprof.bCustomWickedMaterialActive = bAnyCustomMaterials;
+									//	}
+									//}
+									//if (ImGui::IsItemHovered()) ImGui::SetTooltip("This flag indicates the object has modified the original model, either through FPE level additions or changes within the level editor");
 
 									// if custom materials, opens up options to mass change certain properties
-									if (bAnyCustomMaterials==true)
+									//if (bAnyCustomMaterials==true)
 									{
 										// display custom material settings for ALL objects
 										if (g.entityrubberbandlist.size() > 0)
@@ -9618,7 +9633,34 @@ void mapeditorexecutable_loop(void)
 											int iEntityIndex = g.entityrubberbandlist[0].e;
 											WickedSetEntityId(t.entityelement[iEntityIndex].bankindex);
 											WickedSetElementId(iEntityIndex);
-											Wicked_Change_Object_Material((void*)pObject, 6, &t.entityelement[iEntityIndex].eleprof);
+											Wicked_Change_Object_Material((void*)pObject, 6, &t.entityelement[iEntityIndex].eleprof,true, bAnyUseFPESettings);
+
+											if (ImGui::Checkbox("Always use Original Object Settings##3", &bAnyUseFPESettings))
+											{
+												for (int ii = 0; ii < g.entityrubberbandlist.size(); ii++)
+												{
+													int ee = g.entityrubberbandlist[ii].e;
+													t.entityelement[ee].eleprof.bUseFPESettings = bAnyUseFPESettings;
+													if (bAnyUseFPESettings)
+													{
+														//PE: Copy material from master object.
+														int iMasterID = t.entityelement[ee].bankindex;
+														if (iMasterID > 0 && iMasterID < t.entityprofile.size())
+														{
+															sObject* pMasterObject = g_ObjectList[g.entitybankoffset + iMasterID];
+															if (pMasterObject)
+															{
+																Wicked_Copy_Material_To_Grideleprof((void*)pMasterObject, 0, &t.entityelement[ee].eleprof);
+																if (t.entityprofile[iMasterID].WEMaterial.dwBaseColor[0] == -1)
+																	SetObjectDiffuse(iActiveObj, Rgb(255, 255, 255));
+																Wicked_Set_Material_From_grideleprof((void*)pObject, 0, &t.entityelement[ee].eleprof);
+																t.entityelement[ee].eleprof.WEMaterial.MaterialActive = false;
+															}
+														}
+													}
+												}
+											}
+
 											WickedSetEntityId(-1);
 											WickedSetElementId(0);
 										}
@@ -11586,6 +11628,8 @@ void mapeditorexecutable_loop(void)
 							bool bSound1Mentioned = false;
 							bool bSound2Mentioned = false;
 							bool bSound3Mentioned = false;
+							bool bSound4Mentioned = false;
+							bool bSound5Mentioned = false;
 							bool bVideoSlotMentioned = false;
 							bool bIfUsedMentioned = false;
 							bool bUseKeyMentioned = false;
@@ -11609,6 +11653,8 @@ void mapeditorexecutable_loop(void)
 							if (strstr(pCaptureAnyScriptDesc, "<Sound1>") != 0) bSound1Mentioned = true;
 							if (strstr(pCaptureAnyScriptDesc, "<Sound2>") != 0) bSound2Mentioned = true;
 							if (strstr(pCaptureAnyScriptDesc, "<Sound3>") != 0) bSound3Mentioned = true;
+							if (strstr(pCaptureAnyScriptDesc, "<Sound4>") != 0) bSound4Mentioned = true;
+							if (strstr(pCaptureAnyScriptDesc, "<Sound5>") != 0) bSound5Mentioned = true;
 							if (strstr(pCaptureAnyScriptDesc, "<Video Slot>") != 0) bVideoSlotMentioned = true;
 							if (strstr(pCaptureAnyScriptDesc, "<If Used>") != 0) bIfUsedMentioned = true;
 							if (strstr(pCaptureAnyScriptDesc, "<Shooting Weapon>") != 0) bShootingWeaponMentioned = true;
@@ -11625,6 +11671,8 @@ void mapeditorexecutable_loop(void)
 							if (bSound1Mentioned == true) t.grideleprof.soundset1_s = imgui_setpropertyfile2(t.group, t.grideleprof.soundset1_s.Get(), "Sound1", t.strarr_s[254].Get(), "audiobank\\");
 							if (bSound2Mentioned == true) t.grideleprof.soundset2_s = imgui_setpropertyfile2(t.group, t.grideleprof.soundset2_s.Get(), "Sound2", t.strarr_s[254].Get(), "audiobank\\");
 							if (bSound3Mentioned == true) t.grideleprof.soundset3_s = imgui_setpropertyfile2(t.group, t.grideleprof.soundset3_s.Get(), "Sound3", t.strarr_s[254].Get(), "audiobank\\");
+							if (bSound4Mentioned == true) t.grideleprof.soundset5_s = imgui_setpropertyfile2(t.group, t.grideleprof.soundset5_s.Get(), "Sound4", t.strarr_s[254].Get(), "audiobank\\");
+							if (bSound5Mentioned == true) t.grideleprof.soundset6_s = imgui_setpropertyfile2(t.group, t.grideleprof.soundset6_s.Get(), "Sound5", t.strarr_s[254].Get(), "audiobank\\");
 							if (bIfUsedMentioned == true) t.grideleprof.ifused_s = imgui_setpropertystring2(t.group, t.grideleprof.ifused_s.Get(), t.strarr_s[437].Get(), t.strarr_s[226].Get());
 							if (bUseKeyMentioned == true) t.grideleprof.usekey_s = imgui_setpropertystring2(t.group, t.grideleprof.usekey_s.Get(), t.strarr_s[436].Get(), t.strarr_s[225].Get());
 							bool readonly = false;
@@ -11652,29 +11700,55 @@ void mapeditorexecutable_loop(void)
 							if (ImGui::StyleCollapsingHeader("Materials", ImGuiTreeNodeFlags_DefaultOpen))
 							{
 								ImGui::Indent(10);
-								if (!t.grideleprof.bCustomWickedMaterialActive) 
+								//if(0)// (!t.grideleprof.bCustomWickedMaterialActive) 
+								//{
+								//	ImGui::Checkbox("Custom Materials Used", &t.grideleprof.bCustomWickedMaterialActive);
+								//	if (ImGui::IsItemHovered()) ImGui::SetTooltip("This can break instancing and add additional draw calls");
+								//
+								//	//PE: Copy master material settings to t.grideleprof.WEMaterial
+								//	if (t.grideleprof.bCustomWickedMaterialActive) 
+								//	{
+								//		Wicked_Copy_Material_To_Grideleprof((void*)pObject, 0);
+								//		t.grideleprof.WEMaterial.MaterialActive = true;
+								//	}
+								//	else 
+								//	{
+								//		t.grideleprof.WEMaterial.MaterialActive = false;
+								//	}
+								//}
+								//else 
 								{
-									ImGui::Checkbox("Custom Materials Used", &t.grideleprof.bCustomWickedMaterialActive);
-									if (ImGui::IsItemHovered()) ImGui::SetTooltip("This can break instancing and add additional draw calls");
+									//if (ImGui::Checkbox("Custom Materials Used", &t.grideleprof.bCustomWickedMaterialActive))
+									//{
+									//	//PE: Temp change.
+									//	if (t.grideleprof.bCustomWickedMaterialActive)
+									//	{
+									//		Wicked_Copy_Material_To_Grideleprof((void*)pObject, 0);
+									//		t.grideleprof.WEMaterial.MaterialActive = true;
+									//	}
+									//	else
+									//	{
+									//		t.grideleprof.WEMaterial.MaterialActive = false;
+									//	}
+									//}
+									//if (ImGui::IsItemHovered()) ImGui::SetTooltip("This flag indicates the object has modified the original model, either through FPE level additions or changes within the level editor");
 
-									//PE: Copy master material settings to t.grideleprof.WEMaterial
-									if (t.grideleprof.bCustomWickedMaterialActive) 
-									{
-										Wicked_Copy_Material_To_Grideleprof((void*)pObject, 0);
-										t.grideleprof.WEMaterial.MaterialActive = true;
-									}
-									else 
-									{
-										t.grideleprof.WEMaterial.MaterialActive = false;
-									}
-								}
-								else 
-								{
-									ImGui::Checkbox("Custom Materials Used", &t.grideleprof.bCustomWickedMaterialActive);
-									if (ImGui::IsItemHovered()) ImGui::SetTooltip("This flag indicates the object has modified the original model, either through FPE level additions or changes within the level editor");
+								
+									Wicked_Change_Object_Material((void*)pObject, 0, NULL , true , t.grideleprof.bUseFPESettings);
 
-									//sMesh * pMesh = NULL;
-									Wicked_Change_Object_Material((void*)pObject, 0);
+									if (ImGui::Checkbox("Always use Original Object Settings##2", &t.grideleprof.bUseFPESettings))
+									{
+										if (t.grideleprof.bUseFPESettings)
+										{
+											t.grideleprof.WEMaterial.MaterialActive = false;
+										}
+										else
+										{
+											Wicked_Copy_Material_To_Grideleprof((void*)pObject, 0);
+											t.grideleprof.WEMaterial.MaterialActive = true;
+										}
+									}
+
 								}
 								ImGui::Indent(-10);
 							}
@@ -13314,6 +13388,7 @@ void mapeditorexecutable_loop(void)
 											//Make sure we use a fresh t.grideleprof
 											t.entid = t.gridentity;
 											entity_fillgrideleproffromprofile();
+											t.grideleprof.bUseFPESettings = true; //PE: New added always use bUseFPESettings.
 											t.inputsys.dragoffsetx_f = 0;
 											t.inputsys.dragoffsety_f = 0;
 											fHitPointX = 0;
@@ -13408,6 +13483,7 @@ void mapeditorexecutable_loop(void)
 												//Make sure we use a fresh t.grideleprof
 												t.entid = t.gridentity;
 												entity_fillgrideleproffromprofile();
+												t.grideleprof.bUseFPESettings = true; //PE: New added always use bUseFPESettings.
 												t.inputsys.dragoffsetx_f = 0;
 												t.inputsys.dragoffsety_f = 0;
 												fHitPointX = 0;
@@ -13656,6 +13732,7 @@ void mapeditorexecutable_loop(void)
 					Entity_Tools_Window = true;
 					//Make sure we use a fresh t.grideleprof
 					entity_fillgrideleproffromprofile();
+					t.grideleprof.bUseFPESettings = true; //PE: New added always use bUseFPESettings.
 					editor_refresheditmarkers();
 
 					// Show elements when placing a new one down, prevents half being hidden and half not.
@@ -22304,6 +22381,7 @@ void editor_constructionselection ( void )
 					// only if not already populated from smart object element above
 					t.sentid = t.entid; t.entid = t.gridentity;
 					entity_fillgrideleproffromprofile();
+					t.grideleprof.bUseFPESettings = true; //PE: New added always use bUseFPESettings.
 					t.entid = t.sentid;
 				}
 				t.grideleproflastname_s=t.grideleprof.name_s;

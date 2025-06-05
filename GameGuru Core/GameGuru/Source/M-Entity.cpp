@@ -2693,7 +2693,7 @@ void entity_loaddata ( void )
 							}
 						}
 
-						cmpNStrConst( t_field_s, "emissivestrengt" );
+						cmpNStrConst( t_field_s, "emissivestrengt" ); //PE: "emissivestrength"
 						if ( matched )
 						{
 							int index = atoi( t_field_s + 16 );
@@ -4444,6 +4444,7 @@ void entity_fillgrideleproffromprofile ( void )
 	// so we will make this false for default and fix any new issues that may arise, including the new demand
 	// that other users want if ON by default :)  Perhaps something in editor pref settings ;)
 	// LB: Additional - Preben notes doing the above breaks many things, including FPE material settings, so restore and rethink
+	// PE: Keep it as is , and now use bUseFPESettings to control what will get updated.
 	t.grideleprof.bCustomWickedMaterialActive = true;
 	//if (t.entityprofile[t.entid].WEMaterial.MaterialActive)
 	//	t.grideleprof.bCustomWickedMaterialActive = true;
@@ -5623,10 +5624,8 @@ void c_entity_loadelementsdata ( void )
 
 	// load entity element list
 	t.failedtoload=0;
-	t.versionnumbersupported = 338;
-	#ifdef CUSTOMSHADERS
-	t.versionnumbersupported = 340;
-	#endif
+	//t.versionnumbersupported = 338;
+	t.versionnumbersupported = 341;
 
 	if ( FileExist(t.elementsfilename_s.Get()) == 1 ) 
 	{
@@ -6354,7 +6353,10 @@ void c_entity_loadelementsdata ( void )
 						t.a_s = c_ReadString(1); sFiller = t.a_s;
 						t.a_s = c_ReadString(1); sFiller = t.a_s;
 					}
-
+					if (t.versionnumberload >= 341)
+					{
+						t.a = c_ReadLong(1); t.entityelement[t.e].eleprof.bUseFPESettings = t.a;
+					}
 					#endif
 
 					// get the index of the entity profile
@@ -6491,7 +6493,15 @@ void c_entity_loadelementsdata ( void )
 					{
 						t.entityelement[t.e].eleprof.bAutoFlatten = false;
 					}
-
+					if (t.versionnumberload < 341)
+					{
+						//PE: Default to false on old levels , so we don't overwrite users custom settings.
+						//PE: if !bCustomWickedMaterialActive we can use bUseFPESettings.
+						if (t.entityelement[t.e].eleprof.bCustomWickedMaterialActive)
+							t.entityelement[t.e].eleprof.bUseFPESettings = false;
+						else
+							t.entityelement[t.e].eleprof.bUseFPESettings = true;
+					}
 					//t.entityelement[t.e].entitydammult_f=1.0; not used any more, reused field for iCanGoUnderwater and renamed entitydammult_f to reserved2
 					//t.entityelement[t.e].entityacc=1.0;
 
@@ -7270,10 +7280,8 @@ void entity_saveelementsdata (bool bForCollectionELE)
 	g.entityelementlist = temp;
 
 	//  Save entity element list
-	t.versionnumbersave = 338;
-	#ifdef CUSTOMSHADERS
-	t.versionnumbersave = 340;
-	#endif
+	//t.versionnumbersave = 338;
+	t.versionnumbersave = 341;
 
 	EntityWriter writer;
 
@@ -7851,7 +7859,10 @@ void entity_saveelementsdata (bool bForCollectionELE)
 					writer.WriteString("");
 					writer.WriteString("");
 				}
-
+				if (t.versionnumbersave >= 341)
+				{
+					writer.WriteLong(t.entityelement[ent].eleprof.bUseFPESettings);
+				}
 				#endif
 			}
 		} 

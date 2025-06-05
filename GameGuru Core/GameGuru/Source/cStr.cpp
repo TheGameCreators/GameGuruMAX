@@ -292,7 +292,7 @@ cstr global_string_error = "Error in cStr ? "; //PE: Remove warning.
 
 cStr& cStr::operator = ( const char* other )
 {
-	if(!m_pString)
+	if(!m_pString || !other)
 	{
 		//PE: Strange. had this, but after a recomile it worked again, what was wrong ? keep it here with breakpoint just in case.
 		return(global_string_error);

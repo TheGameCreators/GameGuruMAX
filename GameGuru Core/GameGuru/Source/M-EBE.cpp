@@ -1887,28 +1887,28 @@ void imgui_ebe_loop(void)
 			if (ImGui::StyleCollapsingHeader("Material Settings", ImGuiTreeNodeFlags_DefaultOpen))
 			{
 				ImGui::Indent(10);
-				if (!t.grideleprof.bCustomWickedMaterialActive) 
+				//if (!t.grideleprof.bCustomWickedMaterialActive) 
+				//{
+				//	//LB: Explain what this tick box now does with more clarity!
+				//	ImGui::Checkbox("Custom Materials Used", &t.grideleprof.bCustomWickedMaterialActive);
+				//	if (ImGui::IsItemHovered()) ImGui::SetTooltip("This flag indicates the object has modified the original model, either through FPE level additions or changes within the level editor");
+				//
+				//	//PE: Copy master material settings to t.grideleprof.WEMaterial
+				//	if (t.grideleprof.bCustomWickedMaterialActive) 
+				//	{
+				//		// copies structure object details being edited to WEmaterial
+				//		Wicked_Copy_Material_To_Grideleprof((void*)pObject, 3);
+				//		t.grideleprof.WEMaterial.MaterialActive = true;
+				//	}
+				//	else 
+				//	{
+				//		t.grideleprof.WEMaterial.MaterialActive = false;
+				//	}
+				//}
+				//else 
 				{
-					//LB: Explain what this tick box now does with more clarity!
-					ImGui::Checkbox("Custom Materials Used", &t.grideleprof.bCustomWickedMaterialActive);
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("This flag indicates the object has modified the original model, either through FPE level additions or changes within the level editor");
-
-					//PE: Copy master material settings to t.grideleprof.WEMaterial
-					if (t.grideleprof.bCustomWickedMaterialActive) 
-					{
-						// copies structure object details being edited to WEmaterial
-						Wicked_Copy_Material_To_Grideleprof((void*)pObject, 3);
-						t.grideleprof.WEMaterial.MaterialActive = true;
-					}
-					else 
-					{
-						t.grideleprof.WEMaterial.MaterialActive = false;
-					}
-				}
-				else 
-				{
-					ImGui::Checkbox("Custom Materials Used", &t.grideleprof.bCustomWickedMaterialActive);
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("This flag indicates the object has modified the original model, either through FPE level additions or changes within the level editor");
+					//ImGui::Checkbox("Custom Materials Used", &t.grideleprof.bCustomWickedMaterialActive);
+					//if (ImGui::IsItemHovered()) ImGui::SetTooltip("This flag indicates the object has modified the original model, either through FPE level additions or changes within the level editor");
 					Wicked_Change_Object_Material((void*)pObject, 3);
 				}
 				ImGui::Indent(-10);

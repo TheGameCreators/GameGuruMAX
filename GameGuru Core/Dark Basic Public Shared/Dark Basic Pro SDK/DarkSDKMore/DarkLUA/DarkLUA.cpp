@@ -1488,6 +1488,95 @@ luaMessage** ppLuaMessages = NULL;
 	 return 0;
  }
 
+ int SetEntityExplodable(lua_State* L)
+ {
+	 lua = L;
+	 int n = lua_gettop(L);
+	 if (n < 2) return 0;
+	 int iEntityIndex = lua_tonumber(L, 1);
+	 if (iEntityIndex > 0)
+	 {
+		 int iValue = lua_tonumber(L, 2);
+		 t.entityelement[iEntityIndex].eleprof.explodable = iValue;
+	 }
+	 return 0;
+ }
+ int SetExplosionDamage(lua_State* L)
+ {
+	 lua = L;
+	 int n = lua_gettop(L);
+	 if (n < 2) return 0;
+	 int iEntityIndex = lua_tonumber(L, 1);
+	 if (iEntityIndex > 0)
+	 {
+		 int iValue = lua_tonumber(L, 2);
+		 t.entityelement[iEntityIndex].eleprof.explodedamage = iValue;
+	 }
+	 return 0;
+ }
+ int SetExplosionHeight(lua_State* L)
+ {
+	 lua = L;
+	 int n = lua_gettop(L);
+	 if (n < 2) return 0;
+	 int iEntityIndex = lua_tonumber(L, 1);
+	 if (iEntityIndex > 0)
+	 {
+		 int iValue = lua_tonumber(L, 2);
+		 t.entityelement[iEntityIndex].eleprof.explodeheight = iValue;
+	 }
+	 return 0;
+ }
+ //PE: SetCustomExplosion(e,effectname) sound is using <Sound5>. SetCustomExplosionShould only be called one time.
+ int SetCustomExplosion(lua_State* L)
+ {
+	 lua = L;
+	 int n = lua_gettop(L);
+	 if (n < 2) return 0;
+	 int iEntityIndex = lua_tonumber(L, 1);
+	 if (iEntityIndex > 0)
+	 {
+		 const char* pEffect = lua_tostring(L, 2);
+		 if (!pEffect)
+			 return 0;
+		 t.entityelement[iEntityIndex].eleprof.explodable_decalname = pEffect;
+		 //PE: Init effects.
+		 if (t.entityelement[iEntityIndex].soundset6 > 0) deleteinternalsound(t.entityelement[iEntityIndex].soundset6);
+		 t.entityelement[iEntityIndex].soundset6 = loadinternalsoundcore(t.entityelement[iEntityIndex].eleprof.soundset6_s.Get(), 1);
+		
+		 if (t.entityelement[iEntityIndex].eleprof.explodable_decalname.Len() > 0)
+		 {
+			 cstr explodename = t.entityelement[iEntityIndex].eleprof.explodable_decalname;
+			 if (explodename.Len() > 0)
+			 {
+				 for (int i = 1; i <= g.decalmax; i++)
+				 {
+					 if (t.decal[i].name_s == explodename)
+					 {
+						 int alreadyactive = t.decal[i].active;
+						 t.decal[i].active = 1;
+						 t.decal[i].newparticle.iMaxCache = 2; //PE: For now only 2 cached custom explosions.
+						 if (alreadyactive != 1)
+						 {
+							 //PE: Never change t. variables in lua.
+							 cstr oldtdecal_s = t.decal_s;
+							 int oldtdecalid = t.decalid;
+							 t.decal_s = t.decal[i].name_s;
+							 t.decalid = i;
+							 decal_load();
+							 t.decalid = oldtdecalid;
+							 t.decal_s = oldtdecal_s;
+						 }
+						 break;
+					 }
+				 }
+			 }
+		 }
+	 }
+	 return 0;
+ }
+
+
  int GetEntityExplodable(lua_State* L)
  {
 	 lua = L;
@@ -7419,7 +7508,8 @@ int InitScreen(lua_State* L)
 					{
 						char pUserDefinedGlobal[256];
 						sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", Storyboard.Nodes[nodeid].widget_label[i]);
-						LuaSetString(pUserDefinedGlobal, ""); // can we get from initial_value in screen editor?
+						//PE: We now reuse widget_click_sound for initial_value.
+						LuaSetString(pUserDefinedGlobal, Storyboard.Nodes[nodeid].widget_click_sound[i]); // can we get from initial_value in screen editor?
 					}
 				}
 			}
@@ -12648,6 +12738,12 @@ void addFunctions()
 	lua_register(lua, "SetEntityUsed", SetEntityUsed);
 	lua_register(lua, "GetEntityObjective", GetEntityObjective);
 	lua_register(lua, "GetEntityExplodable", GetEntityExplodable);
+	lua_register(lua, "SetEntityExplodable", SetEntityExplodable);
+	lua_register(lua, "SetExplosionHeight", SetExplosionHeight);
+	lua_register(lua, "SetExplosionDamage", SetExplosionDamage);
+	lua_register(lua, "SetCustomExplosion", SetCustomExplosion);
+	
+
 	lua_register(lua, "GetEntityCollectable", GetEntityCollectable);
 	lua_register(lua, "GetEntityCollected", GetEntityCollected);
 	lua_register(lua, "GetEntityUsed", GetEntityUsed);

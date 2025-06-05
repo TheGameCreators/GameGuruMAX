@@ -2417,9 +2417,16 @@ void mapfile_collectfoldersandfiles (cstr levelpathfolder)
 							{
 								addtocollection(Storyboard.Nodes[nodeid].widget_selected_thumb[i]);
 							}
-							if (strlen(Storyboard.Nodes[nodeid].widget_click_sound[i]) > 0)
+							//PE: We are going to reuse for widget_click_sound for default value for "Text Globals"
+							if (Storyboard.Nodes[nodeid].widget_type[i] == STORYBOARD_WIDGET_BUTTON
+								|| Storyboard.Nodes[nodeid].widget_type[i] == STORYBOARD_WIDGET_RADIOTYPE
+								|| Storyboard.Nodes[nodeid].widget_type[i] == STORYBOARD_WIDGET_TICKBOX)
 							{
-								addtocollection(Storyboard.Nodes[nodeid].widget_click_sound[i]);
+
+								if (strlen(Storyboard.Nodes[nodeid].widget_click_sound[i]) > 0)
+								{
+									addtocollection(Storyboard.Nodes[nodeid].widget_click_sound[i]);
+								}
 							}
 						}
 					}
@@ -3144,7 +3151,8 @@ int mapfile_savestandalone_stage2c ( void )
 			mapfile_addallentityrelatedfiles(t.entid, &t.entityelement[t.e].eleprof);
 
 			// and purey entity element related files
-			if (t.entityelement[t.e].eleprof.bCustomWickedMaterialActive)
+			//if (t.entityelement[t.e].eleprof.bCustomWickedMaterialActive)
+			if (!t.entityelement[t.e].eleprof.bUseFPESettings)
 			{
 				// Also add any custom material textures
 				sObject* pObject = GetObjectData(t.entityelement[t.e].obj);

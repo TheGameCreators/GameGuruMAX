@@ -34,6 +34,7 @@ call :copyOverThisFolder "D:\DEV\BUILDS\GameGuru Wicked MAX Build Area\Max\Files
 call :copyOverThisFolder "D:\DEV\BUILDS\GameGuru Wicked MAX Build Area\Max\Files\titlesbank\default" "D:\DEV\GAMEGURUMAXREPO\Scripts\titlesbank\default"
 call :copyOverThisFolder "D:\DEV\BUILDS\GameGuru Wicked MAX Build Area\Max\Files\imagebank\crosshairs" "D:\DEV\GAMEGURUMAXREPO\Scripts\imagebank\crosshairs"
 call :copyOverThisFolder "D:\DEV\BUILDS\GameGuru Wicked MAX Build Area\Max\Files\imagebank\navbar" "D:\DEV\GAMEGURUMAXREPO\Scripts\imagebank\navbar"
+call :copyOverThisFolder "D:\DEV\BUILDS\GameGuru Wicked MAX Build Area\Max\Files\imagebank\icons" "D:\DEV\GAMEGURUMAXREPO\Scripts\imagebank\icons"
 echo Completed of all scripts from BUILD Area (check GITHUB Desktop issues).
 ::pause
 

@@ -1,8 +1,8 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Wicked Particle Emmitter - Impact v3 
--- DESCRIPTION: Attach to an object and activate by a linked switch or zone.
+-- Wicked Particle Emmitter - Impact v4 
+-- DESCRIPTION: Attach to an object and activate by a linked switch or zone or set Is Active to ON.
 -- DESCRIPTION: [WPEFILE$="particlesbank//wpe//dirt-splash4.pe"]
--- DESCRIPTION: [IsActive!=0]
+-- DESCRIPTION: [IsActive!=0] if unticked will need to be activated by switch or zone
 -- DESCRIPTION: <Sound0> Impact/Explosion sound
 
 local wpeimpact 		= {}

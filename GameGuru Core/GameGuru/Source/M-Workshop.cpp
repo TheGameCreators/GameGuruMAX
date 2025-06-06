@@ -729,7 +729,7 @@ void CSteamUserGeneratedWorkshopItem::SteamRunCallbacks()
 		//PE: Keep running when workshop tab is open.
 		g_iOnlyOneSubscripe = 0;
 	}
-	if (g_iOnlyOneSubscripe > 6)
+	if (g_iOnlyOneSubscripe > 5)
 	{
 		//PE: Max 6 tries , then ignore. 30 sec.
 		return;

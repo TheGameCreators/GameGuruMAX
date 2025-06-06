@@ -44600,36 +44600,40 @@ void process_storeboard(bool bInitOnly)
 						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
 						if (ImGui::StyleButton("Reset All HUD Screens", ImVec2(buttonwide, 0.0f)))
 						{
-							// Force a reset of the In-Game HUD screen, and reset node position
-							for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+							int iAction = askBoxCancel("This will reset ALL HUD screens, are you sure?", "Confirmation"); //1==Yes 2=Cancel 0=No
+							if (iAction == 1)
 							{
-								if (Storyboard.Nodes[i].used && Storyboard.Nodes[i].type == STORYBOARD_TYPE_HUD)
+								// Force a reset of the In-Game HUD screen, and reset node position
+								for (int i = 0; i < STORYBOARD_MAXNODES; i++)
 								{
-									Storyboard.Nodes[i].used = false;
-								}
-							}
-							int areaWidth = ImGui::GetMainViewport()->Size.x - 300;
-							int nodeWidth = 180;
-							int nodeHeight = 150;
-							//PE: We cant force it to 13, it might overwrite another node.
-							iHUDScreenNodeID = storyboard_add_missing_nodex(13,areaWidth , nodeWidth, nodeHeight, false);
-							ImNodes::SetNodeGridSpacePos(Storyboard.Nodes[iHUDScreenNodeID].id, ImVec2(areaWidth * 0.5 - (nodeWidth * 0.5), STORYBOARD_YSTART + (nodeHeight + NODE_HEIGHT_PADDING) * 3));
-							iCurrentSelectedWidget = -1;
-							// Also ensure that any user defined globals are removed when resetting HUD screens
-							for (int i = 0; i < STORYBOARD_MAXNODES; i++)
-							{
-								if (strnicmp(Storyboard.Nodes[i].lua_name, "hud", 3) == NULL)
-								{
-									for (int j = 0; j < STORYBOARD_MAXWIDGETS; j++)
+									if (Storyboard.Nodes[i].used && Storyboard.Nodes[i].type == STORYBOARD_TYPE_HUD)
 									{
-										if (strnicmp(Storyboard.widget_readout[i][j], "user defined", 12) == 0)
+										Storyboard.Nodes[i].used = false;
+									}
+								}
+								int areaWidth = ImGui::GetMainViewport()->Size.x - 300;
+								int nodeWidth = 180;
+								int nodeHeight = 150;
+								//PE: We cant force it to 13, it might overwrite another node.
+								iHUDScreenNodeID = storyboard_add_missing_nodex(13, areaWidth, nodeWidth, nodeHeight, false);
+								ImNodes::SetNodeGridSpacePos(Storyboard.Nodes[iHUDScreenNodeID].id, ImVec2(areaWidth * 0.5 - (nodeWidth * 0.5), STORYBOARD_YSTART + (nodeHeight + NODE_HEIGHT_PADDING) * 3));
+								iCurrentSelectedWidget = -1;
+								// Also ensure that any user defined globals are removed when resetting HUD screens
+								for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+								{
+									if (strnicmp(Storyboard.Nodes[i].lua_name, "hud", 3) == NULL)
+									{
+										for (int j = 0; j < STORYBOARD_MAXWIDGETS; j++)
 										{
-											Storyboard.widget_readout[i][j][0] = 0;
+											if (strnicmp(Storyboard.widget_readout[i][j], "user defined", 12) == 0)
+											{
+												Storyboard.widget_readout[i][j][0] = 0;
+											}
 										}
 									}
 								}
+								g_bRefreshGlobalList = true;
 							}
-							g_bRefreshGlobalList = true;
 						}
 						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
 

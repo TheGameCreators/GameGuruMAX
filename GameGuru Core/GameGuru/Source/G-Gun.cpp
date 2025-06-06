@@ -239,7 +239,19 @@ void gun_manager ( void )
 	if ( t.gunclick == 1 && (g.lowfpswarning == 1 || g.lowfpswarning == 2)  )  t.gunclick = 0;
 
 	// stop gun firing if in any HUD screen
-	if (t.game.activeStoryboardScreen > -1) t.gunclick = 0;
+	if (t.game.activeStoryboardScreen > -1)
+	{
+		extern bool g_bEnableGunFireInHUD;
+		if (g_bEnableGunFireInHUD == true)
+		{
+			// some user in-game huds CAN fire while displayed
+		}
+		else
+		{
+			// generally do not shoot when using a HUD screen
+			t.gunclick = 0;
+		}
+	}
 
 	// in VR mode, if trigger being used to open/close/activate, disable any shooting
 	extern int g_iActivelyUsingVRNow;

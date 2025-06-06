@@ -7536,6 +7536,17 @@ int DisplayCurrentScreen(lua_State* L)
 	lua_pushnumber(L, iSpecialLuaReturn);
 	return 1;
 }
+bool g_bEnableGunFireInHUD = false;
+int DisableGunFireInHUD(lua_State* L)
+{
+	g_bEnableGunFireInHUD = false;
+	return 0;
+}
+int EnableGunFireInHUD(lua_State* L)
+{
+	g_bEnableGunFireInHUD = true;
+	return 0;
+}
 bool bDisableKeyToggles = false;
 int DisableBoundHudKeys(lua_State* L)
 {
@@ -13779,8 +13790,11 @@ void addFunctions()
 	lua_register(lua, "GetCurrentScreen", GetCurrentScreen);
 	lua_register(lua, "GetCurrentScreenName", GetCurrentScreenName);
 	lua_register(lua, "CheckScreenToggles", CheckScreenToggles);
+	lua_register(lua, "DisableGunFireInHUD", DisableGunFireInHUD);
+	lua_register(lua, "EnableGunFireInHUD", EnableGunFireInHUD);
 	lua_register(lua, "DisableBoundHudKeys", DisableBoundHudKeys);
 	lua_register(lua, "EnableBoundHudKeys", EnableBoundHudKeys);
+	
 	lua_register(lua, "ScreenToggle", ScreenToggle);
 	lua_register(lua, "ScreenToggleByKey", ScreenToggleByKey);
 	lua_register(lua, "GetIfUsingTABScreen", GetIfUsingTABScreen);

@@ -364,9 +364,17 @@ function hud0.main()
 
   -- flag mouse pointer drawing below
   local drawMousePointer = 0
+  
+  -- Allow live firing when in user in-game HUD
+  if g_liveHudScreen == 1 then
+	EnableGunFireInHUD()
+  else
+	DisableGunFireInHUD()
+  end
  
   -- If there is an active screen (resulting from CheckScreenToggles()) then display that screen, otherwise dispay the default HUD screen
-  if GetCurrentScreen() > -1 then
+  local currentScreen = GetCurrentScreen()
+  if currentScreen > -1 then
   
 	-- switch to mouse mode  
 	if hud0_freezeforpointer == 0 and g_liveHudScreen == 0 then 
@@ -1446,8 +1454,10 @@ function hud0.main()
 		end
 	end
 	
-	-- draw mouse pointer below
-	drawMousePointer = 1
+	-- draw mouse pointer below (only for regular HUDs, ie not in-game additional huds)
+	if g_liveHudScreen == 0 then
+		drawMousePointer = 1
+	end
 	
 	-- VR controller can leave any HUD Screen 9 (VR MENU)
 	if GetHeadTracker() == 1 then
@@ -1462,11 +1472,12 @@ function hud0.main()
 			end
 		end
 	end
-	
-  else
+
+  end -- was else but now we may want to have main in-game Hud as an additional display at some point (using 'alternative' for now as allows more customizing)
+  if currentScreen <= -1 then
   
 	-- leave mouse mode
-	if hud0_freezeforpointer == 1 then 
+	if hud0_freezeforpointer == 1 and g_liveHudScreen == 0 then 
 		DeactivateMouse()
 		UnFreezePlayer()
 		SetCameraOverride(0)
@@ -1527,7 +1538,7 @@ function hud0.main()
 		end
 	end
 
-  end
+  end 
 
   -- display contents of any user defined images for map views 
   if GetIfUsingTABScreen() == 0 then

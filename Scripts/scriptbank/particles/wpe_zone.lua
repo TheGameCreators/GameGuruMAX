@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Wicked Particle Emmitter Zone v3
+-- Wicked Particle Emmitter Zone v4
 -- DESCRIPTION: While the player enters the zone the [WPEFILE$="particlesbank//wpe//heavy-rain3.pe"] is displayed.
 -- DESCRIPTION: [ZONEHEIGHT=100] controls how far above the zone the player can be before the zone is not triggered.
 -- DESCRIPTION: [DisableOutside!=1] stops particles when player exits the zone

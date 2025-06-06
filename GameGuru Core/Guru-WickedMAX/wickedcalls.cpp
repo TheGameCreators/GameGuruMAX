@@ -386,7 +386,8 @@ std::shared_ptr<wiResource> WickedCall_LoadImage(std::string pFilenameToLoadIN, 
 		//else
 		//{
 		extern bool CheckForWorkshopFile(LPSTR);
-		bCalledFromWickedLoadImage = true;
+		if(t.importer.importerActive == 0) //PE: Need the real texture name in importer not prefer dds (fbx can include a .png but is a dds).
+			bCalledFromWickedLoadImage = true;
 		CheckForWorkshopFile (VirtualFilename);
 		if ( pFilenameToLoad[ pFilenameToLoad.length() - 1] != VirtualFilename[strlen(VirtualFilename) - 1])
 		{

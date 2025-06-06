@@ -28650,6 +28650,11 @@ void DisplayFPEGeneral(bool readonly, int entid, entityeleproftype *edit_gridele
 					const char* itemsAll[] = { "Change All To" , "Static", "Physics on", "Physics off" };
 					const char** Selected = items;
 					int iArraySize = 3;
+
+					//PE: Users are relying on this feature so they can, set a polygon collision object to have "behaviour".
+					//PE: Used by many where polygon is needed with a "behaviour" , platforms ... explodeable ... isimmobile == 1 ... Is Collectable ...
+					//PE: https://github.com/TheGameCreators/GameGuruMAX/commit/a1929f0a832db7b799d53a01955837b15a8d2d5c
+					/*
 					// limit selection to just Static if certain collision modes used
 					if (t.entityelement[elementID].eleprof.iOverrideCollisionMode == 1 || t.entityelement[elementID].eleprof.iOverrideCollisionMode == 8)
 					{
@@ -28666,6 +28671,8 @@ void DisplayFPEGeneral(bool readonly, int entid, entityeleproftype *edit_gridele
 							if (t.entityprofile[entid].collisionmode == 8) iArraySize = 1;
 						}
 					}
+					*/
+
 					int item_current = 0;
 					if (t.entityelement[elementID].staticflag == 1)
 						item_current = 0;
@@ -29021,11 +29028,15 @@ void DisplayFPEGeneral(bool readonly, int entid, entityeleproftype *edit_gridele
 		{
 			for (int i = 0; i < 10; i++)
 			{
+				//PE: Users are relying on this feature so they can, set a polygon collision object to have "behaviour".
+				//PE: Used by many where polygon is needed with a "behaviour" , platforms ... explodeable ... isimmobile == 1 ... Is Collectable ...
+				//PE: https://github.com/TheGameCreators/GameGuruMAX/commit/a1929f0a832db7b799d53a01955837b15a8d2d5c
+
 				// Don't display certtain collision modes for dynamic objects!
 				if (i == 1 && t.entityelement[elementID].staticflag == 0) continue;
-				if (i == 4 && t.entityelement[elementID].staticflag == 0) continue;
-				if (i == 8 && t.entityelement[elementID].staticflag == 0) continue;
-				if (i == 9 && t.entityelement[elementID].staticflag == 0) continue;
+				//if (i == 4 && t.entityelement[elementID].staticflag == 0) continue;
+				//if (i == 8 && t.entityelement[elementID].staticflag == 0) continue;
+				//if (i == 9 && t.entityelement[elementID].staticflag == 0) continue;
 
 				// get collision shape name
 				char* pCollisionShapeName = pCollisionShapes[i];

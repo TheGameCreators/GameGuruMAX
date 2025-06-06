@@ -9575,6 +9575,7 @@ void mapeditorexecutable_loop(void)
 
 											Wicked_Set_Material_From_grideleprof((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
 											t.grideleprof.WEMaterial.MaterialActive = false;
+											t.entityelement[iEntityIndex].eleprof.WEMaterial.MaterialActive = false;
 										}
 									}
 									else
@@ -9582,6 +9583,7 @@ void mapeditorexecutable_loop(void)
 										// Set custom material settings.
 										Wicked_Copy_Material_To_Grideleprof((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
 										Wicked_Set_Material_From_grideleprof((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
+										t.entityelement[iEntityIndex].eleprof.WEMaterial.MaterialActive = true;
 										t.grideleprof.WEMaterial.MaterialActive = true;
 									}
 								}

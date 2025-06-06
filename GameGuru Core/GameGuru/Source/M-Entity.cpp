@@ -1135,13 +1135,15 @@ bool entity_load (bool bCalledFromLibrary)
 
 						if (FileExist( (char *) lodname.c_str()))
 						{
+							//PE: Make sure LOD use the correct fpe settings.
+							g_iWickedEntityId = t.entid;
 							LoadObject((char *) lodname.c_str(), t.entobj);
 							if (ObjectExist(t.entobj))
 							{
 								bLODLoaded = true;
 							}
+							g_iWickedEntityId = -1;
 						}
-
 					}
 					// load entity model
 					g_iWickedEntityId = t.entid;
@@ -6686,6 +6688,10 @@ void c_entity_loadelementsdata ( void )
 			}
 		}
 
+		//PE: Users are relying on this feature so they can, set a polygon collision object to have "behaviour".
+		//PE: Used by many where polygon is needed with a "behaviour" , platforms ... explodeable ... isimmobile == 1 ... Is Collectable ...
+		//PE: https://github.com/TheGameCreators/GameGuruMAX/commit/a1929f0a832db7b799d53a01955837b15a8d2d5c
+		/*
 		// clean up for entityelement for impossible mode combinations!
 		if (g_iAddEntityElementsMode == 0)
 		{
@@ -6706,6 +6712,7 @@ void c_entity_loadelementsdata ( void )
 				}
 			}
 		}
+		*/
 	}
 }
 #endif

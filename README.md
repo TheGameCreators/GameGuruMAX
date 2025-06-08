@@ -1,14 +1,12 @@
 # The GameGuru MAX Repository
 
-This is not open source and remains the copyright of The Game Creators Ltd, see Wiki for more information on license matters. This repository contains the current source code to GameGuru MAX and is still under development as an Early Access project.
+This is not open source and remains copyright, see "Max\Guides\EULA.txt" for more information on license matters. This repository contains the current source code for GameGuru MAX and is under continual development.
 
-![GameGuruMAX](https://fstore.thegamecreators.com/VRQuest/TGCMisc/GitHubMAXREPO.jpg)
-
-GameGuru MAX is a 3D game maker for simple first person games and is available to buy from Steam: https://store.steampowered.com/app/1247290?utm_source=github&utm_campaign=general&utm_medium=web
+GameGuru MAX is a 3D game maker for simple first-person games and is available to buy from Steam: https://store.steampowered.com/app/1247290?utm_source=github&utm_campaign=general&utm_medium=web
 
 You will need the media files associated with the above product to use this repository.
 
-This source code requires Visual Studio 2022 Community Edition. Select the "Desktop Development with C++" theme. Ensure you add Visual C++ MFC for x86 and x64 to a clean install of VS2022. Also untick the Windows 11 SDKs and tick the most recent Windows 10 SDK. You can also untiuck the Boost and Google Tests. The install should be about 10GB.
+This source code requires Visual Studio 2022 Community Edition. Select the "Desktop Development with C++" theme. Ensure you add Visual C++ MFC for x86 and x64 to a clean install of VS2022. Also, untick the Windows 11 SDKs and tick the most recent Windows 10 SDK. You can also untick the Boost and Google Tests. The install should be about 10 GB.
 
 Steps to compiling and running GameGuru MAX:
 

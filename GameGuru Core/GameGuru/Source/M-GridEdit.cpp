@@ -4539,6 +4539,8 @@ void mapeditorexecutable_loop(void)
 						for (int i = 0; i < vEntityLockedList.size(); i++)
 						{
 							int e = vEntityLockedList[i].e;
+							if (e < 0 || e >= t.entityelement.size()) continue;
+
 							if (e == t.widget.pickedEntityIndex)
 							{
 								iObjectLockedIndex = i;
@@ -9891,6 +9893,8 @@ void mapeditorexecutable_loop(void)
 								for (int i = 0; i < vEntityLockedList.size(); i++)
 								{
 									int e = vEntityLockedList[i].e;
+									if (e < 0 || e >= t.entityelement.size()) continue;
+
 									t.entityelement[e].editorlock = 0;
 									sObject* pObject;
 									if (t.entityelement[e].obj > 0) 
@@ -14110,6 +14114,8 @@ void mapeditorexecutable_loop(void)
 								for (int i = 0; i < vEntityLockedList.size(); i++)
 								{
 									int e = vEntityLockedList[i].e;
+									if (e < 0 || e >= t.entityelement.size()) continue;
+
 									if (e == t.widget.pickedEntityIndex)
 									{
 										isObjectInLocedList = true;
@@ -14335,7 +14341,8 @@ void mapeditorexecutable_loop(void)
 														//Delete from list.
 														for (int i = 0; i < vEntityLockedList.size(); i++)
 														{
-															if (vEntityLockedList[i].e == e) {
+															if (vEntityLockedList[i].e == e) 
+															{
 																vEntityLockedList.erase(vEntityLockedList.begin() + i);
 																break;
 															}
@@ -14557,7 +14564,8 @@ void mapeditorexecutable_loop(void)
 												//Delete from list.
 												for (int il = 0; il < vEntityLockedList.size(); il++)
 												{
-													if (vEntityLockedList[il].e == e) {
+													if (vEntityLockedList[il].e == e) 
+													{
 														vEntityLockedList.erase(vEntityLockedList.begin() + il);
 														break;
 													}
@@ -29242,7 +29250,19 @@ void gridedit_load_map ( void )
 	// 161115 - in any event, ensure we generate super texture for 'distant' terrain texture 
 	t.visuals.refreshterrainsupertexture = 2;
 
-	#ifdef WICKEDENGINE
+	//LB: clean any corrupt references out of editor locked list
+	for (int i = 0; i < vEntityLockedList.size(); i++)
+	{
+		int e = vEntityLockedList[i].e;
+		if (e < 0 || e >= t.entityelement.size())
+		{
+			// remove this entry
+			vEntityLockedList.erase(vEntityLockedList.begin() + i);
+			i--; // adjust index after removal
+			continue;
+		}
+	}
+
 	//PE: Restore locked state. from locked.cfg
 	for (int i = 0; i < vEntityLockedList.size(); i++)
 	{
@@ -29251,7 +29271,6 @@ void gridedit_load_map ( void )
 			t.entityelement[e].editorlock = 1;
 	}
 	bForceRefreshLightCount = true;
-	#endif
 
 	// Level has finished loading, so no longer need to store the smart object dummy OBJs
 	extern std::vector<int> g_smartObjectDummyEntities;

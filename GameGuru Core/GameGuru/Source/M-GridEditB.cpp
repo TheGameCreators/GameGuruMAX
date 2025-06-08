@@ -52651,11 +52651,13 @@ void LockSelectedObject(bool bLock, int iObjectLockedIndex)
 					vEntityLockedItem.e = e;
 					vEntityLockedList.push_back(vEntityLockedItem);
 				}
-				else {
+				else 
+				{
 					//Delete from list.
 					for (int i = 0; i < vEntityLockedList.size(); i++)
 					{
-						if (vEntityLockedList[i].e == e) {
+						if (vEntityLockedList[i].e == e) 
+						{
 							vEntityLockedList.erase(vEntityLockedList.begin() + i);
 							break;
 						}
@@ -52668,12 +52670,15 @@ void LockSelectedObject(bool bLock, int iObjectLockedIndex)
 	else
 	{
 		int e = t.widget.pickedEntityIndex;
-		if (iObjectLockedIndex >= 0) {
+		if (iObjectLockedIndex >= 0) 
+		{
 			t.entityelement[e].editorlock = 0;
 			sObject* pObject;
-			if (t.entityelement[e].obj > 0) {
+			if (t.entityelement[e].obj > 0) 
+			{
 				pObject = g_ObjectList[t.entityelement[e].obj];
-				if (pObject) {
+				if (pObject) 
+				{
 					WickedCall_SetObjectRenderLayer(pObject, GGRENDERLAYERS_NORMAL);
 				}
 			}

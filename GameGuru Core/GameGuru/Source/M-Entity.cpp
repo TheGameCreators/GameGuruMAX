@@ -10688,6 +10688,8 @@ void Wicked_Highlight_LockedList(void)
 		for (int i = 0; i < (int)vEntityLockedList.size(); i++)
 		{
 			int e = vEntityLockedList[i].e;
+			if (e < 0 || e >= t.entityelement.size()) continue;
+
 			#ifdef ALLOWSELECTINGLOCKEDOBJECTS
 			//PE: Only diplay red on selected items.
 			bool bDisplayRed = false;

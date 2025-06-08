@@ -1376,12 +1376,13 @@ void mapfile_loadproject_fpm ( void )
 					}
 					CloseFile(1);
 				}
-				//LB: I think the above list could carry around corrupt references, might be an idea
-				//to scan and sanitise this agains the known entityelement and object list to ensure
-				//bad refernces will not cause out of bounds errors. This will happen for older levels
-				//that exploited a bug that caused objects to be changed to unlocked, but stayed in
-				//the locked list and not removed, later being adopted by new objects added to level.
-
+				// LB: The above list MAY carry around corrupt references, might be an idea
+				// to scan and sanitise this agains the known entityelement and object list to ensure
+				// bad refernces will not cause out of bounds errors. This will happen for older levels
+				// that exploited a bug that caused objects to be changed to unlocked, but stayed in
+				// the locked list and not removed, later being adopted by new objects added to level.
+				// done later when editlock flags being set and know final size of entityelement array
+				// search for gridedit_load_map with comment: "Restore locked state. from locked.cfg"
 			}
 		}
 

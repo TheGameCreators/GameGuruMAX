@@ -9822,6 +9822,9 @@ void mapeditorexecutable_loop(void)
 				//#### Grid/Editor Settings ####
 				//##############################
 				// grid and alignment moved here from above (no longer need a host object)
+				#ifndef PENEWLAYOUT
+				pref.iSmallToolbar = 0; // ensure if revert back to non PELAYOUT, we can find the grid settings again :)
+				#endif
 				if (pref.iSmallToolbar == 0)
 				{
 					if (pref.bAutoClosePropertySections && iLastOpenHeader != 15)

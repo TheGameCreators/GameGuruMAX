@@ -10639,7 +10639,11 @@ void ProcessPreferences(void)
 const char* style_combo[] = { 
 											"Blue Style", //0->1
 											"Dark Style",//1->12
+											#ifdef PENEWLAYOUT
+											"Modern Dark",//2->13 
+											#else
 											"Darker Style",//2->13 
+											#endif
 											"Evening Blue",//3->9
 											"Green Tea",//4->2
 											"Light Style",//5->14 
@@ -10664,6 +10668,7 @@ if (pref.current_style == 25) style_current_type_selection = 0; // ZJ: Moved blu
 
 if (ImGui::Combo("##BehavioursSimpleInput", &style_current_type_selection, style_combo, IM_ARRAYSIZE(style_combo)))
 {
+	myDefaultStyles();
 	if (style_current_type_selection == 0) {
 		//Blue
 		pref.tint_style = ImVec4(1.0, 1.0, 1.0, 1.0);
@@ -10688,7 +10693,13 @@ if (ImGui::Combo("##BehavioursSimpleInput", &style_current_type_selection, style
 		pref.shade_style = ImVec4(0.0, 0.0, 0.0, 0.0);
 		pref.title_style = ImVec4(0.0, 0.0, 0.0, 0.0);
 		pref.current_style = 1;
+		#ifdef PENEWLAYOUT
+		void DarkColorsNoTransparent(void);
+		myStyle2(NULL);
+		DarkColorsNoTransparent();
+		#else
 		myDarkStyle(NULL);
+		#endif
 		SetIconSet();
 	}
 	if (style_current_type_selection == 3) {
@@ -10892,7 +10903,13 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 					myStyle2(NULL);
 				}
 				if (pref.current_style == 1) {
+					#ifdef PENEWLAYOUT
+					void DarkColorsNoTransparent(void);
+					myStyle2(NULL);
+					DarkColorsNoTransparent();
+					#else
 					myDarkStyle(NULL);
+					#endif
 				}
 				if (pref.current_style == 3) {
 					myLightStyle(NULL);
@@ -10902,6 +10919,29 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 				}
 				SetIconSet();
 			}
+
+
+			#ifdef PENEWLAYOUT
+			ImGui::PushItemWidth(-10);
+			ImGui::Text("");
+			ImGui::Text("Small Grid Toolbar");
+
+			if (pref.iSmallToolbar < 0 || pref.iSmallToolbar > 4)
+				pref.iSmallToolbar = 0;
+			const char* smalltoolbar_combo[] = {
+											"None",
+											"Titlebar",
+											"Floating",
+											"Floating Small",
+											"Inside Toolbar",
+			};
+			int smalltoolbar_selection;
+			if (ImGui::Combo("##SmallToolbarSetup", &pref.iSmallToolbar, smalltoolbar_combo, IM_ARRAYSIZE(smalltoolbar_combo)))
+			{
+			}
+			ImGui::PopItemWidth();
+			#endif
+
 
 			ImGui::PushItemWidth(-10);
 			ImGui::Indent(-10);
@@ -11721,7 +11761,13 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 				myStyle2(NULL);
 			}
 			if (pref.current_style == 1) {
+				#ifdef PENEWLAYOUT
+				void DarkColorsNoTransparent(void);
+				myStyle2(NULL);
+				DarkColorsNoTransparent();
+				#else
 				myDarkStyle(NULL);
+				#endif
 			}
 			if (pref.current_style == 3) {
 				myLightStyle(NULL);
@@ -37600,6 +37646,8 @@ bool DoTreeNodeBehavior(LPSTR behaviorscriptname, bool bMoveCameraToObjectPositi
 
 void SetupDecalObject(int obj, int elementID)
 {
+	//PE: Always use custom material or FPE settings.
+	return;
 	//SetAlphaMappingOn(obj, 100.0);
 	SetObjectTransparency(obj, 6);
 	SetObjectLight(obj, 0);
@@ -44606,36 +44654,40 @@ void process_storeboard(bool bInitOnly)
 						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
 						if (ImGui::StyleButton("Reset All HUD Screens", ImVec2(buttonwide, 0.0f)))
 						{
-							// Force a reset of the In-Game HUD screen, and reset node position
-							for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+							int iAction = askBoxCancel("This will reset ALL HUD screens, are you sure?", "Confirmation"); //1==Yes 2=Cancel 0=No
+							if (iAction == 1)
 							{
-								if (Storyboard.Nodes[i].used && Storyboard.Nodes[i].type == STORYBOARD_TYPE_HUD)
+								// Force a reset of the In-Game HUD screen, and reset node position
+								for (int i = 0; i < STORYBOARD_MAXNODES; i++)
 								{
-									Storyboard.Nodes[i].used = false;
-								}
-							}
-							int areaWidth = ImGui::GetMainViewport()->Size.x - 300;
-							int nodeWidth = 180;
-							int nodeHeight = 150;
-							//PE: We cant force it to 13, it might overwrite another node.
-							iHUDScreenNodeID = storyboard_add_missing_nodex(13,areaWidth , nodeWidth, nodeHeight, false);
-							ImNodes::SetNodeGridSpacePos(Storyboard.Nodes[iHUDScreenNodeID].id, ImVec2(areaWidth * 0.5 - (nodeWidth * 0.5), STORYBOARD_YSTART + (nodeHeight + NODE_HEIGHT_PADDING) * 3));
-							iCurrentSelectedWidget = -1;
-							// Also ensure that any user defined globals are removed when resetting HUD screens
-							for (int i = 0; i < STORYBOARD_MAXNODES; i++)
-							{
-								if (strnicmp(Storyboard.Nodes[i].lua_name, "hud", 3) == NULL)
-								{
-									for (int j = 0; j < STORYBOARD_MAXWIDGETS; j++)
+									if (Storyboard.Nodes[i].used && Storyboard.Nodes[i].type == STORYBOARD_TYPE_HUD)
 									{
-										if (strnicmp(Storyboard.widget_readout[i][j], "user defined", 12) == 0)
+										Storyboard.Nodes[i].used = false;
+									}
+								}
+								int areaWidth = ImGui::GetMainViewport()->Size.x - 300;
+								int nodeWidth = 180;
+								int nodeHeight = 150;
+								//PE: We cant force it to 13, it might overwrite another node.
+								iHUDScreenNodeID = storyboard_add_missing_nodex(13, areaWidth, nodeWidth, nodeHeight, false);
+								ImNodes::SetNodeGridSpacePos(Storyboard.Nodes[iHUDScreenNodeID].id, ImVec2(areaWidth * 0.5 - (nodeWidth * 0.5), STORYBOARD_YSTART + (nodeHeight + NODE_HEIGHT_PADDING) * 3));
+								iCurrentSelectedWidget = -1;
+								// Also ensure that any user defined globals are removed when resetting HUD screens
+								for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+								{
+									if (strnicmp(Storyboard.Nodes[i].lua_name, "hud", 3) == NULL)
+									{
+										for (int j = 0; j < STORYBOARD_MAXWIDGETS; j++)
 										{
-											Storyboard.widget_readout[i][j][0] = 0;
+											if (strnicmp(Storyboard.widget_readout[i][j], "user defined", 12) == 0)
+											{
+												Storyboard.widget_readout[i][j][0] = 0;
+											}
 										}
 									}
 								}
+								g_bRefreshGlobalList = true;
 							}
-							g_bRefreshGlobalList = true;
 						}
 						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
 

@@ -10146,9 +10146,11 @@ void WickedSetMeshNumber(int iMNumber)
 	}
 }
 
+cStr ReturnEmpty = "";
+
 cStr WickedGetBaseColorName( void )
 {
-	if (g_iWickedEntityId < 0) return "";
+	if (g_iWickedEntityId < 0) return ReturnEmpty;
 	if ( g_iWickedElementId > 0 && t.entityelement[g_iWickedElementId].eleprof.WEMaterial.MaterialActive)
 	{
 		if (t.entityelement[g_iWickedElementId].eleprof.WEMaterial.baseColorMapName[g_iWickedMeshNumber].Len() > 0) 
@@ -10165,12 +10167,12 @@ cStr WickedGetBaseColorName( void )
 	{
 		return t.entityprofile[g_iWickedEntityId].WEMaterial.baseColorMapName[g_iWickedMeshNumber];
 	}
-	return "";
+	return ReturnEmpty;
 }
 
 cStr WickedGetNormalName(void)
 {
-	if (g_iWickedEntityId < 0) return "";
+	if (g_iWickedEntityId < 0) return ReturnEmpty;
 	if (g_iWickedElementId > 0 && t.entityelement[g_iWickedElementId].eleprof.WEMaterial.MaterialActive)
 	{
 		if (t.entityelement[g_iWickedElementId].eleprof.WEMaterial.baseColorMapName[g_iWickedMeshNumber].Len() > 0) 
@@ -10187,12 +10189,12 @@ cStr WickedGetNormalName(void)
 	{
 		return t.entityprofile[g_iWickedEntityId].WEMaterial.normalMapName[g_iWickedMeshNumber];
 	}
-	return "";
+	return ReturnEmpty;
 }
 
 cStr WickedGetSurfaceName(void)
 {
-	if (g_iWickedEntityId < 0) return "";
+	if (g_iWickedEntityId < 0) return ReturnEmpty;
 	if (g_iWickedElementId > 0 && t.entityelement[g_iWickedElementId].eleprof.WEMaterial.MaterialActive)
 	{
 		if (t.entityelement[g_iWickedElementId].eleprof.WEMaterial.baseColorMapName[g_iWickedMeshNumber].Len() > 0) 
@@ -10209,12 +10211,12 @@ cStr WickedGetSurfaceName(void)
 	{
 		return t.entityprofile[g_iWickedEntityId].WEMaterial.surfaceMapName[g_iWickedMeshNumber];
 	}
-	return "";
+	return ReturnEmpty;
 }
 
 cStr WickedGetDisplacementName(void)
 {
-	if (g_iWickedEntityId < 0) return "";
+	if (g_iWickedEntityId < 0) return ReturnEmpty;
 	if (g_iWickedElementId > 0 && t.entityelement[g_iWickedElementId].eleprof.WEMaterial.MaterialActive)
 	{
 		if (t.entityelement[g_iWickedElementId].eleprof.WEMaterial.baseColorMapName[g_iWickedMeshNumber].Len() > 0) 
@@ -10231,12 +10233,12 @@ cStr WickedGetDisplacementName(void)
 	{
 		return t.entityprofile[g_iWickedEntityId].WEMaterial.displacementMapName[g_iWickedMeshNumber];
 	}
-	return "";
+	return ReturnEmpty;
 }
 
 cStr WickedGetEmissiveName(void)
 {
-	if (g_iWickedEntityId < 0) return "";
+	if (g_iWickedEntityId < 0) return ReturnEmpty;
 	if (g_iWickedElementId > 0 && t.entityelement[g_iWickedElementId].eleprof.WEMaterial.MaterialActive)
 	{
 		if (t.entityelement[g_iWickedElementId].eleprof.WEMaterial.baseColorMapName[g_iWickedMeshNumber].Len() > 0) 
@@ -10253,13 +10255,13 @@ cStr WickedGetEmissiveName(void)
 	{
 		return t.entityprofile[g_iWickedEntityId].WEMaterial.emissiveMapName[g_iWickedMeshNumber];
 	}
-	return "";
+	return ReturnEmpty;
 }
 
 cStr WickedGetOcclusionName(void)
 {
 	#ifdef DISABLEOCCLUSIONMAP
-	if (g_iWickedEntityId < 0) return "";
+	if (g_iWickedEntityId < 0) return ReturnEmpty;
 	if (t.entityprofile[g_iWickedEntityId].WEMaterial.baseColorMapName[g_iWickedMeshNumber].Len() > 0)
 	{
 		LPSTR pBaseTextureFilename = t.entityprofile[g_iWickedEntityId].WEMaterial.baseColorMapName[g_iWickedMeshNumber].Get();
@@ -10293,9 +10295,9 @@ cStr WickedGetOcclusionName(void)
 			return fullOcclusionFilename_s;
 		}
 	}
-	return "";
+	return ReturnEmpty;
 	#else
-	if (g_iWickedEntityId < 0) return "";
+	if (g_iWickedEntityId < 0) return ReturnEmpty;
 	if (g_iWickedElementId > 0 && t.entityelement[g_iWickedElementId].eleprof.WEMaterial.MaterialActive)
 	{
 		if (t.entityelement[g_iWickedElementId].eleprof.WEMaterial.baseColorMapName[g_iWickedMeshNumber].Len() > 0) 
@@ -10312,7 +10314,7 @@ cStr WickedGetOcclusionName(void)
 	{
 		return t.entityprofile[g_iWickedEntityId].WEMaterial.occlusionMapName[g_iWickedMeshNumber];
 	}
-	return "";
+	return ReturnEmpty;
 	#endif
 }
 

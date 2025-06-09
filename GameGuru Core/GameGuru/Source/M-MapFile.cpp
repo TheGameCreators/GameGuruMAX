@@ -869,10 +869,11 @@ void mapfile_emptyterrainfilesfromtestmapfolder ( void )
 void lm_emptylightmapandttsfilesfolder_wicked( void )
 {
 	//PE: lightmaps
-	LPSTR pOldDir = GetDir();
+	cstr pOldDir = GetDir();
+	//LPSTR pOldDir = GetDir();
 	char pRealWritableArea[MAX_PATH];
-	strcpy(pRealWritableArea, pOldDir);
-	if( pestrcasestr(pOldDir,"\\testmap"))
+	strcpy(pRealWritableArea, pOldDir.Get());
+	if( pestrcasestr(pOldDir.Get(), "\\testmap"))
 		strcat(pRealWritableArea, "\\lightmaps");
 	else
 		strcat(pRealWritableArea, "\\levelbank\\testmap\\lightmaps");
@@ -889,12 +890,12 @@ void lm_emptylightmapandttsfilesfolder_wicked( void )
 				if (FileExist(t.tfile_s.Get()) == 1)  DeleteAFile(t.tfile_s.Get());
 			}
 		}
-		SetDir(pOldDir);
+		SetDir(pOldDir.Get());
 		RemoveDirectoryA(pRealWritableArea);
 	}
 	//PE: ttsfiles
-	strcpy(pRealWritableArea, pOldDir);
-	if (pestrcasestr(pOldDir, "\\testmap"))
+	strcpy(pRealWritableArea, pOldDir.Get());
+	if (pestrcasestr(pOldDir.Get(), "\\testmap"))
 		strcat(pRealWritableArea, "\\ttsfiles");
 	else
 		strcat(pRealWritableArea, "\\levelbank\\testmap\\ttsfiles");
@@ -911,9 +912,11 @@ void lm_emptylightmapandttsfilesfolder_wicked( void )
 				if (FileExist(t.tfile_s.Get()) == 1)  DeleteAFile(t.tfile_s.Get());
 			}
 		}
-		SetDir(pOldDir);
+		SetDir(pOldDir.Get());
 		RemoveDirectoryA(pRealWritableArea);
 	}
+	//PE: Somehow it was not reverted, added here.
+	SetDir(pOldDir.Get());
 }
 
 void mapfile_loadproject_fpm ( void )

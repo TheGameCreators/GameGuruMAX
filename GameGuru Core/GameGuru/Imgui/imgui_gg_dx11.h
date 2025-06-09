@@ -380,6 +380,16 @@ IMGUI_IMPL_API bool     ImGui_ImplDX11_CreateDeviceObjects();
 #define SCREENEDITOR_TEXTAREA UIV3IMAGES+287
 #define SCREENEDITOR_VIDEO UIV3IMAGES+288
 
+#define TOOLBAR_POSITION UIV3IMAGES+289
+#define TOOLBAR_SCALE UIV3IMAGES+290
+#define TOOLBAR_ROTATE UIV3IMAGES+291
+#define TOOLBAR_GRID UIV3IMAGES+292
+#define TOOLBAR_SNAP UIV3IMAGES+293
+#define TOOLBAR_SURFACE UIV3IMAGES+294
+#define TOOLBAR_VERT UIV3IMAGES+295
+#define TOOLBAR_HORI UIV3IMAGES+296
+
+
 //PE: 02-09-2021 moved range.
 //298,297 also used in backdrop.
 #define BACKDROPMAGE UIV3IMAGES+299
@@ -646,6 +656,7 @@ struct preferences {
 	float fEditorGridSizeZ = 100.0f;
 	int iDevToolsOpen = 0;
 	int iCheckFilesModifiedOnFocus = 1;
+	int iSmallToolbar = 0;
 };
 
 // can be moved to preferences (Lee needs to know the sequence to add to prefs properly, and the consequences) :)
@@ -654,6 +665,7 @@ extern bool g_bEnableAutoFlattenSystem;
 void coreResetIMGUIFunctionalityPrefs(void);
 
 void myDarkStyle(ImGuiStyle* dst);
+void myDefaultStyles(void);
 void myLightStyle(ImGuiStyle* dst);
 void myStyle(ImGuiStyle* dst);
 void myStyle2(ImGuiStyle* dst);

@@ -1,11 +1,11 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Hud Zone v3 by Necrym59
+-- Hud Zone v4 by Necrym59
 -- DESCRIPTION: Will display the designated hud screen when entering this zone.
 -- DESCRIPTION: Attach to a trigger Zone
 -- DESCRIPTION: [@@DISPLAY_HUD$=""(0=hudscreenlist)] eg: "Hud Screen 3"
 -- DESCRIPTION: [ZONEHEIGHT=100(0,1000)]
 -- DESCRIPTION: [SpawnAtStart!=1] if unchecked use a switch or other trigger to spawn this zone
--- DESCRIPTION: [LiveHud!=0]
+-- DESCRIPTION: [LiveHud!=1] if unchecked will screen lock hud 
 -- DESCRIPTION: <Sound0> for when entering the zone
 
 g_liveHudScreen				= {}
@@ -30,7 +30,7 @@ function hud_zone_init(e)
 	hud_zone[e].display_hud = ""
 	hud_zone[e].zoneheight = 100
 	hud_zone[e].spawnatstart = 1
-	hud_zone[e].livehud = 0	
+	hud_zone[e].livehud = 1	
 
 	status[e] = "init"
 	played[e] = 0

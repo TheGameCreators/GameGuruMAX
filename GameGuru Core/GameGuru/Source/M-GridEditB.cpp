@@ -10639,7 +10639,11 @@ void ProcessPreferences(void)
 const char* style_combo[] = { 
 											"Blue Style", //0->1
 											"Dark Style",//1->12
+											#ifdef PENEWLAYOUT
+											"Modern Dark",//2->13 
+											#else
 											"Darker Style",//2->13 
+											#endif
 											"Evening Blue",//3->9
 											"Green Tea",//4->2
 											"Light Style",//5->14 
@@ -10664,6 +10668,7 @@ if (pref.current_style == 25) style_current_type_selection = 0; // ZJ: Moved blu
 
 if (ImGui::Combo("##BehavioursSimpleInput", &style_current_type_selection, style_combo, IM_ARRAYSIZE(style_combo)))
 {
+	myDefaultStyles();
 	if (style_current_type_selection == 0) {
 		//Blue
 		pref.tint_style = ImVec4(1.0, 1.0, 1.0, 1.0);
@@ -10688,7 +10693,13 @@ if (ImGui::Combo("##BehavioursSimpleInput", &style_current_type_selection, style
 		pref.shade_style = ImVec4(0.0, 0.0, 0.0, 0.0);
 		pref.title_style = ImVec4(0.0, 0.0, 0.0, 0.0);
 		pref.current_style = 1;
+		#ifdef PENEWLAYOUT
+		void DarkColorsNoTransparent(void);
+		myStyle2(NULL);
+		DarkColorsNoTransparent();
+		#else
 		myDarkStyle(NULL);
+		#endif
 		SetIconSet();
 	}
 	if (style_current_type_selection == 3) {
@@ -10892,7 +10903,13 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 					myStyle2(NULL);
 				}
 				if (pref.current_style == 1) {
+					#ifdef PENEWLAYOUT
+					void DarkColorsNoTransparent(void);
+					myStyle2(NULL);
+					DarkColorsNoTransparent();
+					#else
 					myDarkStyle(NULL);
+					#endif
 				}
 				if (pref.current_style == 3) {
 					myLightStyle(NULL);
@@ -10902,6 +10919,29 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 				}
 				SetIconSet();
 			}
+
+
+			#ifdef PENEWLAYOUT
+			ImGui::PushItemWidth(-10);
+			ImGui::Text("");
+			ImGui::Text("Small Grid Toolbar");
+
+			if (pref.iSmallToolbar < 0 || pref.iSmallToolbar > 4)
+				pref.iSmallToolbar = 0;
+			const char* smalltoolbar_combo[] = {
+											"None",
+											"Titlebar",
+											"Floating",
+											"Floating Small",
+											"Inside Toolbar",
+			};
+			int smalltoolbar_selection;
+			if (ImGui::Combo("##SmallToolbarSetup", &pref.iSmallToolbar, smalltoolbar_combo, IM_ARRAYSIZE(smalltoolbar_combo)))
+			{
+			}
+			ImGui::PopItemWidth();
+			#endif
+
 
 			ImGui::PushItemWidth(-10);
 			ImGui::Indent(-10);
@@ -11721,7 +11761,13 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 				myStyle2(NULL);
 			}
 			if (pref.current_style == 1) {
+				#ifdef PENEWLAYOUT
+				void DarkColorsNoTransparent(void);
+				myStyle2(NULL);
+				DarkColorsNoTransparent();
+				#else
 				myDarkStyle(NULL);
+				#endif
 			}
 			if (pref.current_style == 3) {
 				myLightStyle(NULL);

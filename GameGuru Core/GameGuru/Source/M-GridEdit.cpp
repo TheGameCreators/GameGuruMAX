@@ -1034,7 +1034,25 @@ void mapeditorexecutable_init ( void )
 	LoadImage("editors\\uiv3\\markers.png", TOOL_MARKERS);
 	LoadImage("editors\\uiv3\\waypoints.png", TOOL_WAYPOINTS);
 	LoadImage("editors\\uiv3\\newwaypoints.png", TOOL_NEWWAYPOINTS);
-	LoadImage("editors\\uiv3\\testgame.png", TOOL_TESTGAME);
+	#ifdef PENEWLAYOUT
+	LoadImage("editors\\uiv3\\toolbar\\position.png", TOOLBAR_POSITION);
+	LoadImage("editors\\uiv3\\toolbar\\scale.png", TOOLBAR_SCALE);
+	LoadImage("editors\\uiv3\\toolbar\\rotate.png", TOOLBAR_ROTATE);
+	LoadImage("editors\\uiv3\\toolbar\\grid.png", TOOLBAR_GRID);
+	LoadImage("editors\\uiv3\\toolbar\\snap.png", TOOLBAR_SNAP);
+
+	LoadImage("editors\\uiv3\\toolbar\\surface.png", TOOLBAR_SURFACE);
+	LoadImage("editors\\uiv3\\toolbar\\vert.png", TOOLBAR_VERT);
+	LoadImage("editors\\uiv3\\toolbar\\horizontal.png", TOOLBAR_HORI);
+
+
+	if (FileExist("editors\\uiv3\\play-icon.png"))
+	{
+		LoadImage("editors\\uiv3\\play-icon.png", TOOL_TESTGAME);
+	}
+	else
+#endif
+		LoadImage("editors\\uiv3\\testgame.png", TOOL_TESTGAME);
 	LoadImage("editors\\uiv3\\vrmode.png", TOOL_VRMODE);
 	LoadImage("editors\\uiv3\\savestandalone.png", TOOL_SOCIALVR);
 	LoadImage("editors\\uiv3\\newlevel.png", TOOL_NEWLEVEL);
@@ -1252,8 +1270,15 @@ void mapeditorexecutable_init ( void )
 	LoadImage("editors\\uiv3\\terrain-pick.png", TERRAIN_PICK);
 	LoadImage("editors\\uiv3\\terrain-write.png", TERRAIN_WRITE);
 	LoadImage("editors\\uiv3\\terrain-restore.png", TERRAIN_RESTORE);
-
-	if (FileExist("editors\\uiv3\\storyboard-header5.png"))
+#ifdef PENEWLAYOUT
+	if (FileExist("editors\\uiv3\\storyboard-header6.png"))
+	{
+		LoadImage("editors\\uiv3\\storyboard-header6.png", STORYBOARD_HEADER);
+		g_Storyboard_header_height = 94.0f; //PE: More storyboard area. and same size as hud header.
+	}
+	else
+#endif
+		if (FileExist("editors\\uiv3\\storyboard-header5.png"))
 	{
 		LoadImage("editors\\uiv3\\storyboard-header5.png", STORYBOARD_HEADER);
 		g_Storyboard_header_height = 114.0f; //PE: Way better on ultra wide monitors.
@@ -2632,16 +2657,22 @@ void mapeditorexecutable_loop(void)
 		{
 			bRenderTargetModalMode = false;
 		}
-
+		#ifdef PENEWLAYOUT
+		int icon_size = 50;
+		#else
 		int icon_size = 60;
+		#endif
 		ImVec2 iToolbarIconSize = { (float)icon_size, (float)icon_size };
 		static bool dockingopen = true;
 		float fsy = ImGui::CalcTextSize("#").y;
 		toolbar_size = icon_size + (fsy*2.0) + 2;
 		ImVec2 viewPortPos = ImGui::GetMainViewport()->Pos;
 		ImVec2 viewPortSize = ImGui::GetMainViewport()->Size;
+		#ifdef PENEWLAYOUT
+		ImGuiStatusBar_Size = fsy * 1.4;
+		#else
 		ImGuiStatusBar_Size = fsy*2.0;
-
+		#endif
 		//PE: Render toolbar.
 
 		iOldRounding = ImGui::GetStyle().WindowRounding;
@@ -2731,6 +2762,9 @@ void mapeditorexecutable_loop(void)
 		{
 			toolbar_flags |= ImGuiWindowFlags_NoChangeZOrder;
 		}
+		#ifdef PENEWLAYOUT
+		toolbar_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
+		#endif
 		ImGui::Begin("Toolbar", NULL , toolbar_flags);
 
 		if (bOldWelcomeScreen_Window)
@@ -4953,7 +4987,11 @@ void mapeditorexecutable_loop(void)
 
 			float paddingy = ImGui::GetStyle().WindowPadding.y;
 			//float startposy = viewPortSize.y - ImGuiStatusBar_Size - 2.0; //(ImGui::GetStyle().WindowBorderSize*2.0)
+			#ifdef PENEWLAYOUT
+			float startposy = viewPortSize.y - (ImGuiStatusBar_Size + 2);
+			#else
 			float startposy = viewPortSize.y - 32 - 2.0; // Wicked was 1051 which when you add 32 high is > 1080 height of window!!
+			#endif
 			ImGui::SetNextWindowPos(viewPortPos + ImVec2(0.0f, startposy), ImGuiCond_Always);
 			ImGui::SetNextWindowSize(ImVec2(ImGui::GetMainViewport()->Size.x, ImGuiStatusBar_Size));
 			//ImGuiWindowFlags_NoDocking,ImGuiWindowFlags_MenuBar
@@ -4963,10 +5001,24 @@ void mapeditorexecutable_loop(void)
 				ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.12f, 0.26f, 0.35f, 1.00f));
 				ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.11f, 0.16f, 0.22f, 1.00f)); //org ImVec4(0.58f, 0.58f, 0.58f, 1.00f); // ImGui::PopStyleColor();
 			}
+			#ifdef PENEWLAYOUT
+			if (pref.current_style == 1)
+			{
+				//PE: VS2022 style
+				const float r = (1.0f / 255.0f) * 14;
+				const float g = (1.0f / 255.0f) * 99;
+				const float b = (1.0f / 255.0f) * 156;
+				ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(r, g, b, 1.00f));
+				ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(r, g, b, 1.00f));
+			}
+			#endif
 
 			ImGui::Begin("Statusbar", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
-
+			#ifdef PENEWLAYOUT
+			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + 10.0f, ImGui::GetCursorPos().y ));
+			#else
 			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + 10.0f, ImGui::GetCursorPos().y + (fsy*0.5)));
+			#endif
 			ImGui::Text("%s", t.laststatusbar_s.Get());
 			ImGui::SameLine();
 			//Align right.
@@ -4983,14 +5035,22 @@ void mapeditorexecutable_loop(void)
 				extern int g_iScannedFiles;
 				cstr title = cStr("Scanning FPE Files: ") + cStr(g_iScannedFiles) + cStr("  ");
 				float fTextSize = ImGui::CalcTextSize(title.Get()).x * 1.05;
+				#ifdef PENEWLAYOUT
+				ImGui::SetCursorPos(ImVec2(ImGui::GetWindowSize().x - fTextSize, ImGui::GetCursorPos().y ));
+				#else
 				ImGui::SetCursorPos(ImVec2(ImGui::GetWindowSize().x - fTextSize, ImGui::GetCursorPos().y - 3));
+				#endif
 				ImGui::Text(title.Get());
 			}
 			else
 			{
 				//PE: Display status, grid mode ...
 				float fTextSize = ImGui::CalcTextSize(t.statusbar_s.Get()).x * 1.05;
+				#ifdef PENEWLAYOUT
+				ImGui::SetCursorPos(ImVec2(ImGui::GetWindowSize().x - fTextSize - 10.0f, ImGui::GetCursorPos().y ));
+				#else
 				ImGui::SetCursorPos(ImVec2(ImGui::GetWindowSize().x - fTextSize - 10.0f, ImGui::GetCursorPos().y - 3));
+				#endif
 				ImGui::Text(t.statusbar_s.Get());
 			}
 			#endif
@@ -5051,7 +5111,12 @@ void mapeditorexecutable_loop(void)
 			ImGui::GetStyle().WindowRounding = iOldRounding;
 			ImGui::GetStyle().WindowBorderSize = iOldWindowBorderSize;
 
-			if (pref.current_style == 25) {
+			#ifdef PENEWLAYOUT
+			if (pref.current_style == 25 || pref.current_style == 1)
+			#else
+			if (pref.current_style == 25 )
+			#endif
+			{
 				ImGui::PopStyleColor(2);
 			}
 
@@ -5171,9 +5236,9 @@ void mapeditorexecutable_loop(void)
 			ImGui::DockBuilderDockWindow(TABEDITORNAME, dock_main_id);
 			ImGui::DockBuilderDockWindow(TABENTITYNAME, dock_id_left);
 
-#ifdef USELEFTPANELSTRUCTUREEDITOR
+			#ifdef USELEFTPANELSTRUCTUREEDITOR
 			ImGui::DockBuilderDockWindow("Structure Editor##LeftPanel", dock_id_left);
-#endif	
+			#endif	
 			ImGui::DockBuilderDockWindow("Tutorial Video##HelpVideoWindow", dock_id_right2below);
 			ImGui::DockBuilderDockWindow("Tutorial Steps##HelpWindow", dock_id_right3below);
 
@@ -7729,7 +7794,7 @@ void mapeditorexecutable_loop(void)
 								float fButtonSize = (w-10) / ((int)bToolPosition + (int)bToolRotation + (int)bToolScale + iLockButton);
 								if (bToolPosition)
 								{
-									ImGui::PushItemWidth(fButtonSize);								
+									ImGui::PushItemWidth(fButtonSize);
 									bool bSelected = (t.widget.mode == 0);
 									if (bSelected) ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);											
 									if (ImGui::StyleButton("Position", ImVec2(fButtonSize, 0)))
@@ -9755,7 +9820,7 @@ void mapeditorexecutable_loop(void)
 				//#### Grid/Editor Settings ####
 				//##############################
 				// grid and alignment moved here from above (no longer need a host object)
-				if (1)
+				if (pref.iSmallToolbar == 0)
 				{
 					if (pref.bAutoClosePropertySections && iLastOpenHeader != 15)
 						ImGui::SetNextItemOpen(false, ImGuiCond_Always);
@@ -30545,3 +30610,284 @@ int GetDrawCallsShadowsCube2(void)
 {
 	return(wiProfiler::GetDrawCallsShadowsCube());
 }
+
+#ifdef PENEWLAYOUT
+int GetWidgetMode(void)
+{
+	return t.widget.mode;
+}
+int GetEntityGridMode(void)
+{
+	return t.gridentitygridlock;
+}
+void SetWidgetMode(int mode)
+{
+	bool bWidgetEnabled = pref.iEnableDragDropWidgetSelect;
+	switch (mode)
+	{
+		case 0:
+		{
+			//pref.iEnableDragDropWidgetSelect = true
+			if (bWidgetEnabled)
+			{
+				t.widget.mode = 0;
+				widget_show_widget();
+			}
+			//else
+			//	iObjectMoveMode = 2;
+		} break;
+		case 1:
+		{
+			if (bWidgetEnabled)
+			{
+				t.widget.mode = 1;
+				widget_show_widget();
+			}
+			//else
+			//	iObjectMoveMode = 0;
+		} break;
+		case 2:
+		{
+			if (bWidgetEnabled)
+			{
+				// Don't allow characters and markers to be scaled with the widget
+				if (t.widget.pickedEntityIndex > 0 && t.widget.pickedEntityIndex < t.entityelement.size())
+				{
+					int entid = t.entityelement[t.widget.pickedEntityIndex].bankindex;
+					if (entid > 0)
+					{
+						bool bAllowObjectsAndParticlesToScale = false;
+						if (t.entityprofile[entid].ismarker == 0) bAllowObjectsAndParticlesToScale = true;
+						if (t.entityprofile[entid].ismarker == 10) bAllowObjectsAndParticlesToScale = true;
+						if (t.entityprofile[entid].ischaracter == 0 && bAllowObjectsAndParticlesToScale == true)
+						{
+							t.widget.mode = 2;
+							widget_show_widget();
+						}
+					}
+				}
+			}
+			//else
+			//{
+			//	iObjectMoveMode = 1;
+			//}
+		} break;
+		case 3:
+		{
+			pref.iEnableDragDropWidgetSelect = !pref.iEnableDragDropWidgetSelect;
+			if (pref.iEnableDragDropWidgetSelect)
+				widget_show_widget();
+			else
+				widget_hide();
+		} break;
+		case 4:
+		{
+			//PE: Toggle snap.
+			if (pref.iGridMode == 1)
+				pref.iGridMode = 0;
+			else
+				pref.iGridMode = 1;
+			t.gridentitygridlock = pref.iGridMode;
+		} break;
+
+	}
+
+}
+void GridPopup(ImVec2 wpos)
+{
+	static bool bPopupOpen = false;
+	if(bPopupOpen && wpos.x != 0)
+		ImGui::SetNextWindowPos(wpos);
+	ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, 2.0f);
+	if (ImGui::BeginPopup("Grid##GridSettings", ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings))
+	{
+		bPopupOpen = true;
+		bool bButSpacer = true;
+		const float button_width_fix = 5.0f;
+		ImGui::Indent(10);
+		int iEntityIndex = t.widget.pickedEntityIndex;
+		int iActiveObj = t.widget.activeObject;
+		if (t.gridentityextractedindex > 0)
+		{
+			iEntityIndex = t.gridentityextractedindex;
+			if (t.gridentityobj > 0)
+				iActiveObj = t.gridentityobj;
+		}
+		else
+		{
+			if (t.widget.activeObject == 0 && t.widget.pickedEntityIndex < t.entityelement.size())
+			{
+				if (t.widget.pickedEntityIndex > 0)
+					iActiveObj = t.tentityobj = t.entityelement[t.widget.pickedEntityIndex].obj;
+			}
+		}
+
+		float but_gadget_size = ImGui::GetFontSize() * 14.0;
+		ImGui::ItemSize(ImVec2(ImGui::GetFontSize() * 15.0, 0));
+		ImGui::TextCenter("Grid and Alignment Settings");
+		ImGui::Text("");
+
+		static int iGridOffsetMode = 0;
+		if (t.gridentitygridlock > 0)
+		{
+			if (t.gridentitygridlock == 2)
+				iGridOffsetMode = 0;
+			else
+				iGridOffsetMode = 1;
+		}
+		else
+		{
+			iGridOffsetMode = 0;
+		}
+		bool bGridEnabled = pref.iGridEnabled;
+		if (ImGui::Checkbox("Enable Grid Mode", &bGridEnabled))
+		{
+			pref.iGridEnabled = bGridEnabled;
+		}
+		if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select to snap the object to an aligned position");
+		if (pref.iGridEnabled == false)
+		{
+			t.gridentitygridlock = 0;
+			pref.iGridMode = t.gridentitygridlock;
+		}
+		if (pref.iGridEnabled == true)
+		{
+			ImGui::RadioButton("Use Grid Positions", &iGridOffsetMode, 0);
+			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Snaps the selected object to the chosen grid positions");
+			ImGui::RadioButton("Snap Mode", &iGridOffsetMode, 1);
+			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Snap the object to the nearest object bound box");
+			t.gridentitygridlock = 2 - iGridOffsetMode;
+			pref.iGridMode = t.gridentitygridlock;
+		}
+
+		// grid size only available in advanced mode
+		ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
+		if (pref.iObjectEnableAdvanced)
+		{
+			if (t.gridentitygridlock == 2)
+			{
+				ImGui::TextCenter("Grid Offset");
+				float w = ImGui::GetContentRegionAvail().x;
+				float xoffset = 0;
+				float inputsize = w / 2.0f;
+				inputsize -= 10.0f; //For text.
+				inputsize -= 5.0f; //For padding.
+				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(xoffset, 3.0f));
+				ImGui::Text("X");
+				ImGui::SameLine();
+				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, -3.0f));
+				ImGui::PushItemWidth(inputsize - ImGui::GetFontSize());
+				ImGui::InputFloat("##XYZgridoffsetX", &pref.fEditorGridOffsetX, 0.0f, 0.0f, "%.1f");
+				if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Change Grid Offset X");
+				ImGui::PopItemWidth();
+				ImGui::SameLine();
+				ImGui::Text("Z");
+				ImGui::SameLine();
+				ImGui::PushItemWidth(inputsize - ImGui::GetFontSize());
+				ImGui::InputFloat("##XYZgridoffsetZ", &pref.fEditorGridOffsetZ, 0.0f, 0.0f, "%.1f");
+				if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Change Grid Offset Z");
+				ImGui::PopItemWidth();
+				ImGui::TextCenter("Grid Size");
+				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(xoffset, 3.0f));
+				ImGui::Text("X");
+				ImGui::SameLine();
+				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, -3.0f));
+				ImGui::PushItemWidth(inputsize - ImGui::GetFontSize());
+				ImGui::InputFloat("##XYZgridsizeX", &pref.fEditorGridSizeX, 0.0f, 0.0f, "%.1f");
+				if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Change Grid Size X");
+				ImGui::PopItemWidth();
+				ImGui::SameLine();
+				ImGui::Text("Z");
+				ImGui::SameLine();
+				ImGui::PushItemWidth(inputsize - ImGui::GetFontSize());
+				ImGui::InputFloat("##XYZgridsizeZ", &pref.fEditorGridSizeZ, 0.0f, 0.0f, "%.1f");
+				if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Change Grid Size Z");
+				ImGui::PopItemWidth();
+
+				bButSpacer = false;
+				ImGui::Text("");
+				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w * 0.5) - ((but_gadget_size * 0.5) + button_width_fix), 0.0f));
+				if (ImGui::StyleButton("Default Grid Settings", ImVec2(but_gadget_size, 0)))
+				{
+					pref.fEditorGridOffsetX = 50;
+					pref.fEditorGridOffsetZ = 50;
+					pref.fEditorGridSizeX = 100;
+					pref.fEditorGridSizeZ = 100;
+				}
+
+				// clever button to align grid to object (for older levels with arbitary alignments mixed together)
+				if (iEntityIndex > 0 && g.entityrubberbandlist.size() == 0)
+				{
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w * 0.5) - ((but_gadget_size * 0.5) + button_width_fix), 0.0f));
+					if (ImGui::StyleButton("Align Grid Offset To Object", ImVec2(but_gadget_size, 0)))
+					{
+						float x = t.entityelement[iEntityIndex].x;
+						float z = t.entityelement[iEntityIndex].z;
+						int iSizeRoundedX = int(x / pref.fEditorGridSizeX) * pref.fEditorGridSizeX;
+						pref.fEditorGridOffsetX = x - iSizeRoundedX;
+						int iSizeRoundedZ = int(z / pref.fEditorGridSizeZ) * pref.fEditorGridSizeZ;
+						pref.fEditorGridOffsetZ = z - iSizeRoundedZ;
+					}
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w * 0.5) - ((but_gadget_size * 0.5) + button_width_fix), 0.0f));
+					if (ImGui::StyleButton("Align Grid Size To Object", ImVec2(but_gadget_size, 0)))
+					{
+						float sx = ObjectSizeX(t.entityelement[iEntityIndex].obj);
+						float sz = ObjectSizeZ(t.entityelement[iEntityIndex].obj);
+						pref.fEditorGridSizeX = sx;
+						pref.fEditorGridSizeZ = sz;
+					}
+				}
+
+				// can never have a grid size below one
+				if (pref.fEditorGridSizeX <= 1) pref.fEditorGridSizeX = 1.0f;
+				if (pref.fEditorGridSizeZ <= 1) pref.fEditorGridSizeZ = 1.0f;
+			}
+		}
+
+		if (vEntityLockedList.size() > 0)
+		{
+			if(bButSpacer)
+				ImGui::Text("");
+			float w = ImGui::GetContentRegionAvail().x;
+			ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w * 0.5) - ((but_gadget_size * 0.5) + button_width_fix), 0.0f));
+			cStr unlockstr = cStr("Unlock ") + cStr((int)vEntityLockedList.size()) + cStr(" Objects");
+			if (ImGui::StyleButton(unlockstr.Get(), ImVec2(but_gadget_size, 0)))
+			{
+				for (int i = 0; i < vEntityLockedList.size(); i++)
+				{
+					int e = vEntityLockedList[i].e;
+					if (e > 0 && e < t.entityelement.size())
+					{
+						t.entityelement[e].editorlock = 0;
+						sObject* pObject;
+						if (t.entityelement[e].obj > 0)
+						{
+							if (t.entityelement[e].obj < g_iObjectListCount)
+							{
+								pObject = g_ObjectList[t.entityelement[e].obj];
+								if (pObject)
+								{
+									WickedCall_SetObjectRenderLayer(pObject, GGRENDERLAYERS_NORMAL);
+								}
+							}
+						}
+					}
+				}
+				vEntityLockedList.clear();
+
+				// any lock/unlock operations resets, avoids issue of duplcating a static object and unable to 'move' it
+				t.widget.pickedObject = 0;
+			}
+		}
+
+		ImGui::Text("");
+		ImGui::Indent(-10);
+		ImGui::EndPopup();
+	}
+	else
+		bPopupOpen = false;
+	ImGui::PopStyleVar(1);
+
+}
+#endif
+

@@ -141,6 +141,9 @@
 
 	#define WICKEDPARTICLESYSTEM
 	#define CUSTOMSHADERS
+
+	#define PENEWLAYOUT
+
   #else
    // Flags to compile the Classic version of GameGuru
    #define FPSEXCHANGE

@@ -691,6 +691,7 @@ void common_init ( void )
 	}
 
 	// Setup Dear ImGui style
+	myDefaultStyles();
 	ImGui::StyleColorsDark();
 	myDarkStyle(NULL); //for bordersize,padding ...
 	myStyle2(NULL); //additional settings before change.
@@ -699,7 +700,15 @@ void common_init ( void )
 	if(pref.current_style == 0)
 		myStyle2(NULL);
 	else if (pref.current_style == 1)
+	{
+		#ifdef PENEWLAYOUT
+		void DarkColorsNoTransparent(void);
+		myStyle2(NULL);
+		DarkColorsNoTransparent();
+		#else
 		myDarkStyle(NULL);
+		#endif
+	}
 	else if (pref.current_style == 2)
 		ImGui::StyleColorsClassic();
 	else if (pref.current_style == 3)

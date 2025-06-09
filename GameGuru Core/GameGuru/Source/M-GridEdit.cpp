@@ -9570,12 +9570,12 @@ void mapeditorexecutable_loop(void)
 										if (pMasterObject && iMasterID > 0 && iMasterID < t.entityprofile.size())
 										{
 											Wicked_Copy_Material_To_Grideleprof((void*)pMasterObject, 0, &t.entityelement[iEntityIndex].eleprof);
-											if (t.entityprofile[iMasterID].WEMaterial.dwBaseColor[0] == -1)
-												SetObjectDiffuse(iActiveObj, Rgb(255, 255, 255));
+											//if (t.entityprofile[iMasterID].WEMaterial.dwBaseColor[0] == -1)
+											//	SetObjectDiffuse(iActiveObj, Rgb(255, 255, 255));
 
 											Wicked_Set_Material_From_grideleprof((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
-											t.grideleprof.WEMaterial.MaterialActive = false;
-											t.entityelement[iEntityIndex].eleprof.WEMaterial.MaterialActive = false;
+											//t.grideleprof.WEMaterial.MaterialActive = false;
+											//t.entityelement[iEntityIndex].eleprof.WEMaterial.MaterialActive = false;
 										}
 									}
 									else

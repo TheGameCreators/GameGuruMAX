@@ -37594,6 +37594,8 @@ bool DoTreeNodeBehavior(LPSTR behaviorscriptname, bool bMoveCameraToObjectPositi
 
 void SetupDecalObject(int obj, int elementID)
 {
+	//PE: Always use custom material or FPE settings.
+	return;
 	//SetAlphaMappingOn(obj, 100.0);
 	SetObjectTransparency(obj, 6);
 	SetObjectLight(obj, 0);

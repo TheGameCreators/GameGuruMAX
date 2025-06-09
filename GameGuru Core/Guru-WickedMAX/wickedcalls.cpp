@@ -2026,6 +2026,23 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 
 						pObjectMaterial->textures[MaterialComponent::BASECOLORMAP].name = sFoundFinalPathAndFilename;
 						pObjectMaterial->textures[MaterialComponent::BASECOLORMAP].resource = WickedCall_LoadImage(pObjectMaterial->textures[MaterialComponent::BASECOLORMAP].name);
+						if (!pObjectMaterial->textures[MaterialComponent::BASECOLORMAP].resource)
+						{
+							//PE: If prefer dds and got png in filename it fails, try dds version.
+							char texturename[MAX_PATH];
+							strcpy(texturename, sFoundFinalPathAndFilename.c_str());
+							int iLen = strlen(texturename);
+							if (iLen > 4 &&
+								texturename[iLen - 3] == 'p' ||
+								texturename[iLen - 3] == 'P')
+							{
+								texturename[iLen - 3] = 'd';
+								texturename[iLen - 2] = 'd';
+								texturename[iLen - 1] = 's';
+								pObjectMaterial->textures[MaterialComponent::BASECOLORMAP].name = texturename;
+								pObjectMaterial->textures[MaterialComponent::BASECOLORMAP].resource = WickedCall_LoadImage(pObjectMaterial->textures[MaterialComponent::BASECOLORMAP].name);
+							}
+						}
 						if (pObjectMaterial->textures[MaterialComponent::BASECOLORMAP].resource)
 						{
 							//PE: save full path as g_pWickedTexturePath is lost later.
@@ -2067,6 +2084,24 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 
 							pObjectMaterial->textures[MaterialComponent::NORMALMAP].name = sFoundFinalPathAndFilename;
 							pObjectMaterial->textures[MaterialComponent::NORMALMAP].resource = WickedCall_LoadImage(pObjectMaterial->textures[MaterialComponent::NORMALMAP].name);
+							if (!pObjectMaterial->textures[MaterialComponent::NORMALMAP].resource)
+							{
+								//PE: If prefer dds and got png in filename it fails, try dds version.
+								char texturename[MAX_PATH];
+								strcpy(texturename, sFoundFinalPathAndFilename.c_str());
+								int iLen = strlen(texturename);
+								if (iLen > 4 &&
+									texturename[iLen - 3] == 'p' ||
+									texturename[iLen - 3] == 'P')
+								{
+									texturename[iLen - 3] = 'd';
+									texturename[iLen - 2] = 'd';
+									texturename[iLen - 1] = 's';
+									pObjectMaterial->textures[MaterialComponent::NORMALMAP].name = texturename;
+									pObjectMaterial->textures[MaterialComponent::NORMALMAP].resource = WickedCall_LoadImage(pObjectMaterial->textures[MaterialComponent::NORMALMAP].name);
+								}
+							}
+
 							if (pObjectMaterial->textures[MaterialComponent::NORMALMAP].resource)
 							{
 								//Set normal intensity.
@@ -2109,6 +2144,24 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 
 							pObjectMaterial->textures[MaterialComponent::SURFACEMAP].name = sFoundFinalPathAndFilename;
 							pObjectMaterial->textures[MaterialComponent::SURFACEMAP].resource = WickedCall_LoadImage(pObjectMaterial->textures[MaterialComponent::SURFACEMAP].name);
+							if (!pObjectMaterial->textures[MaterialComponent::SURFACEMAP].resource)
+							{
+								//PE: If prefer dds and got png in filename it fails, try dds version.
+								char texturename[MAX_PATH];
+								strcpy(texturename, sFoundFinalPathAndFilename.c_str());
+								int iLen = strlen(texturename);
+								if (iLen > 4 &&
+									texturename[iLen - 3] == 'p' ||
+									texturename[iLen - 3] == 'P')
+								{
+									texturename[iLen - 3] = 'd';
+									texturename[iLen - 2] = 'd';
+									texturename[iLen - 1] = 's';
+									pObjectMaterial->textures[MaterialComponent::SURFACEMAP].name = texturename;
+									pObjectMaterial->textures[MaterialComponent::SURFACEMAP].resource = WickedCall_LoadImage(pObjectMaterial->textures[MaterialComponent::SURFACEMAP].name);
+								}
+							}
+
 							if (pObjectMaterial->textures[MaterialComponent::SURFACEMAP].resource)
 							{
 								//Set roughness,metalness intensity.
@@ -2141,8 +2194,27 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 								wiJobSystem::context ctx;
 								wiJobSystem::Wait(ctx);
 							}
+
 							pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].name = sFoundFinalPathAndFilename;
 							pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].resource = WickedCall_LoadImage(pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].name);
+							if (!pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].resource)
+							{
+								//PE: If prefer dds and got png in filename it fails, try dds version.
+								char texturename[MAX_PATH];
+								strcpy(texturename, sFoundFinalPathAndFilename.c_str());
+								int iLen = strlen(texturename);
+								if (iLen > 4 &&
+									texturename[iLen - 3] == 'p' ||
+									texturename[iLen - 3] == 'P')
+								{
+									texturename[iLen - 3] = 'd';
+									texturename[iLen - 2] = 'd';
+									texturename[iLen - 1] = 's';
+									pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].name = texturename;
+									pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].resource = WickedCall_LoadImage(pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].name);
+								}
+							}
+
 							if (pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].resource)
 							{
 								pObjectMaterial->parallaxOcclusionMapping = 0.05f;
@@ -2179,7 +2251,10 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 							}
 							else
 							{
-								sFoundFinalPathAndFilename = sFoundTexturePath + WickedGetEmissiveName().Get();
+								//PE: Get a crash here ?
+								std::string ename = WickedGetEmissiveName().Get();
+								sFoundFinalPathAndFilename = sFoundTexturePath;
+								sFoundFinalPathAndFilename = sFoundFinalPathAndFilename + ename;
 								if (FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 								{
 									sFoundFinalPathAndFilename = g_pWickedTexturePath + WickedGetEmissiveName().Get();
@@ -2199,6 +2274,24 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 							pObjectMaterial->textures[MaterialComponent::EMISSIVEMAP].name = sFoundFinalPathAndFilename;
 							pObjectMaterial->textures[MaterialComponent::EMISSIVEMAP].resource = WickedCall_LoadImage(pObjectMaterial->textures[MaterialComponent::EMISSIVEMAP].name);
 							float fEmissive = WickedGetEmissiveStrength();
+							if (!pObjectMaterial->textures[MaterialComponent::EMISSIVEMAP].resource)
+							{
+								//PE: If prefer dds and got png in filename it fails, try dds version.
+								char texturename[MAX_PATH];
+								strcpy(texturename, sFoundFinalPathAndFilename.c_str());
+								int iLen = strlen(texturename);
+								if (iLen > 4 &&
+									texturename[iLen - 3] == 'p' ||
+									texturename[iLen - 3] == 'P')
+								{
+									texturename[iLen - 3] = 'd';
+									texturename[iLen - 2] = 'd';
+									texturename[iLen - 1] = 's';
+									pObjectMaterial->textures[MaterialComponent::EMISSIVEMAP].name = texturename;
+									pObjectMaterial->textures[MaterialComponent::EMISSIVEMAP].resource = WickedCall_LoadImage(pObjectMaterial->textures[MaterialComponent::EMISSIVEMAP].name);
+								}
+							}
+
 							if (pObjectMaterial->textures[MaterialComponent::EMISSIVEMAP].resource)
 							{
 								//Set Emissive intensity.
@@ -2220,7 +2313,8 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 							}
 
 							//PE: Moved here , We cant setup Emissive color before Emissive texture.
-							if (dwEmmisiveColor != -1)
+							//PE: Always use dwEmmisiveColor if bWickedMaterialActive.
+							//if (dwEmmisiveColor != -1)
 							{
 								pMesh->mMaterial.Emissive.r = ((dwEmmisiveColor & 0xff000000) >> 24) / 255.0f;;
 								pMesh->mMaterial.Emissive.g = ((dwEmmisiveColor & 0x00ff0000) >> 16) / 255.0f;

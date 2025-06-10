@@ -2403,11 +2403,17 @@ MoveAndRotateToXYZ : pointindex, remainingdistance = MoveAndRotateToXYZ(e,movesp
 SetEntityPathRotationMode : SetEntityPathRotationMode(e,mode) -- set to 0 to disable object rotation when it follows a path (defaults to 1 to rotate the object to follow path direction)
 AdjustPositionToGetLineOfSight : success, x, z = AdjustPositionToGetLineOfSight(ignoreobj,x,y,z,targetx,targety,targetz,adjustmentradius)
 RDIsWithinMesh : result = RDIsWithinMesh(x,y,z) -- returns 1 if the XYZ coordinate is on the nav mesh
+RDIsWithinAndOverMesh : result = RDIsWithinAndOverMesh(x,y,z) -- returns 1 if the XYZ coordinate is on the nav mesh and over it
 RDGetYFromMeshPosition : y = RDGetYFromMeshPosition(x,y,z) -- returns the correcy Y coordinate of the nearest polygon surface on the nav mesh at specified position
 RDBlockNavMesh : RDBlockNavMesh(x,y,z,radius,blockmode) -- blocks an area on the nav mesh at specified position and radius, use blockmode of 1 to block
 RDBlockNavMeshWithShape : RDBlockNavMeshWithShape(x,y,z,sizex,blockmode,sizez,angle) -- blocks an area on the nav mesh at specified position and radius, use blockmode of 1 to block
 RDBlockNavMeshWithShape : RDBlockNavMeshWithShape(x,y,z,sizex,blockmode,sizez,angle,adjminy,adjmaxy) -- blocks an area on the nav mesh at specified position and radius, use blockmode of 1 to block
 SetCharacterMode : success = SetCharacterMode (e,mode) -- returns 1 if a character objects 'mode' was successfully changed (mode 1=character, 0=non-character)
+
+NEW MAX ZONE COMMANDS
+GetEntityInZoneWithFilter : result = GetEntityInZoneWithFilter(e) -- returns 1 if any entity is in this zone
+GetEntityInZoneWithFilter : result = GetEntityInZoneWithFilter(e,mode) -- returns 1 if specific entity is in this zone (1 to detect only active objects, 2 to only detect characters that are active, 3 to only detect non-characters that are active, 4 to only detect non static objects, 5 to only detect static objects)
+IsPointWithinZone : result = IsPointWithinZone(e,x,y,z) -- returns 1 if the XYZ coordinate is within specified entity zone
 
 NEW MAX TOKENDROP COMMANDS
 DoTokenDrop : DoTokenDrop(x,y,z,type,duration) -- creates a drop token at X, Y, Z position, with custom type and milliseconds life duration

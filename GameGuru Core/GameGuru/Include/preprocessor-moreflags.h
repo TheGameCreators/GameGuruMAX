@@ -142,7 +142,7 @@
 	#define WICKEDPARTICLESYSTEM
 	#define CUSTOMSHADERS
 
-	//#define PENEWLAYOUT will enable after the 12th :)
+	#define PENEWLAYOUT //will enable after the 12th :)
 
   #else
    // Flags to compile the Classic version of GameGuru

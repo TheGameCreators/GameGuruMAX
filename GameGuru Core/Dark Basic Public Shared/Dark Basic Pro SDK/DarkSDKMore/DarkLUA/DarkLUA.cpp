@@ -11090,7 +11090,6 @@ int SetEntityTexture (lua_State *L) { return SetMaterialData (L, 21); }
 int SetEntityTextureScale (lua_State *L) { return SetMaterialData (L, 22); }
 int SetEntityTextureOffset (lua_State *L) { return SetMaterialData (L, 23); }
 
-
 int GetEntityInZoneWithFilter(lua_State* L)
 {
 	lua = L;
@@ -11116,6 +11115,41 @@ int GetEntityInZoneWithFilter(lua_State* L)
 	t.v = storev;
 	return 0;
 
+}
+
+int IsPointWithinZone(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 4) return 0;
+	int iIsInZone = 0;
+	int iEntityIndex = lua_tonumber(L, 1);
+	if(iEntityIndex>0)
+	{
+		float fX = lua_tonumber(L, 2);
+		float fY = lua_tonumber(L, 3);
+		float fZ = lua_tonumber(L, 4);
+		int waypointindex = t.entityelement[iEntityIndex].eleprof.trigger.waypointzoneindex;
+		if (waypointindex > 0)
+		{
+			if (t.waypoint[waypointindex].active == 1)
+			{
+				if (t.waypoint[waypointindex].style == 2)
+				{
+					t.tpointx_f = fX;
+					t.tpointz_f = fZ;
+					t.tokay = 0; waypoint_ispointinzone ();
+					if (t.tokay != 0)
+					{
+						// the specified point is within specified entity zone
+						iIsInZone = 1;
+					}
+				}
+			}
+		}
+	}
+	lua_pushnumber(L, iIsInZone);
+	return 1;
 }
 
 int SetWeaponArmsVisible(lua_State* L)
@@ -13882,6 +13916,7 @@ void addFunctions()
 	lua_register(lua, "GetWeaponArmsVisible", GetWeaponArmsVisible);
 
 	lua_register(lua, "GetEntityInZoneWithFilter", GetEntityInZoneWithFilter);
+	lua_register(lua, "IsPointWithinZone", IsPointWithinZone);
 
 	// In-game HUD
 	lua_register(lua, "IsPlayerInGame", IsPlayerInGame);

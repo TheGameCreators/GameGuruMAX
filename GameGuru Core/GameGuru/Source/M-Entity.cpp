@@ -2104,7 +2104,10 @@ void entity_loaddata ( void )
 
 			// per mesh colors
 			t.entityprofile[t.entid].WEMaterial.dwBaseColor[i] = -1;
-			t.entityprofile[t.entid].WEMaterial.dwEmmisiveColor[i] = -1;
+
+			//PE: Default to black, if old .fpe files do not have it set.
+			//t.entityprofile[t.entid].WEMaterial.dwEmmisiveColor[i] = -1;
+			t.entityprofile[t.entid].WEMaterial.dwEmmisiveColor[i] = 0;
 
 			// per mesh settings and flags
 			t.entityprofile[t.entid].WEMaterial.bCastShadows[i] = true;

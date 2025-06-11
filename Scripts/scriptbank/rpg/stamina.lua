@@ -1,5 +1,5 @@
 -- DESCRIPTION: The object will give the player a stamina boost or deduction if used.
--- Stamina v14
+-- Stamina v15
 -- DESCRIPTION: [PROMPT_TEXT$="E to consume"]
 -- DESCRIPTION: [PROMPT_IF_COLLECTABLE$="E to collect"]
 -- DESCRIPTION: [USAGE_TEXT$="Stamina consumed"]
@@ -7,7 +7,7 @@
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
 -- DESCRIPTION: [@PICKUP_STYLE=1(1=Automatic, 2=Manual)]
 -- DESCRIPTION: [@EFFECT=1(1=Add, 2=Deduct)]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyStaminaMax"]
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] eg: MyStaminaMax
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> for usage sound.
@@ -42,7 +42,7 @@ function stamina_properties(e, prompt_text, prompt_if_collectable, usage_text, q
 	stamina[e].effect = effect
 	stamina[e].user_global_affected = user_global_affected
 	stamina[e].prompt_display = prompt_display
-	stamina[e].item_highlight = item_highlight	
+	stamina[e].item_highlight = item_highlight
 end
 
 function stamina_init(e)
@@ -56,8 +56,8 @@ function stamina_init(e)
 	stamina[e].effect = 1
 	stamina[e].user_global_affected = "MyStaminaMax"
 	stamina[e].prompt_display = 1
-	stamina[e].item_highlight = 0 
-	
+	stamina[e].item_highlight = 0
+
 	use_item_now[e] = 0
 	tEnt[e] = 0
 	g_tEnt = 0
@@ -66,7 +66,7 @@ end
 
 function stamina_main(e)
 
-	local PlayerDist = GetPlayerDistance(e)	
+	local PlayerDist = GetPlayerDistance(e)
 	if stamina[e].pickup_style == 1 then
 		if PlayerDist < stamina[e].pickup_range then
 			Prompt(stamina[e].usage_text)
@@ -78,14 +78,14 @@ function stamina_main(e)
 		module_misclib.pinpoint(e,stamina[e].pickup_range,stamina[e].item_highlight)
 		tEnt[e] = g_tEnt
 		--end pinpoint select object--
-		
-		if PlayerDist < stamina[e].pickup_range and tEnt[e] ~= 0 and GetEntityVisibility(e) == 1 then		
+
+		if PlayerDist < stamina[e].pickup_range and tEnt[e] ~= 0 and GetEntityVisibility(e) == 1 then
 			if GetEntityCollectable(tEnt[e]) == 0 then
 				if stamina[e].prompt_display == 1 then PromptLocal(e,stamina[e].prompt_text) end
 				if stamina[e].prompt_display == 2 then Prompt(stamina[e].prompt_text) end
 				if g_KeyPressE == 1 then
 					if stamina[e].prompt_display == 1 then PromptLocal(e,stamina[e].usage_text) end
-					if stamina[e].prompt_display == 2 then Prompt(stamina[e].usage_text) end					
+					if stamina[e].prompt_display == 2 then Prompt(stamina[e].usage_text) end
 					use_item_now[e] = 1
 				end
 			end
@@ -105,7 +105,7 @@ function stamina_main(e)
 	local tusedvalue = GetEntityUsed(e)
 	if tusedvalue > 0 then
 		-- if this is a resource, it will deplete qty and set used to zero
-		PromptDuration(stamina[e].usage_text,2000)		
+		PromptDuration(stamina[e].usage_text,2000)
 		SetEntityUsed(e,tusedvalue*-1)
 		use_item_now[e] = 1
 	end
@@ -119,13 +119,13 @@ function stamina_main(e)
 	end
 	local currentvalue = 0
 	if addquantity == 1 then
-		if stamina[e].user_global_affected > "" then 
+		if stamina[e].user_global_affected > "" then
 			if _G["g_UserGlobal['"..stamina[e].user_global_affected.."']"] ~= nil then currentvalue = _G["g_UserGlobal['"..stamina[e].user_global_affected.."']"] end
 			_G["g_UserGlobal['"..stamina[e].user_global_affected.."']"] = currentvalue + stamina[e].quantity
 		end
 	end
 	if addquantity == 2 then
-		if stamina[e].user_global_affected > "" then 
+		if stamina[e].user_global_affected > "" then
 			if _G["g_UserGlobal['"..stamina[e].user_global_affected.."']"] ~= nil then currentvalue = _G["g_UserGlobal['"..stamina[e].user_global_affected.."']"] end
 			_G["g_UserGlobal['"..stamina[e].user_global_affected.."']"] = currentvalue - stamina[e].quantity
 		end

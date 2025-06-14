@@ -344,12 +344,6 @@ bool bTrashcanIconActive = false, bTrashcanIconActive2 = false;
 int current_sort_order = 0;
 int iWidgetSelection = 0;
 bool bRotScaleAlreadyUpdated = false;
-//float fEditorGridOffsetX = 50.0f;
-//float fEditorGridOffsetY = 0.0f;
-//float fEditorGridOffsetZ = 50.0f;
-//float fEditorGridSizeX = 100.0f;
-//float fEditorGridSizeY = 100.0f;
-//float fEditorGridSizeZ = 100.0f;
 int old_iMSAASampleCount = -1;
 int old_iFSRMode = -1;
 int old_iMSAO = -1;
@@ -1039,6 +1033,7 @@ void mapeditorexecutable_init ( void )
 	LoadImage("editors\\uiv3\\toolbar\\scale.png", TOOLBAR_SCALE);
 	LoadImage("editors\\uiv3\\toolbar\\rotate.png", TOOLBAR_ROTATE);
 	LoadImage("editors\\uiv3\\toolbar\\grid.png", TOOLBAR_GRID);
+	LoadImage("editors\\uiv3\\toolbar\\gridsettings.png", TOOLBAR_GRIDSETTINGS);	
 	LoadImage("editors\\uiv3\\toolbar\\snap.png", TOOLBAR_SNAP);
 
 	LoadImage("editors\\uiv3\\toolbar\\surface.png", TOOLBAR_SURFACE);
@@ -7790,7 +7785,7 @@ void mapeditorexecutable_loop(void)
 							if (!pref.iEnableDragDropEntityMode || pref.iEnableDragDropWidgetSelect)
 							{
 								// widget mode 
-								ImGui::TextCenter("Developer Widget Mode");
+								ImGui::TextCenter("Widget Mode");
 								float fFontSize = ImGui::GetFontSize();
 								int iLockButton = 0; if (pref.iObjectEnableAdvanced == 2) iLockButton = 1;
 								float fButtonSize = (w-10) / ((int)bToolPosition + (int)bToolRotation + (int)bToolScale + iLockButton);
@@ -7927,10 +7922,10 @@ void mapeditorexecutable_loop(void)
 								// title for three position modes 
 								if (pref.iEnableDragDropEntityMode && pref.iObjectEnableAdvanced != 2)
 								{
-									LPSTR pEditPositionTitle = "Positioning mode";
-									if (iObjectMoveMode == 0) pEditPositionTitle = "Positioning mode: Horizontal only";
-									if (iObjectMoveMode == 1) pEditPositionTitle = "Positioning mode: Vertical only";
-									if (iObjectMoveMode == 2) pEditPositionTitle = "Positioning mode: Smart";
+									LPSTR pEditPositionTitle = "Smart Mode";
+									if (iObjectMoveMode == 0) pEditPositionTitle = "Smart Mode - Horizontal Only";
+									if (iObjectMoveMode == 1) pEditPositionTitle = "Smart Mode - Vertical Only";
+									if (iObjectMoveMode == 2) pEditPositionTitle = "Smart Mode";
 									ImGui::TextCenter(pEditPositionTitle);
 								}
 
@@ -26053,13 +26048,19 @@ void gridedit_mapediting ( void )
 									}
 								}
 
+								// LB: moved from below, needed this mode whether in grid mode or not
+								if (iObjectMoveMode == 1)
+								{
+									newpicksystem = -98;
+								}
+
 								// LB: mousepick functionality disabled for now, see how new smart find ground system works out...
 								if (!(fHitOffsetX == 0 && fHitOffsetY == 0 && fHitOffsetZ == 0))
 								{
-									if (iObjectMoveMode == 1)
-									{
-										newpicksystem = -98;
-									}
+									//if (iObjectMoveMode == 1)
+									//{
+									//	newpicksystem = -98;
+									//}
 									int iRealObjectMoveMode = iObjectMoveMode;
 									if (iObjectMoveModeDropSystem > 0) iRealObjectMoveMode = 0;
 								}
@@ -26161,15 +26162,39 @@ void gridedit_mapediting ( void )
 									{
 										// adjusting only Y
 										t.gridentityposy_f = fPlanePosY;
+
 										//leelee, maybe some grid/snap here so vertical make sense?
+										//LB: sure thing Lee, here you go, see below
+										if (t.gridentitygridlock == 2 && iObjectMoveMode == 1)
+										{
+											// snap to grid - dding grid Y mode in 2025!
+											t.gridentityposy_f = fPlanePosY;
+											float fGripY = t.gridentityposy_f + (pref.fEditorGridSizeY / 2);
+											fGripY -= pref.fEditorGridOffsetY;
+											if (fGripY < 0)
+												fGripY = ((int(fGripY / pref.fEditorGridSizeY) - 1) * pref.fEditorGridSizeY);
+											else
+												fGripY = (int(fGripY / pref.fEditorGridSizeY) * pref.fEditorGridSizeY);
+											fGripY += pref.fEditorGridOffsetY;
+											t.gridentityposy_f = fGripY;
+										}
 									}
 									else
 									{
-										// adjusting X and Z
-										t.gridentityposx_f = fPlanePosX;
-										t.gridentityposz_f = fPlanePosZ;
+										// ensure verticle only means just that!
+										if (t.gridentitygridlock == 2 && iObjectMoveMode == 1)
+										{
+											// snap to grid - dding grid Y mode in 2025!
+										}
+										else
+										{
+											// adjusting X and Z
+											t.gridentityposx_f = fPlanePosX;
+											t.gridentityposz_f = fPlanePosZ;
+										}
 									}
 								}
+
 								//DEBUG: if (ObjectExist(t.widget.widgetPlaneObj)) ShowObject(t.widget.widgetPlaneObj);
 								t.widget.pickedSection = picksystem;
 							}
@@ -30683,8 +30708,6 @@ void SetWidgetMode(int mode)
 				t.widget.mode = 0;
 				widget_show_widget();
 			}
-			//else
-			//	iObjectMoveMode = 2;
 		} break;
 		case 1:
 		{
@@ -30693,8 +30716,6 @@ void SetWidgetMode(int mode)
 				t.widget.mode = 1;
 				widget_show_widget();
 			}
-			//else
-			//	iObjectMoveMode = 0;
 		} break;
 		case 2:
 		{
@@ -30717,10 +30738,6 @@ void SetWidgetMode(int mode)
 					}
 				}
 			}
-			//else
-			//{
-			//	iObjectMoveMode = 1;
-			//}
 		} break;
 		case 3:
 		{
@@ -30739,9 +30756,23 @@ void SetWidgetMode(int mode)
 				pref.iGridMode = 1;
 			t.gridentitygridlock = pref.iGridMode;
 		} break;
-
+		case 5:
+		{
+			if (pref.iGridMode!=2)
+			{
+				// grid on
+				pref.iGridEnabled = true;
+				pref.iGridMode = 2; //PE: Set grid mode to 2.
+			}
+			else
+			{
+				// grid off
+				pref.iGridEnabled = false;
+				pref.iGridMode = 0; //PE: Set grid mode to 0.
+			}
+			t.gridentitygridlock = pref.iGridMode;
+		} break;
 	}
-
 }
 void GridPopup(ImVec2 wpos)
 {
@@ -30774,9 +30805,11 @@ void GridPopup(ImVec2 wpos)
 
 		float but_gadget_size = ImGui::GetFontSize() * 14.0;
 		ImGui::ItemSize(ImVec2(ImGui::GetFontSize() * 15.0, 0));
+		ImGui::SetWindowFontScale(1.1);
 		ImGui::TextCenter("Grid and Alignment Settings");
-		ImGui::Text("");
+		ImGui::SetWindowFontScale(1.0);
 
+		/* now toggled and controlled using gadget buttons, below leaves just grid settings!
 		static int iGridOffsetMode = 0;
 		if (t.gridentitygridlock > 0)
 		{
@@ -30809,20 +30842,20 @@ void GridPopup(ImVec2 wpos)
 			t.gridentitygridlock = 2 - iGridOffsetMode;
 			pref.iGridMode = t.gridentitygridlock;
 		}
+		*/
 
 		// grid size only available in advanced mode
 		ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
-		if (pref.iObjectEnableAdvanced)
+		if (1)//pref.iObjectEnableAdvanced)
 		{
-			if (t.gridentitygridlock == 2)
+			if (1)//t.gridentitygridlock == 2)
 			{
 				ImGui::TextCenter("Grid Offset");
 				float w = ImGui::GetContentRegionAvail().x;
-				float xoffset = 0;
-				float inputsize = w / 2.0f;
+				float inputsize = w / 3.0f;
 				inputsize -= 10.0f; //For text.
 				inputsize -= 5.0f; //For padding.
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(xoffset, 3.0f));
+				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, 3.0f));
 				ImGui::Text("X");
 				ImGui::SameLine();
 				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, -3.0f));
@@ -30831,20 +30864,36 @@ void GridPopup(ImVec2 wpos)
 				if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Change Grid Offset X");
 				ImGui::PopItemWidth();
 				ImGui::SameLine();
+				ImGui::Text("Y");
+				ImGui::SameLine();
+				ImGui::PushItemWidth(inputsize - ImGui::GetFontSize());
+				ImGui::InputFloat("##XYZgridoffsetY", &pref.fEditorGridOffsetY, 0.0f, 0.0f, "%.1f");
+				if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Change Grid Offset Y");
+				ImGui::PopItemWidth();
+				ImGui::SameLine();
 				ImGui::Text("Z");
 				ImGui::SameLine();
 				ImGui::PushItemWidth(inputsize - ImGui::GetFontSize());
 				ImGui::InputFloat("##XYZgridoffsetZ", &pref.fEditorGridOffsetZ, 0.0f, 0.0f, "%.1f");
 				if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Change Grid Offset Z");
 				ImGui::PopItemWidth();
+
 				ImGui::TextCenter("Grid Size");
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(xoffset, 3.0f));
+				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, 3.0f));
 				ImGui::Text("X");
 				ImGui::SameLine();
 				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, -3.0f));
+				ImGui::SameLine();
 				ImGui::PushItemWidth(inputsize - ImGui::GetFontSize());
 				ImGui::InputFloat("##XYZgridsizeX", &pref.fEditorGridSizeX, 0.0f, 0.0f, "%.1f");
 				if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Change Grid Size X");
+				ImGui::PopItemWidth();
+				ImGui::SameLine();
+				ImGui::Text("Y");
+				ImGui::SameLine();
+				ImGui::PushItemWidth(inputsize - ImGui::GetFontSize());
+				ImGui::InputFloat("##XYZgridsizeY", &pref.fEditorGridSizeY, 0.0f, 0.0f, "%.1f");
+				if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Change Grid Size Y");
 				ImGui::PopItemWidth();
 				ImGui::SameLine();
 				ImGui::Text("Z");
@@ -30860,8 +30909,10 @@ void GridPopup(ImVec2 wpos)
 				if (ImGui::StyleButton("Default Grid Settings", ImVec2(but_gadget_size, 0)))
 				{
 					pref.fEditorGridOffsetX = 50;
+					pref.fEditorGridOffsetY = 0;
 					pref.fEditorGridOffsetZ = 50;
 					pref.fEditorGridSizeX = 100;
+					pref.fEditorGridSizeY = 100;
 					pref.fEditorGridSizeZ = 100;
 				}
 
@@ -30872,9 +30923,12 @@ void GridPopup(ImVec2 wpos)
 					if (ImGui::StyleButton("Align Grid Offset To Object", ImVec2(but_gadget_size, 0)))
 					{
 						float x = t.entityelement[iEntityIndex].x;
+						float y = t.entityelement[iEntityIndex].y;
 						float z = t.entityelement[iEntityIndex].z;
 						int iSizeRoundedX = int(x / pref.fEditorGridSizeX) * pref.fEditorGridSizeX;
 						pref.fEditorGridOffsetX = x - iSizeRoundedX;
+						int iSizeRoundedY = int(y / pref.fEditorGridSizeY) * pref.fEditorGridSizeY;
+						pref.fEditorGridOffsetY = y - iSizeRoundedY;
 						int iSizeRoundedZ = int(z / pref.fEditorGridSizeZ) * pref.fEditorGridSizeZ;
 						pref.fEditorGridOffsetZ = z - iSizeRoundedZ;
 					}
@@ -30882,14 +30936,17 @@ void GridPopup(ImVec2 wpos)
 					if (ImGui::StyleButton("Align Grid Size To Object", ImVec2(but_gadget_size, 0)))
 					{
 						float sx = ObjectSizeX(t.entityelement[iEntityIndex].obj);
+						float sy = ObjectSizeY(t.entityelement[iEntityIndex].obj);
 						float sz = ObjectSizeZ(t.entityelement[iEntityIndex].obj);
 						pref.fEditorGridSizeX = sx;
+						pref.fEditorGridSizeY = sy;
 						pref.fEditorGridSizeZ = sz;
 					}
 				}
 
 				// can never have a grid size below one
 				if (pref.fEditorGridSizeX <= 1) pref.fEditorGridSizeX = 1.0f;
+				if (pref.fEditorGridSizeY <= 1) pref.fEditorGridSizeY = 1.0f;
 				if (pref.fEditorGridSizeZ <= 1) pref.fEditorGridSizeZ = 1.0f;
 			}
 		}

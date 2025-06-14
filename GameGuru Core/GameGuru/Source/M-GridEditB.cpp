@@ -280,12 +280,6 @@ extern bool bTrashcanIconActive, bTrashcanIconActive2;
 extern int current_sort_order;
 extern int iWidgetSelection;
 extern bool bRotScaleAlreadyUpdated;
-//extern float fEditorGridOffsetX;
-//extern float fEditorGridOffsetY;
-//extern float fEditorGridOffsetZ;
-//extern float fEditorGridSizeX;
-//extern float fEditorGridSizeY;
-//extern float fEditorGridSizeZ;
 extern int old_iMSAASampleCount;
 extern int old_iFSRMode;
 extern int old_iMSAO;
@@ -9429,21 +9423,35 @@ void Add_Grid_Snap_To_Position(void)
 		{
 			//LB: apply grid alignment with custom offset for full end user control
 			fHitOffsetX = 0; fHitOffsetZ = 0; // allows more intuitive placement of chosen object
+			fHitOffsetY = 0; // adding grid Y mode in 2025!
 			float fGripX = t.gridentityposx_f + fHitOffsetX + (pref.fEditorGridSizeX / 2);
+			float fGripY = t.gridentityposy_f + fHitOffsetY + (pref.fEditorGridSizeY / 2);
 			float fGripZ = t.gridentityposz_f + fHitOffsetZ + (pref.fEditorGridSizeZ / 2);
+
 			fGripX -= pref.fEditorGridOffsetX;
 			if (fGripX < 0)
 				fGripX = ((int(fGripX / pref.fEditorGridSizeX) - 1) * pref.fEditorGridSizeX);
 			else
 				fGripX = (int(fGripX / pref.fEditorGridSizeX) * pref.fEditorGridSizeX);
 			fGripX += pref.fEditorGridOffsetX;
+
+			// new for 2025
+			fGripY -= pref.fEditorGridOffsetY;
+			if (fGripY < 0)
+				fGripY = ((int(fGripY / pref.fEditorGridSizeY) - 1) * pref.fEditorGridSizeY);
+			else
+				fGripY = (int(fGripY / pref.fEditorGridSizeY) * pref.fEditorGridSizeY);
+			fGripY += pref.fEditorGridOffsetY;
+
 			fGripZ -= pref.fEditorGridOffsetZ;
 			if (fGripZ < 0)
 				fGripZ = ((int(fGripZ / pref.fEditorGridSizeZ) - 1) * pref.fEditorGridSizeZ);
 			else
 				fGripZ = (int(fGripZ / pref.fEditorGridSizeZ) * pref.fEditorGridSizeZ);
 			fGripZ += pref.fEditorGridOffsetZ;
+
 			t.gridentityposx_f = fGripX;
+			t.gridentityposy_f = fGripY;
 			t.gridentityposz_f = fGripZ;
 		}
 
@@ -10924,16 +10932,16 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 			#ifdef PENEWLAYOUT
 			ImGui::PushItemWidth(-10);
 			ImGui::Text("");
-			ImGui::Text("Small Grid Toolbar");
+			ImGui::Text("Grid and Alignment Gadget");
 
-			if (pref.iSmallToolbar < 0 || pref.iSmallToolbar > 4)
+			if (pref.iSmallToolbar < 0 || pref.iSmallToolbar > 3)//4)
 				pref.iSmallToolbar = 0;
 			const char* smalltoolbar_combo[] = {
 											"None",
 											"Titlebar",
+											"Floating Large",
 											"Floating",
-											"Floating Small",
-											"Inside Toolbar",
+											//"Toolbar Large",
 			};
 			int smalltoolbar_selection;
 			if (ImGui::Combo("##SmallToolbarSetup", &pref.iSmallToolbar, smalltoolbar_combo, IM_ARRAYSIZE(smalltoolbar_combo)))

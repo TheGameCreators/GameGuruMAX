@@ -452,7 +452,14 @@ bool widget_getplanepos ( float fActivePosX, float fActivePosY, float fActivePos
 			}
 			else
 			{
-				*pPlanePosY = fActivePosY;
+				if (iObjectMoveMode == 1)
+				{
+					// also do NOT reset the Y result when trying to move vertically!
+				}
+				else
+				{
+					*pPlanePosY = fActivePosY;
+				}
 			}
 		}
 		if (t.widget.pickedSection == -98) 
@@ -1196,7 +1203,7 @@ void widget_loop ( void )
 						fPlanePosX -= (t.toriginalTranslateClickX_f + t.widget.offsetx);
 						fPlanePosY -= (t.toriginalTranslateClickY_f + t.widget.offsety);
 						fPlanePosZ -= (t.toriginalTranslateClickZ_f + t.widget.offsetz);
-						if (t.widget.pickedEntityIndex > 0 && (t.widget.pickedSection == t.widget.widgetXZObj || t.widget.pickedSection == t.widget.widgetXObj || t.widget.pickedSection == t.widget.widgetZObj ) )
+						if (t.widget.pickedEntityIndex > 0 ) // allow all pos adjustments to be grid/snappable  && (t.widget.pickedSection == t.widget.widgetXZObj || t.widget.pickedSection == t.widget.widgetXObj || t.widget.pickedSection == t.widget.widgetZObj ) )
 						{
 							int oldte = t.e;
 							int oldtgridentity = t.gridentity;

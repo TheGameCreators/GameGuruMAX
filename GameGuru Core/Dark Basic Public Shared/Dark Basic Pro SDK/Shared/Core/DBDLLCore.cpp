@@ -551,7 +551,7 @@ void ImGui_RenderLast(void)
 			}
 			const float groupspacer = 8.0f;
 			float smalltoolbariconsize = 22.0f;
-			float boxwidth = 200;
+			float boxwidth = 200 + groupspacer;
 			ImGuiViewport* viewport = ImGui::GetMainViewport();
 			if (pref.iSmallToolbar == 2)
 			{
@@ -688,6 +688,21 @@ void ImGui_RenderLast(void)
 				if (pref.iSmallToolbar == 1 || pref.iSmallToolbar == 4)
 					ImGui::SameLine();
 
+				// Snap Mode Toggle
+				bool bSnapSelected = false;
+				if (pref.iGridEnabled == true && pref.iGridMode == 1)
+					bSnapSelected = true;
+				if (GetEntityGridMode() == 1)
+					bSnapSelected = true;
+				if (ImGui::ImgBtn(TOOLBAR_SNAP, ImVec2(smalltoolbariconsize, smalltoolbariconsize), bSnapSelected ? bgColorSelected : bgColor, bSnapSelected ? IconColorSelected : IconColor, ImVec4(0.7, 0.7, 0.7, 0.7), ImVec4(0.7, 0.7, 0.7, 0.7), 0, 0, 0, 0, false, false, false, false, false, false))
+				{
+					SetWidgetMode(4); //Toggle snap on off.
+					if (pref.iGridMode == 0) pref.iGridEnabled = false;
+				}
+
+				if (pref.iSmallToolbar == 1 || pref.iSmallToolbar == 4)
+					ImGui::SameLine();
+
 				if (pref.iSmallToolbar == 1 || pref.iSmallToolbar == 4)
 					ImGui::SetCursorPosX(ImGui::GetCursorPosX() + groupspacer);
 				else
@@ -697,29 +712,28 @@ void ImGui_RenderLast(void)
 				if (pref.iGridEnabled == true && pref.iGridMode == 2)
 					bSelected = true;
 
-				popup_pos = ImGui::GetCursorScreenPos();
 				if (ImGui::ImgBtn(TOOLBAR_GRID, ImVec2(smalltoolbariconsize, smalltoolbariconsize), bSelected ? bgColorSelected : bgColor, bSelected ? IconColorSelected : IconColor, ImVec4(0.7, 0.7, 0.7, 0.7), ImVec4(0.7, 0.7, 0.7, 0.7), 0, 0, 0, 0, false, false, false, false, false, false))
+				{
+					SetWidgetMode(5); //Toggle grid on off.
+					if (pref.iGridMode == 0) pref.iGridEnabled = false;
+				}
+				if (pref.iGridEnabled == true && pref.iGridMode == 2)
+					bSelected = true;
+
+				if (pref.iSmallToolbar == 1 || pref.iSmallToolbar == 4)
+					ImGui::SameLine();
+
+				popup_pos = ImGui::GetCursorScreenPos();
+				if (ImGui::ImgBtn(TOOLBAR_GRIDSETTINGS, ImVec2(smalltoolbariconsize, smalltoolbariconsize), bSelected ? bgColorSelected : bgColor, bSelected ? IconColorSelected : IconColor, ImVec4(0.7, 0.7, 0.7, 0.7), ImVec4(0.7, 0.7, 0.7, 0.7), 0, 0, 0, 0, false, false, false, false, false, false))
 				{
 					//PE: Popup grid settings.
 					ImGui::OpenPopup("Grid##GridSettings");
 				}
+
 				if (pref.iSmallToolbar == 1 || pref.iSmallToolbar == 4)
 					popup_pos.y = ImGui::GetCursorScreenPos().y;
 				else
 					popup_pos.x = ImGui::GetCursorScreenPos().x + smalltoolbariconsize;
-
-				if (pref.iSmallToolbar == 1 || pref.iSmallToolbar == 4)
-					ImGui::SameLine();
-				bSelected = false;
-
-				if (pref.iGridEnabled == true && pref.iGridMode == 1)
-					bSelected = true;
-				if(GetEntityGridMode() == 1)
-					bSelected = true;
-				if (ImGui::ImgBtn(TOOLBAR_SNAP, ImVec2(smalltoolbariconsize, smalltoolbariconsize), bSelected ? bgColorSelected : bgColor, bSelected ? IconColorSelected : IconColor, ImVec4(0.7, 0.7, 0.7, 0.7), ImVec4(0.7, 0.7, 0.7, 0.7), 0, 0, 0, 0, false, false, false, false, false, false))
-				{
-					SetWidgetMode(4); //Toggle snap on off.
-				}
 			}
 
 			ImGui::PopStyleVar(5);

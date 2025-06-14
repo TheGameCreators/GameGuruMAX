@@ -1,6 +1,7 @@
--- Quest Poster v15
+-- Quest Poster v16 by Necrym59 and Lee
 -- DESCRIPTION: When player is within [RANGE=100] distance, show [QUEST_PROMPT$="Press E to view this quest"] and when E is pressed, player will be shown the [QUEST_SCREEN$="HUD Screen 8"].
 -- DESCRIPTION: [@QuestChoice=1(0=QuestList)]
+-- DESCRIPTION: [!SpawnQuestObj=1] when quest accepted.
 -- DESCRIPTION: <Sound0> when viewing the quest.
 -- DESCRIPTION: <Sound1> when quest completed.
 
@@ -38,11 +39,12 @@ function quest_poster_init(e)
 	SetEntityAlwaysActive(e,1)
 end
 
-function quest_poster_properties(e, range, questprompt, questscreen, questchoice)
+function quest_poster_properties(e, range, questprompt, questscreen, questchoice, spawnquestobj)
 	g_quest_poster[e]['range'] = range
 	g_quest_poster[e]['questprompt'] = questprompt
 	g_quest_poster[e]['questscreen'] = questscreen
 	g_quest_poster[e]['questchoice'] = questchoice
+	g_quest_poster[e]['spawnquestobj'] = spawnquestobj
 	g_quest_poster[e]['questtitle'] = ""
 	g_quest_poster[e]['questtype'] = ""
 	g_quest_poster[e]['questobject'] = ""
@@ -132,6 +134,15 @@ function quest_poster_main(e)
 					if doonce[e] == 0 then
 						ActivateIfUsed(e)
 						doonce[e] = 1
+					end
+				end
+				
+				if quest_objno[e] > 0 then		
+					if g_quest_poster[e]['spawnquestobj'] ~= 0 then
+						if GetEntitySpawnAtStart(quest_objno[e]) == 0 then
+							Spawn(quest_objno[e])
+							g_quest_poster[e]['spawnquestobj'] = 0
+						end
 					end
 				end
 

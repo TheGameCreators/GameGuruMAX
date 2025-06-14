@@ -1,10 +1,11 @@
--- Quest Switch v5 by Necrym59
+-- Quest Switch v6 by Necrym59
 -- DESCRIPTION: This object will be treated as a quest activated switch object for activating other objects or game elements.
 -- DESCRIPTION: [@QUEST_ACTIVATION=1(0=QuestList)]
 -- DESCRIPTION: [USE_RANGE=90(1,200)]
 -- DESCRIPTION: [ENABLED_TEXT$="E To Turn Switch ON"]
 -- DESCRIPTION: [DISABLED_TEXT$="Disabled"]
--- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)] Use emmisive color for shape option
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline,3=Icon)] Use emmisive color for shape option
+-- DESCRIPTION: [HIGHLIGHT_ICON_IMAGEFILE$="imagebank\\icons\\hand.png"]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: [@ON_ANIMATION$=1(0=AnimSetList)] Select ON animation (Default=ON)
 -- DESCRIPTION: [@OFF_ANIMATION$=2(0=AnimSetList)] Select OFF animation (Default=OFF)
@@ -26,6 +27,7 @@ local use_range 		= {}
 local enabled_text 		= {}
 local disabled_text 	= {}
 local item_highlight	= {}
+local highlight_icon	= {}
 local prompt_display 	= {}
 local on_animation 		= {}
 local off_animation 	= {}
@@ -41,13 +43,17 @@ local tEnt 				= {}
 local selectobj 		= {}
 local doonce			= {}
 local afobjectno		= {}
+local hl_icon			= {}
+local hl_imgwidth		= {}
+local hl_imgheight		= {}
 
-function quest_switch_properties(e, quest_activation, use_range, enabled_text, disabled_text, item_highlight, prompt_display, on_animation, off_animation, switch_state, affect_entity, affect_mode)
+function quest_switch_properties(e, quest_activation, use_range, enabled_text, disabled_text, item_highlight, highlight_icon_imagefile, prompt_display, on_animation, off_animation, switch_state, affect_entity, affect_mode)
 	quest_switch[e].quest_activation = quest_activation
 	quest_switch[e].use_range = use_range
 	quest_switch[e].enabled_text = enabled_text
 	quest_switch[e].disabled_text = disabled_text	
 	quest_switch[e].item_highlight = item_highlight or 0
+	quest_switch[e].highlight_icon = highlight_icon_imagefile	
 	quest_switch[e].prompt_display = prompt_display or 1
 	quest_switch[e].on_animation = "=" .. tostring(on_animation)	
 	quest_switch[e].off_animation = "=" .. tostring(off_animation)
@@ -63,6 +69,7 @@ function quest_switch_init(e)
 	quest_switch[e].enabled_text = "To Turn quest_switch ON"
 	quest_switch[e].disabled_text = "To Turn quest_switch OFF"
 	quest_switch[e].item_highlight = 0
+	quest_switch[e].highlight_icon = "imagebank\\icons\\hand.png"
 	quest_switch[e].prompt_display = 1
 	quest_switch[e].on_animation = ""
 	quest_switch[e].off_animation = ""
@@ -80,6 +87,9 @@ function quest_switch_init(e)
 	afobjectno[e] = 0
 	g_tEnt = 0
 	status[e] = "init"
+	hl_icon[e] = 0
+	hl_imgwidth[e] = 0
+	hl_imgheight[e] = 0	
 end
 
 function quest_switch_main(e)
@@ -97,8 +107,7 @@ function quest_switch_main(e)
 					end
 				end
 			end
-		end
-	
+		end	
 		if quest_switch[e].switch_state == 0 then
 			SetAnimationName(e,"off")
 			PlayAnimation(e)
@@ -106,6 +115,15 @@ function quest_switch_main(e)
 		if quest_switch[e].switch_state == 1 then
 			SetAnimationName(e,"on")
 			PlayAnimation(e)
+		end
+		if quest_switch[e].item_highlight == 3 and quest_switch[e].highlight_icon ~= "" then
+			hl_icon[e] = CreateSprite(LoadImage(quest_switch[e].highlight_icon))
+			hl_imgwidth[e] = GetImageWidth(LoadImage(quest_switch[e].highlight_icon))
+			hl_imgheight[e] = GetImageHeight(LoadImage(quest_switch[e].highlight_icon))
+			SetSpriteSize(hl_icon[e],-1,-1)
+			SetSpriteDepth(hl_icon[e],100)
+			SetSpriteOffset(hl_icon[e],hl_imgwidth[e]/2.0, hl_imgheight[e]/2.0)
+			SetSpritePosition(hl_icon[e],500,500)
 		end
 		status[e] = "endinit"
 	end
@@ -122,7 +140,7 @@ function quest_switch_main(e)
 	end
 	if PlayerDist < quest_switch[e].use_range and questtitle[e] == g_UserGlobalQuestTitleActive then
 		--pinpoint select object--
-		module_misclib.pinpoint(e,quest_switch[e].use_range,quest_switch[e].item_highlight)
+		module_misclib.pinpoint(e,quest_switch[e].use_range,quest_switch[e].item_highlight,hl_icon[e])
 		tEnt[e] = g_tEnt
 		--end pinpoint select object--
 	end

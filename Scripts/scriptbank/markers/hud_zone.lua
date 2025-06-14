@@ -1,11 +1,11 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Hud Zone v4 by Necrym59
+-- Hud Zone v5 by Necrym59
 -- DESCRIPTION: Will display the designated hud screen when entering this zone.
 -- DESCRIPTION: Attach to a trigger Zone
 -- DESCRIPTION: [@@DISPLAY_HUD$=""(0=hudscreenlist)] eg: "Hud Screen 3"
 -- DESCRIPTION: [ZONEHEIGHT=100(0,1000)]
 -- DESCRIPTION: [SpawnAtStart!=1] if unchecked use a switch or other trigger to spawn this zone
--- DESCRIPTION: [LiveHud!=1] if unchecked will screen lock hud 
+-- DESCRIPTION: [LiveHud!=1] if unchecked will screen lock hud
 -- DESCRIPTION: <Sound0> for when entering the zone
 
 g_liveHudScreen				= {}
@@ -30,7 +30,7 @@ function hud_zone_init(e)
 	hud_zone[e].display_hud = ""
 	hud_zone[e].zoneheight = 100
 	hud_zone[e].spawnatstart = 1
-	hud_zone[e].livehud = 1	
+	hud_zone[e].livehud = 1
 
 	status[e] = "init"
 	played[e] = 0
@@ -63,17 +63,18 @@ function hud_zone_main(e)
 					end
 					status[e] = "hudopened"
 				end
-			else				
+			else
 				-- in chest screen
 			end
 		end
-		
+
 		if g_Entity[e]['plrinzone'] ~= 1 and status[e] == "hudopened" then
-			ScreenToggle("")			
+			ScreenToggle("")
+			if hud_zone[e].livehud == 1 then g_liveHudScreen = 0 end
 			StopSound(e,0)
-			status[e] = "hudclosed"			
-			played[e] = 0			
-		end	
+			status[e] = "hudclosed"
+			played[e] = 0
+		end
 	end
 end
 

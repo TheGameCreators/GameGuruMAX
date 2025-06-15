@@ -1227,6 +1227,8 @@ bool gun_detectandperformquickrepeatattack(void)
 	return bPerformingQuickRepeatAttack;
 }
 
+bool bCustomGunAnimationRunning = false;
+
 void gun_control ( void )
 {
 	//  trigger gun to show and play custom anim (custstart,custend)
@@ -1447,6 +1449,11 @@ void gun_control ( void )
 	{
 		gun_update_hud_visibility ( );
 	}
+
+
+	//PE: Custom Animation playing.
+	if (bCustomGunAnimationRunning)
+		return;
 
 	//  generic speed of gun animations
 	t.tidleormoving=0;

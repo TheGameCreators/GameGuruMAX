@@ -6038,6 +6038,149 @@ int GetObjectExist ( lua_State *L )
 	lua_pushnumber ( L, ObjectExist(lua_tonumber(L, 1)) );
 	return 1;
 }
+
+void gun_PlayObject(int iObjID, float fStart, float fEnd);
+void gun_StopObject(int iObjID);
+void gun_LoopObject(int iObjID, float fStart, float fEnd);
+void gun_StopObject(int iObjID);
+void gun_SetObjectFrame(int iObjID, float fValue);
+
+float iGunAnimStart = 0;
+float iGunAnimEnd = 0;
+int iGunAnimMode = 2; // 0 = Play , 1 = Loop, 2 = stop
+extern bool bCustomGunAnimationRunning;
+
+void GunInitAnimationSettings(void)
+{
+	iGunAnimStart = 0;
+	iGunAnimEnd = 0;
+	iGunAnimMode = 2;
+}
+int GetGunAnimationFramesFromName(lua_State* L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	char AnimName[512];
+	float fFoundStart = 0, fFoundFinish = 0;
+
+	const char* luastring = lua_tostring(L, 1);
+	if(luastring)
+		strcpy(AnimName, luastring);
+
+	sObject* pObject = GetObjectData(t.currentgunobj);
+	extern int entity_lua_getanimationnamefromobject(sObject * pObject, cstr FindThisName_s, float* fFoundStart, float* fFoundFinish);
+	if (pObject && luastring && entity_lua_getanimationnamefromobject(pObject, AnimName, &fFoundStart, &fFoundFinish) > 0)
+	{
+		lua_pushnumber(L, fFoundStart);
+		lua_pushnumber(L, fFoundFinish);
+	}
+	else
+	{
+		lua_pushnumber(L, 0);
+		lua_pushnumber(L, 0);
+	}
+	return 2;
+}
+int GunAnimationSetFrame(lua_State* L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	float start = lua_tonumber(L, 1);
+	gun_SetObjectFrame(t.currentgunobj, start);
+	return 0;
+}
+int GunAnimationPlaying(lua_State* L)
+{
+	int n = lua_gettop(L);
+	//if (n < 1) return 0;
+	float frame = GetFrame(t.currentgunobj);
+	if (iGunAnimMode == 0)
+	{
+		//PE: Stop animation when done.
+		if (frame >= iGunAnimEnd)
+		{
+			gun_StopObject(t.currentgunobj);
+			gun_SetObjectFrame(t.currentgunobj, iGunAnimEnd);
+			lua_pushnumber(L, 0);
+			bCustomGunAnimationRunning = false;
+			t.gunmode = 9; //PE: switch to idle.
+			iGunAnimMode = 3;
+		}
+		else
+		{
+			lua_pushnumber(L, 1);
+			bCustomGunAnimationRunning = true;
+		}
+
+	}
+	else if(iGunAnimMode == 1)
+	{
+		//PE: Looping always playing.
+		lua_pushnumber(L, 1);
+		bCustomGunAnimationRunning = true;
+	}
+	else
+	{
+		//PE: Stopped.
+		lua_pushnumber(L, 0);
+		bCustomGunAnimationRunning = false;
+	}
+	return 1;
+
+}
+int PlayGunAnimation(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+	float start = lua_tonumber(L, 1);
+	float end = lua_tonumber(L, 2);
+	if (start > end)
+	{
+		float tmp = start;
+		start = end;
+		end = tmp;
+	}
+	gun_PlayObject(t.currentgunobj, start, end);
+	bCustomGunAnimationRunning = true;
+	iGunAnimStart = start;
+	iGunAnimEnd = end;
+	iGunAnimMode = 0;
+	return 0;
+}
+int StopGunAnimation(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	gun_StopObject(t.currentgunobj);
+	iGunAnimMode = 2;
+	bCustomGunAnimationRunning = false;
+	t.gunmode = 9; //PE: switch to idle.
+	return 0;
+}
+int LoopGunAnimation(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+	float start = lua_tonumber(L, 1);
+	float end = lua_tonumber(L, 2);
+	if (start > end)
+	{
+		float tmp = start;
+		start = end;
+		end = tmp;
+	}
+	gun_LoopObject(t.currentgunobj, start, end);
+	bCustomGunAnimationRunning = true;
+	iGunAnimStart = start;
+	iGunAnimEnd = end;
+	iGunAnimMode = 1;
+	return 0;
+}
+
+
+
 int SetObjectFrame (lua_State* L)
 {
 	lua = L;
@@ -13905,6 +14048,12 @@ void addFunctions()
 	//Other effects.
 	lua_register(lua, "SetGrassScale", SetGrassScale);
 	lua_register(lua, "GetGrassScale", GetGrassScale);
+	lua_register(lua, "GunAnimationSetFrame", GunAnimationSetFrame);
+	lua_register(lua, "LoopGunAnimation", LoopGunAnimation);
+	lua_register(lua, "StopGunAnimation", StopGunAnimation);
+	lua_register(lua, "PlayGunAnimation", PlayGunAnimation);
+	lua_register(lua, "GunAnimationPlaying", GunAnimationPlaying);
+	lua_register(lua, "GetGunAnimationFramesFromName", GetGunAnimationFramesFromName);
 
 }
 

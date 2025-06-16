@@ -7398,6 +7398,9 @@ void ParseLuaScriptWithElementID(entityeleproftype *tmpeleprof, char * script, i
 												globallist_labels.clear();
 												globallist_labels.push_back(cVariable);
 												globallist_labels.push_back("None");
+												globallist_labels.push_back("Ammo Remaining");
+												globallist_labels.push_back("Health Remaining");
+
 												for (int allhudscreensnodeid = 0; allhudscreensnodeid < STORYBOARD_MAXNODES; allhudscreensnodeid++)
 												{
 													//PE: Need custom ? stricmp(readout.c_str(), "User Defined Global Statusbar") == NULL
@@ -7865,6 +7868,11 @@ int DisplayLuaDescription(entityeleproftype *tmpeleprof)
 							float ImgW = ImageWidth(imgfile_preview_id[iImgFileIndex]);
 							float ImgH = ImageHeight(imgfile_preview_id[iImgFileIndex]);
 							float fHighRatio = ImgH / ImgW;
+							if (ImgW < (iwidth - 18.0f))
+							{
+								//PE: Fit to width.
+								iwidth = ImgW + 18.0f;
+							}
 							ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (iwidth*0.5), 0.0f));
 							ImGui::ImgBtn(imgfile_preview_id[iImgFileIndex], ImVec2( iwidth-18.0f, (iwidth - 18.0f) * fHighRatio), drawCol_back, drawCol_normal, drawCol_normal, drawCol_normal, -1, 0, 0, 0, true);
 						}

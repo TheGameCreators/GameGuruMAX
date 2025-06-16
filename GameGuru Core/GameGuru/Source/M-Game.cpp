@@ -3765,6 +3765,8 @@ void game_preparelevel ( void )
 	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 	// load required scripts
+	void GunInitAnimationSettings(void);
+	GunInitAnimationSettings();
 	lua_init ( );
 	lua_scanandloadactivescripts ( );
 

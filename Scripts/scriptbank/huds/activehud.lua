@@ -20,21 +20,21 @@ local keypause			= {}
 local status			= {}
 local currentvalue		= {}
 local initialvalue		= {}
-	
+
 function activehud_properties(e, show_condition, show_time, user_global, user_hud_screen, activation_key)
 	activehud[e].show_condition = show_condition or 1
 	activehud[e].show_time = show_time or 4
 	activehud[e].user_global = user_global or ""
 	activehud[e].user_hud_screen = user_hud_screen or "In-Game HUD"
 	activehud[e].activation_key = activation_key or "Z"
-end 
+end
 
 function activehud_init(e)
 	activehud[e] = {}
 	activehud[e].show_condition = 1
 	activehud[e].show_time = 4
 	activehud[e].user_global = ""
-	activehud[e].user_hud_screen = "In-Game HUD"	
+	activehud[e].user_hud_screen = "In-Game HUD"
 	activehud[e].activation_key = "Z"
 	wait[e] = math.huge
 	waitreset[e] = 0
@@ -57,19 +57,20 @@ function activehud_main(e)
 		end
 		status[e] = "endinit"
 	end
-	
+
 	if activehud[e].show_condition == 1 then  --Always On - use Specified User Hud Screen
 		if doonce[e] == 0 and activehud[e].user_hud_screen > "" then
 			if activehud[e].user_hud_screen == "In-Game HUD" then
 				-- Showing In-Game HUD
 			else
 				ScreenToggle(activehud[e].user_hud_screen)
+				g_CurrentHudScreen = activehud[e].user_hud_screen
 				g_liveHudScreen = 1
 			end
 			doonce[e] = 1
 		end
 	end
-	
+
 	if activehud[e].show_condition == 2 then  --Activation Key Timed
 		if g_InKey == string.lower(activehud[e].activation_key) or g_InKey == tostring(activehud[e].activation_key) and activehud[e].user_hud_screen > "" then
 			if activehud[e].user_hud_screen == "In-Game HUD" then
@@ -83,15 +84,15 @@ function activehud_main(e)
 			DisableBoundHudKeys()
 		end
 	end
-	
+
 	if activehud[e].show_condition == 3 then  --Health Damage
 		if g_PlayerHealth < curhealth[e] and doonce[e] == 0 and activehud[e].user_hud_screen > "" then
 			if activehud[e].user_hud_screen == "In-Game HUD" then
 				-- Showing In-Game HUD
 			else
 				ScreenToggle(activehud[e].user_hud_screen)
-				g_liveHudScreen = 1	
-				DisableBoundHudKeys()				
+				g_liveHudScreen = 1
+				DisableBoundHudKeys()
 			end
 			curhealth[e] = g_PlayerHealth
 			wait[e] = g_Time + (activehud[e].show_time*1000)
@@ -99,7 +100,7 @@ function activehud_main(e)
 			doonce[e] = 1
 		end
 	end
-	
+
 	if activehud[e].show_condition == 4 then  --Shooting
 		if GetGamePlayerStateFiringMode() == 1 and doonce[e] == 0 and activehud[e].user_hud_screen > "" then
 			if activehud[e].user_hud_screen == "In-Game HUD" then
@@ -114,7 +115,7 @@ function activehud_main(e)
 			doonce[e] = 1
 		end
 	end
-	
+
 	if activehud[e].show_condition == 5 then  --Gun Zoom
 		if GetGamePlayerStateGunZoomMode() > 0 and doonce[e] == 0 and activehud[e].user_hud_screen > "" then
 			if activehud[e].user_hud_screen == "In-Game HUD" then
@@ -149,12 +150,12 @@ function activehud_main(e)
 				ScreenToggle("")
 				g_liveHudScreen = 0
 				EnableBoundHudKeys()
-			end		
+			end
 			keypause[e] = g_Time + 1000
 			toggle[e] = 0
 		end
 	end
-	
+
 	if activehud[e].show_condition == 7 and doonce[e] == 0 and activehud[e].user_hud_screen > "" then  --User Global
 		if _G["g_UserGlobal['"..activehud[e].user_global.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..activehud[e].user_global.."']"] end
 		if currentvalue[e] > initialvalue[e] then
@@ -163,13 +164,13 @@ function activehud_main(e)
 			else
 				ScreenToggle(activehud[e].user_hud_screen)
 				g_liveHudScreen = 1
-			end		
+			end
 			wait[e] = g_Time + (activehud[e].show_time*1000)
 			waitreset[e] = 1
 			initialvalue[e] = currentvalue[e]
 			doonce[e] = 1
 		end
-	end			
+	end
 
 	if g_Time > wait[e] and waitreset[e] == 1 then
 		ScreenToggle("")

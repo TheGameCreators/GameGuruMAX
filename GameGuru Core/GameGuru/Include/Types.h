@@ -7599,6 +7599,7 @@ struct gunsettingstype
 	int disablerunandshoot;
 	int meleewithrightclick;
 	int blockwithrightclick;
+	int meleequickrepeat;
 	int altpoolindex;
 	int poolindex;
 	int isempty;
@@ -7937,6 +7938,7 @@ struct gunsettingstype
 		 disablerunandshoot = 0;
 		 blockwithrightclick = 0;
 		 meleewithrightclick = 0;
+		 meleequickrepeat = 0;
 		 ismelee = 0;
 		 altmeleenoscorch = 0;
 		 altmeleerange = 0;

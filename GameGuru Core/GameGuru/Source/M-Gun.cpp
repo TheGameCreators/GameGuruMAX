@@ -389,6 +389,8 @@ void gun_loaddata ( void )
 					if (matched)  g.firemodes[t.gunid][0].settings.meleewithrightclick = t.value1;
 					cmpStrConst(t_field_s, "blockwithrightclick");
 					if (matched)  g.firemodes[t.gunid][0].settings.blockwithrightclick = t.value1;
+					cmpStrConst(t_field_s, "meleequickrepeat");
+					if (matched)  g.firemodes[t.gunid][0].settings.meleequickrepeat = t.value1;
 					cmpStrConst( t_field_s, "force" );
 					if( matched )  g.firemodes[t.gunid][0].settings.force = t.value1;
 					cmpStrConst( t_field_s, "melee force" );
@@ -1103,6 +1105,9 @@ void gun_loaddata ( void )
 					if (matched)  g.firemodes[t.gunid][1].settings.meleewithrightclick = t.value1;
 					cmpStrConst(t_field_s, "altblockwithrightclick");
 					if (matched)  g.firemodes[t.gunid][1].settings.blockwithrightclick = t.value1;			
+					cmpStrConst(t_field_s, "altmeleequickrepeat");
+					if (matched)  g.firemodes[t.gunid][1].settings.meleequickrepeat = t.value1;
+					
 					cmpStrConst( t_field_s, "altforce" );
 					if( matched )  g.firemodes[t.gunid][1].settings.force = t.value1;
 					cmpStrConst( t_field_s, "altmelee force" );

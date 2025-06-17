@@ -240,7 +240,7 @@ void CloseDownEditorProperties(void);
 // moved here so Classic would compile
 void ControlAdvancedSetting(int& setting, const char* tooltip, bool* bLargePreview);
 void DeleteWaypointsAddedToCurrentCursor(void);
-void Add_Grid_Snap_To_Position(void);
+void Add_Grid_Snap_To_Position(bool bFromWidgetMode);
 float ImGuiGetMouseX(void);
 float ImGuiGetMouseY(void);
 void RotateAndMoveRubberBand(int iActiveObj, float fMovedActiveObjectX, float fMovedActiveObjectY, float fMovedActiveObjectZ, GGQUATERNION quatRotationEvent); //float fMovedActiveObjectRX, float fMovedActiveObjectRY, float fMovedActiveObjectRZ);

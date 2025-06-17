@@ -9243,7 +9243,7 @@ void Wicked_Update_Visibles(void* voidvisual)
 #endif
 
 //PE: Using t.gridentityposx_f,t.gridentityposy_f,t.gridentityposz_f,t.gridentity,t.gridentityobj
-void Add_Grid_Snap_To_Position(void)
+void Add_Grid_Snap_To_Position ( bool bFromWidgetMode )
 {
 	// no snapping at all until move
 	if (g_bHoldGridEntityPosWhenManaged == true)
@@ -9422,11 +9422,25 @@ void Add_Grid_Snap_To_Position(void)
 		else
 		{
 			//LB: apply grid alignment with custom offset for full end user control
-			fHitOffsetX = 0; fHitOffsetZ = 0; // allows more intuitive placement of chosen object
-			fHitOffsetY = 0; // adding grid Y mode in 2025!
-			float fGripX = t.gridentityposx_f + fHitOffsetX + (pref.fEditorGridSizeX / 2);
-			float fGripY = t.gridentityposy_f + fHitOffsetY + (pref.fEditorGridSizeY / 2);
-			float fGripZ = t.gridentityposz_f + fHitOffsetZ + (pref.fEditorGridSizeZ / 2);
+			float fGripX, fGripY, fGripZ;
+			if (bFromWidgetMode == true)
+			{
+				// widget mode uses its own drag offset system
+				fHitOffsetX = 0; 
+				fHitOffsetZ = 0;
+				fHitOffsetY = 0;
+				fGripX = t.gridentityposx_f + fHitOffsetX + (pref.fEditorGridSizeX / 2);
+				fGripY = t.gridentityposy_f + fHitOffsetY + (pref.fEditorGridSizeY / 2);
+				fGripZ = t.gridentityposz_f + fHitOffsetZ + (pref.fEditorGridSizeZ / 2);
+			}
+			else
+			{
+				// smart mode needs retains fHitOffsetXYZ to know the initial click offset to allow fine placement
+				// and not the old legacy snap to from anchor in center of object (was a nice idea but not how most users expect it to work)
+				fGripX = t.gridentityposx_f + (pref.fEditorGridSizeX / 2);
+				fGripY = t.gridentityposy_f + (pref.fEditorGridSizeY / 2);
+				fGripZ = t.gridentityposz_f + (pref.fEditorGridSizeZ / 2);
+			}
 
 			fGripX -= pref.fEditorGridOffsetX;
 			if (fGripX < 0)
@@ -9436,12 +9450,15 @@ void Add_Grid_Snap_To_Position(void)
 			fGripX += pref.fEditorGridOffsetX;
 
 			// new for 2025
-			fGripY -= pref.fEditorGridOffsetY;
-			if (fGripY < 0)
-				fGripY = ((int(fGripY / pref.fEditorGridSizeY) - 1) * pref.fEditorGridSizeY);
-			else
-				fGripY = (int(fGripY / pref.fEditorGridSizeY) * pref.fEditorGridSizeY);
-			fGripY += pref.fEditorGridOffsetY;
+			if (pref.fEditorGridSizeY > 0)
+			{
+				fGripY -= pref.fEditorGridOffsetY;
+				if (fGripY < 0)
+					fGripY = ((int(fGripY / pref.fEditorGridSizeY) - 1) * pref.fEditorGridSizeY);
+				else
+					fGripY = (int(fGripY / pref.fEditorGridSizeY) * pref.fEditorGridSizeY);
+				fGripY += pref.fEditorGridOffsetY;
+			}
 
 			fGripZ -= pref.fEditorGridOffsetZ;
 			if (fGripZ < 0)
@@ -9451,7 +9468,7 @@ void Add_Grid_Snap_To_Position(void)
 			fGripZ += pref.fEditorGridOffsetZ;
 
 			t.gridentityposx_f = fGripX;
-			t.gridentityposy_f = fGripY;
+			if(pref.fEditorGridSizeY>0) t.gridentityposy_f = fGripY;
 			t.gridentityposz_f = fGripZ;
 		}
 

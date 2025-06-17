@@ -594,7 +594,7 @@ extern int iLastUpdateVeg;
 // moved here so Classic would compile
 bool Shooter_Tools_Window_Active = false;
 void DeleteWaypointsAddedToCurrentCursor(void);
-void Add_Grid_Snap_To_Position(void);
+void Add_Grid_Snap_To_Position(bool bFromWidgetMode);
 float ImGuiGetMouseX(void);
 float ImGuiGetMouseY(void);
 void RotateAndMoveRubberBand(int iActiveObj, float fMovedActiveObjectX, float fMovedActiveObjectY, float fMovedActiveObjectZ, GGQUATERNION quatRotationEvent); //float fMovedActiveObjectRX, float fMovedActiveObjectRY, float fMovedActiveObjectRZ);
@@ -9822,6 +9822,10 @@ void mapeditorexecutable_loop(void)
 				#endif
 				if (pref.iSmallToolbar == 0)
 				{
+					// older system (never had Y axis), so force this scenario to restore legacy behavior if using old grid settings method!
+					pref.fEditorGridOffsetY = 0;
+					pref.fEditorGridSizeY = 0;
+
 					if (pref.bAutoClosePropertySections && iLastOpenHeader != 15)
 						ImGui::SetNextItemOpen(false, ImGuiCond_Always);
 
@@ -19105,12 +19109,8 @@ void editor_handlepguppgdn ( void )
 			{
 				if (t.gridentitygridlock == 1)
 					t.tupdownstepvalue_f = fEntityStepSize;
-#ifdef WICKEDENGINE
 				if (t.gridentitygridlock == 2)
 					t.tupdownstepvalue_f = pref.fEditorGridSizeY;
-#else
-				if (t.gridentitygridlock == 2)  t.tupdownstepvalue_f = 100.0;
-#endif
 				t.inputsys.keypressallowshift = 1;
 			}
 			else
@@ -26167,16 +26167,19 @@ void gridedit_mapediting ( void )
 										//LB: sure thing Lee, here you go, see below
 										if (t.gridentitygridlock == 2 && iObjectMoveMode == 1)
 										{
-											// snap to grid - dding grid Y mode in 2025!
-											t.gridentityposy_f = fPlanePosY;
-											float fGripY = t.gridentityposy_f + (pref.fEditorGridSizeY / 2);
-											fGripY -= pref.fEditorGridOffsetY;
-											if (fGripY < 0)
-												fGripY = ((int(fGripY / pref.fEditorGridSizeY) - 1) * pref.fEditorGridSizeY);
-											else
-												fGripY = (int(fGripY / pref.fEditorGridSizeY) * pref.fEditorGridSizeY);
-											fGripY += pref.fEditorGridOffsetY;
-											t.gridentityposy_f = fGripY;
+											if (pref.fEditorGridSizeY > 0)
+											{
+												// snap to grid - dding grid Y mode in 2025!
+												t.gridentityposy_f = fPlanePosY;
+												float fGripY = t.gridentityposy_f + (pref.fEditorGridSizeY / 2);
+												fGripY -= pref.fEditorGridOffsetY;
+												if (fGripY < 0)
+													fGripY = ((int(fGripY / pref.fEditorGridSizeY) - 1) * pref.fEditorGridSizeY);
+												else
+													fGripY = (int(fGripY / pref.fEditorGridSizeY) * pref.fEditorGridSizeY);
+												fGripY += pref.fEditorGridOffsetY;
+												t.gridentityposy_f = fGripY;
+											}
 										}
 									}
 									else
@@ -26482,7 +26485,7 @@ void gridedit_mapediting ( void )
 						if (iForwardFacing != 1)
 						{
 							// do not apply grid/snap for things like switches, they NEED the XZ from the surface to be exact
-							Add_Grid_Snap_To_Position();
+							Add_Grid_Snap_To_Position(false);
 						}
 
 						// handle any pivots that are object based
@@ -30912,7 +30915,7 @@ void GridPopup(ImVec2 wpos)
 					pref.fEditorGridOffsetY = 0;
 					pref.fEditorGridOffsetZ = 50;
 					pref.fEditorGridSizeX = 100;
-					pref.fEditorGridSizeY = 100;
+					pref.fEditorGridSizeY = 10;
 					pref.fEditorGridSizeZ = 100;
 				}
 

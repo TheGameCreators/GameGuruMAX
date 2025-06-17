@@ -1179,47 +1179,52 @@ bool gun_detectandperformquickrepeatattack(void)
 	if (t.gun[t.gunid].weapontype >= 51 || t.gun[t.gunid].settings.ismelee != 0)
 	{
 		// for melee up-close combat weapons
-		//weapontype ; 0-grenade, 1-pistol, 2-rocket, 3-shotgun, 4-uzi, 5-assault, 51-melee(noammo)
+		// weapontype ; 0-grenade, 1-pistol, 2-rocket, 3-shotgun, 4-uzi, 5-assault, 51-melee(noammo)
 		// during the gunmode animation, and after the 'strike' frame has been passed,
 		// we can have a special follow-up animation for more responsive and rapid attacks
 		// and will also remove the sense that clicks are being missed (i.e. feels sluggish and faulty)
-		bool bTrgiggeredQuickRepeatAttack = false;	
-		if (t.gunclick == 0 && (KeyState(g.ggunmeleekey)==0)) t.gunmustreleasefirst = 0;
-		if (t.gunmustreleasefirst == 0)
+		// LB: by imposing this by default, we mess up other game projects, so move this to a new gunspec
+		// field so it can be controlled on a per weapon basis!
+		float fGraceAfterStrike = g.firemodes[t.gunid][0].settings.meleequickrepeat;// 5.0f;
+		if (fGraceAfterStrike > 0)
 		{
-			if (t.gunclick != 0) bTrgiggeredQuickRepeatAttack = true;
-			if (t.gun[t.gunid].settings.ismelee == 2 && KeyState(g.ggunmeleekey)==1) bTrgiggeredQuickRepeatAttack = true;
-		}
-		if(bTrgiggeredQuickRepeatAttack==true)
-		{
-			// only permit after a few post-sprike frames so does not look glitchy
-			float fGraceAfterStrike = 5.0f;
-			if (GetFrame(t.currentgunobj) >= t.gfinish.s + fGraceAfterStrike)
+			bool bTriggeredQuickRepeatAttack = false;
+			if (t.gunclick == 0 && (KeyState(g.ggunmeleekey) == 0)) t.gunmustreleasefirst = 0;
+			if (t.gunmustreleasefirst == 0)
 			{
-				// and only if not using stamina, or if using, that we only if have stamina for it
-				char pUserDefinedGlobalMAX[256];
-				sprintf(pUserDefinedGlobalMAX, "g_UserGlobal['%s']", "MyStaminaMax");
-				int iMyStaminaMAXFromLUA = LuaGetInt(pUserDefinedGlobalMAX);
-				char pUserDefinedGlobal[256];
-				sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", "MyStamina");
-				int iMyStaminaFromLUA = LuaGetInt(pUserDefinedGlobal);
-				int iStaminaCostOfRepeatAttack = 10;
-				if (iMyStaminaMAXFromLUA==0 || (iMyStaminaMAXFromLUA>0 && iMyStaminaFromLUA >= iStaminaCostOfRepeatAttack))
+				if (t.gunclick != 0) bTriggeredQuickRepeatAttack = true;
+				if (t.gun[t.gunid].settings.ismelee == 2 && KeyState(g.ggunmeleekey) == 1) bTriggeredQuickRepeatAttack = true;
+			}
+			if (bTriggeredQuickRepeatAttack == true)
+			{
+				// only permit after a few post-sprike frames so does not look glitchy (and if anim changes, it will be OUTSIDE of this technique)
+				if (GetFrame(t.currentgunobj) >= t.gfinish.s + fGraceAfterStrike && GetFrame(t.currentgunobj) <= t.gfinish.e)
 				{
-					// t.gfinish.s is the strke frame, so we want to back up a little so we have some visual run-up to the repeated action
-					float fBackUpFrames = (t.gstart.e - t.gstart.s) / 3.0f; // X-way back from start of initial attack (rather than fixed value)
-					if (fBackUpFrames < 6)fBackUpFrames = 6;
-					float fStartFromRunUpFrame = t.gfinish.s - fBackUpFrames;
-					gun_StopObject (t.currentgunobj);
-					gun_SetObjectFrame (t.currentgunobj, fStartFromRunUpFrame);
-					gun_PlayObject (t.currentgunobj, fStartFromRunUpFrame, t.gfinish.e);
-					t.gunmustreleasefirst = 1;
+					// and only if not using stamina, or if using, that we only if have stamina for it
+					char pUserDefinedGlobalMAX[256];
+					sprintf(pUserDefinedGlobalMAX, "g_UserGlobal['%s']", "MyStaminaMax");
+					int iMyStaminaMAXFromLUA = LuaGetInt(pUserDefinedGlobalMAX);
+					char pUserDefinedGlobal[256];
+					sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", "MyStamina");
+					int iMyStaminaFromLUA = LuaGetInt(pUserDefinedGlobal);
+					int iStaminaCostOfRepeatAttack = 10;
+					if (iMyStaminaMAXFromLUA == 0 || (iMyStaminaMAXFromLUA > 0 && iMyStaminaFromLUA >= iStaminaCostOfRepeatAttack))
+					{
+						// t.gfinish.s is the strke frame, so we want to back up a little so we have some visual run-up to the repeated action
+						float fBackUpFrames = (t.gstart.e - t.gstart.s) / 3.0f; // X-way back from start of initial attack (rather than fixed value)
+						if (fBackUpFrames < 6)fBackUpFrames = 6;
+						float fStartFromRunUpFrame = t.gfinish.s - fBackUpFrames;
+						gun_StopObject (t.currentgunobj);
+						gun_SetObjectFrame (t.currentgunobj, fStartFromRunUpFrame);
+						gun_PlayObject (t.currentgunobj, fStartFromRunUpFrame, t.gfinish.e);
+						t.gunmustreleasefirst = 1;
 
-					// extract stamin as cost
-					LuaSetFunction ("PlayerStaminaDrain", 1, 0); LuaPushInt (iStaminaCostOfRepeatAttack); LuaCall ();
+						// extract stamin as cost
+						LuaSetFunction ("PlayerStaminaDrain", 1, 0); LuaPushInt (iStaminaCostOfRepeatAttack); LuaCall ();
 
-					// and return to 102 to allow start part to finish, and then gunshoot to do its thing again
-					bPerformingQuickRepeatAttack = true;
+						// and return to 102 to allow start part to finish, and then gunshoot to do its thing again
+						bPerformingQuickRepeatAttack = true;
+					}
 				}
 			}
 		}

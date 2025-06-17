@@ -9222,7 +9222,7 @@ void coreResetIMGUIFunctionalityPrefs(void)
 	pref.fEditorGridOffsetY = 0.0f;
 	pref.fEditorGridOffsetZ = 50.0f;
 	pref.fEditorGridSizeX = 100.0f;
-	pref.fEditorGridSizeY = 100.0f;
+	pref.fEditorGridSizeY = 10.0f;
 	pref.fEditorGridSizeZ = 100.0f;
 	pref.iDevToolsOpen = 0;
 	extern int g_iDevToolsOpen;

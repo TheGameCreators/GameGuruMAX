@@ -7398,8 +7398,10 @@ void ParseLuaScriptWithElementID(entityeleproftype *tmpeleprof, char * script, i
 												globallist_labels.clear();
 												globallist_labels.push_back(cVariable);
 												globallist_labels.push_back("None");
-												globallist_labels.push_back("Ammo Remaining");
+												//PE: Need to push these to g_UserGlobal[''].
+												globallist_labels.push_back("Gun Ammo Remaining");
 												globallist_labels.push_back("Health Remaining");
+												globallist_labels.push_back("Lives Remaining");
 
 												for (int allhudscreensnodeid = 0; allhudscreensnodeid < STORYBOARD_MAXNODES; allhudscreensnodeid++)
 												{

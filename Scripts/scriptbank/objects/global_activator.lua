@@ -149,5 +149,4 @@ function global_activator_main(e)
 			end
 		end		
 	end
-	Text(50,80,3,multiswitch[e])
 end  

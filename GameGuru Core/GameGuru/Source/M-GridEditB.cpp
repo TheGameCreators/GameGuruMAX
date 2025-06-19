@@ -35395,7 +35395,7 @@ void Welcome_Screen(void)
 						memset(pDatatmp, 0, sizeof(pDatatmp));
 						DWORD dwDataReturnedSize = 0;
 						char cUrl[10240];
-						sprintf(cUrl, "repos/TheGameCreators/GameGuruMAX/commits?&per_page=100");
+						sprintf(cUrl, "repos/Dark-Basic-Software-Limited/GameGuruMAX/commits?&per_page=100");
 
 						// access features list from store server
 						UINT iError = StoreOpenURLForDataOrFile("api.github.com", pDataReturned, &dwDataReturnedSize, "", "GET", cUrl, NULL);

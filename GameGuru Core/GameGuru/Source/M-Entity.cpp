@@ -3966,7 +3966,8 @@ void entity_loaddata ( void )
 	//  V109 BETA5 - 250408 - flag material is being used
 	if (  t.entityprofile[t.entid].materialindex>0 ) 
 	{
-		t.mi=t.entityprofile[t.entid].materialindex-1;
+		//t.mi=t.entityprofile[t.entid].materialindex-1;
+		t.mi = t.entityprofile[t.entid].materialindex; //PE: We now use the correct materialindex -1 is from classic.
 		if (t.mi < t.material.size())
 		{
 			t.material[t.mi].usedinlevel = 1;

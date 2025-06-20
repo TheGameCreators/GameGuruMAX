@@ -45220,6 +45220,7 @@ void process_storeboard(bool bInitOnly)
 								extern bool g_bAllowBackwardCompatibleConversion;
 								g_bAllowBackwardCompatibleConversion = true;
 								gridedit_load_map();
+								g_EntityClipboard.clear(); //PE: Clear any old copy/paste.
 								g_bAllowBackwardCompatibleConversion = false;
 
 								t.terrain.grassregionx1 = t.terrain.grassregionx2;

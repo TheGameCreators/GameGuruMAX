@@ -9371,6 +9371,7 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 		GGTerrain_CheckKeys();
 
 		if (GGTerrain_GetKeyPressed(GGKEY_ESCAPE)) GGTerrain_CancelRamp();
+		/* hidden key functionality and undocumented feature
 		if (pref.iTerrainDebugMode)
 		{
 			if ( GGTerrain_GetKeyPressed( GGKEY_Q ) ) ggtrees_global_params.draw_enabled = 1 - ggtrees_global_params.draw_enabled;
@@ -9379,7 +9380,6 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 			if ( GGTerrain_GetKeyPressed( GGKEY_Y ) && !GGTerrain_GetKeyPressed(GGKEY_CONTROL)) ggterrain_render_debug = 1 - ggterrain_render_debug;
 			if ( GGTerrain_GetKeyPressed( GGKEY_U ) ) ggterrain_update_enabled = 1 - ggterrain_update_enabled;
 			//if ( GGTerrain_GetKeyPressed( GGKEY_E ) ) wiRenderer::SetToDrawDebugEnvProbes( !wiRenderer::GetToDrawDebugEnvProbes() );
-
 			// increase/decrease LOD
 			if (GGTerrain_GetKeyPressed(GGKEY_O))
 			{
@@ -9395,7 +9395,6 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 					ggterrain_global_params.lod_levels--;
 				}
 			}
-
 			// increase/decrease num segments
 			if (GGTerrain_GetKeyPressed(GGKEY_I))
 			{
@@ -9410,9 +9409,9 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 				{
 					ggterrain_global_params.segments_per_chunk /= 2;
 				}
-
 			}
 		}
+		*/
 	}
 
 	// Environmental Light Probe System

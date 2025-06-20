@@ -9934,8 +9934,8 @@ void mapeditorexecutable_loop(void)
 									ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (but_gadget_size*0.5), 0.0f));
 									if (ImGui::StyleButton("Align Grid Size To Object", ImVec2(but_gadget_size, 0)))
 									{
-										float sx = ObjectSizeX(t.entityelement[iEntityIndex].obj);
-										float sz = ObjectSizeZ(t.entityelement[iEntityIndex].obj);
+										float sx = ObjectSizeX(t.entityelement[iEntityIndex].obj, 1);
+										float sz = ObjectSizeZ(t.entityelement[iEntityIndex].obj, 1);
 										pref.fEditorGridSizeX = sx;
 										pref.fEditorGridSizeZ = sz;
 									}
@@ -10798,22 +10798,14 @@ void mapeditorexecutable_loop(void)
 		}
 		else
 		{
-			#ifdef WICKEDENGINE
-			if (pref.iTerrainDebugMode)
-			{
-				imgui_terrain_loop_v2(); //PE: New design.
-			}
-			else
-			{
-				#ifdef GGTERRAIN_USE_NEW_TERRAIN
-				imgui_terrain_loop_v3(); //PE: New design for Paul's new terrain system :)
-				#else
-				imgui_terrain_loop_v2(); //PE: New design.
-				#endif
-			}
-			#else
-			imgui_terrain_loop();
-			#endif
+			//if (pref.iTerrainDebugMode)
+			//{
+			//	imgui_terrain_loop_v2(); //PE: New design.
+			//}
+			//else
+			//{
+			imgui_terrain_loop_v3(); //PE: New design for Paul's new terrain system :)
+			//}
 		}
 
 		//############################
@@ -15304,19 +15296,10 @@ void mapeditorexecutable_loop(void)
 			if (!bLeftPanelSelectedAsDefault) {
 				//ImGui::SetWindowFocus(TABENTITYNAME);
 				//PE: Start in terrain tools.
-				#ifdef WICKEDENGINE
-				#ifdef GGTERRAIN_USE_NEW_TERRAIN
-				if(pref.iTerrainDebugMode)
-					ImGui::SetWindowFocus("Paint Terrain##TerrainToolsWindow");
-				else
-					ImGui::SetWindowFocus("Terrain Tools##Paint Terrain##TerrainToolsWindow");
-				#else
-				ImGui::SetWindowFocus("Paint Terrain##TerrainToolsWindow");
-				#endif
-				#else
-				ImGui::SetWindowFocus("Terrain Tools##TerrainToolsWindow");
-				#endif
-
+				//if(pref.iTerrainDebugMode)
+				//	ImGui::SetWindowFocus("Paint Terrain##TerrainToolsWindow");
+				//else
+				ImGui::SetWindowFocus("Terrain Tools##Paint Terrain##TerrainToolsWindow");
 				bLeftPanelSelectedAsDefault = true;
 			}
 
@@ -26177,7 +26160,14 @@ void gridedit_mapediting ( void )
 													fGripY = ((int(fGripY / pref.fEditorGridSizeY) - 1) * pref.fEditorGridSizeY);
 												else
 													fGripY = (int(fGripY / pref.fEditorGridSizeY) * pref.fEditorGridSizeY);
+
+												// only if above or on terrain
 												fGripY += pref.fEditorGridOffsetY;
+												float fTerrainAtThisPoint = BT_GetGroundHeight (0, t.gridentityposx_f, t.gridentityposz_f);
+												if (fGripY < fTerrainAtThisPoint)
+												{
+													fGripY = fTerrainAtThisPoint;
+												}
 												t.gridentityposy_f = fGripY;
 											}
 										}
@@ -30812,145 +30802,136 @@ void GridPopup(ImVec2 wpos)
 		ImGui::TextCenter("Grid and Alignment Settings");
 		ImGui::SetWindowFontScale(1.0);
 
-		/* now toggled and controlled using gadget buttons, below leaves just grid settings!
-		static int iGridOffsetMode = 0;
-		if (t.gridentitygridlock > 0)
-		{
-			if (t.gridentitygridlock == 2)
-				iGridOffsetMode = 0;
-			else
-				iGridOffsetMode = 1;
-		}
-		else
-		{
-			iGridOffsetMode = 0;
-		}
-		bool bGridEnabled = pref.iGridEnabled;
-		if (ImGui::Checkbox("Enable Grid Mode", &bGridEnabled))
-		{
-			pref.iGridEnabled = bGridEnabled;
-		}
-		if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select to snap the object to an aligned position");
-		if (pref.iGridEnabled == false)
-		{
-			t.gridentitygridlock = 0;
-			pref.iGridMode = t.gridentitygridlock;
-		}
-		if (pref.iGridEnabled == true)
-		{
-			ImGui::RadioButton("Use Grid Positions", &iGridOffsetMode, 0);
-			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Snaps the selected object to the chosen grid positions");
-			ImGui::RadioButton("Snap Mode", &iGridOffsetMode, 1);
-			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Snap the object to the nearest object bound box");
-			t.gridentitygridlock = 2 - iGridOffsetMode;
-			pref.iGridMode = t.gridentitygridlock;
-		}
-		*/
-
 		// grid size only available in advanced mode
 		ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
 		if (1)//pref.iObjectEnableAdvanced)
 		{
 			if (1)//t.gridentitygridlock == 2)
 			{
-				ImGui::TextCenter("Grid Offset");
-				float w = ImGui::GetContentRegionAvail().x;
-				float inputsize = w / 3.0f;
-				inputsize -= 10.0f; //For text.
-				inputsize -= 5.0f; //For padding.
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, 3.0f));
-				ImGui::Text("X");
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, -3.0f));
-				ImGui::PushItemWidth(inputsize - ImGui::GetFontSize());
-				ImGui::InputFloat("##XYZgridoffsetX", &pref.fEditorGridOffsetX, 0.0f, 0.0f, "%.1f");
-				if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Change Grid Offset X");
-				ImGui::PopItemWidth();
-				ImGui::SameLine();
-				ImGui::Text("Y");
-				ImGui::SameLine();
-				ImGui::PushItemWidth(inputsize - ImGui::GetFontSize());
-				ImGui::InputFloat("##XYZgridoffsetY", &pref.fEditorGridOffsetY, 0.0f, 0.0f, "%.1f");
-				if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Change Grid Offset Y");
-				ImGui::PopItemWidth();
-				ImGui::SameLine();
-				ImGui::Text("Z");
-				ImGui::SameLine();
-				ImGui::PushItemWidth(inputsize - ImGui::GetFontSize());
-				ImGui::InputFloat("##XYZgridoffsetZ", &pref.fEditorGridOffsetZ, 0.0f, 0.0f, "%.1f");
-				if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Change Grid Offset Z");
-				ImGui::PopItemWidth();
-
-				ImGui::TextCenter("Grid Size");
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, 3.0f));
-				ImGui::Text("X");
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, -3.0f));
-				ImGui::SameLine();
-				ImGui::PushItemWidth(inputsize - ImGui::GetFontSize());
-				ImGui::InputFloat("##XYZgridsizeX", &pref.fEditorGridSizeX, 0.0f, 0.0f, "%.1f");
-				if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Change Grid Size X");
-				ImGui::PopItemWidth();
-				ImGui::SameLine();
-				ImGui::Text("Y");
-				ImGui::SameLine();
-				ImGui::PushItemWidth(inputsize - ImGui::GetFontSize());
-				ImGui::InputFloat("##XYZgridsizeY", &pref.fEditorGridSizeY, 0.0f, 0.0f, "%.1f");
-				if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Change Grid Size Y");
-				ImGui::PopItemWidth();
-				ImGui::SameLine();
-				ImGui::Text("Z");
-				ImGui::SameLine();
-				ImGui::PushItemWidth(inputsize - ImGui::GetFontSize());
-				ImGui::InputFloat("##XYZgridsizeZ", &pref.fEditorGridSizeZ, 0.0f, 0.0f, "%.1f");
-				if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Change Grid Size Z");
-				ImGui::PopItemWidth();
-
-				bButSpacer = false;
-				ImGui::Text("");
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w * 0.5) - ((but_gadget_size * 0.5) + button_width_fix), 0.0f));
-				if (ImGui::StyleButton("Default Grid Settings", ImVec2(but_gadget_size, 0)))
+				if (pref.iAdvancedGridModeSettings == 0)
 				{
-					pref.fEditorGridOffsetX = 50;
+					// Simple Grid Mode
+					ImGui::TextCenter("Grid Size");
+					float w = ImGui::GetContentRegionAvail().x;
+					float inputsize = w / 4.0f;
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w/2)-(inputsize/2), 0.0f));
+					ImGui::PushItemWidth(inputsize - ImGui::GetFontSize());
+					ImGui::InputFloat("##XYZgridsizeXYZ", &pref.fEditorGridSizeX, 0.0f, 0.0f, "%.1f");
+					if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Change Grid Size");
+					ImGui::PopItemWidth();
+
+					// can never have a grid size below one
+					if (pref.fEditorGridSizeX <= 1) pref.fEditorGridSizeX = 1.0f;
+
+					// and all grid dimensions the same!
+					pref.fEditorGridOffsetX = 0;
 					pref.fEditorGridOffsetY = 0;
-					pref.fEditorGridOffsetZ = 50;
-					pref.fEditorGridSizeX = 100;
-					pref.fEditorGridSizeY = 10;
-					pref.fEditorGridSizeZ = 100;
+					pref.fEditorGridOffsetZ = 0;
+					pref.fEditorGridSizeY = pref.fEditorGridSizeX;
+					pref.fEditorGridSizeZ = pref.fEditorGridSizeX;
 				}
-
-				// clever button to align grid to object (for older levels with arbitary alignments mixed together)
-				if (iEntityIndex > 0 && g.entityrubberbandlist.size() == 0)
+				else
 				{
-					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w * 0.5) - ((but_gadget_size * 0.5) + button_width_fix), 0.0f));
-					if (ImGui::StyleButton("Align Grid Offset To Object", ImVec2(but_gadget_size, 0)))
-					{
-						float x = t.entityelement[iEntityIndex].x;
-						float y = t.entityelement[iEntityIndex].y;
-						float z = t.entityelement[iEntityIndex].z;
-						int iSizeRoundedX = int(x / pref.fEditorGridSizeX) * pref.fEditorGridSizeX;
-						pref.fEditorGridOffsetX = x - iSizeRoundedX;
-						int iSizeRoundedY = int(y / pref.fEditorGridSizeY) * pref.fEditorGridSizeY;
-						pref.fEditorGridOffsetY = y - iSizeRoundedY;
-						int iSizeRoundedZ = int(z / pref.fEditorGridSizeZ) * pref.fEditorGridSizeZ;
-						pref.fEditorGridOffsetZ = z - iSizeRoundedZ;
-					}
-					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w * 0.5) - ((but_gadget_size * 0.5) + button_width_fix), 0.0f));
-					if (ImGui::StyleButton("Align Grid Size To Object", ImVec2(but_gadget_size, 0)))
-					{
-						float sx = ObjectSizeX(t.entityelement[iEntityIndex].obj);
-						float sy = ObjectSizeY(t.entityelement[iEntityIndex].obj);
-						float sz = ObjectSizeZ(t.entityelement[iEntityIndex].obj);
-						pref.fEditorGridSizeX = sx;
-						pref.fEditorGridSizeY = sy;
-						pref.fEditorGridSizeZ = sz;
-					}
-				}
+					// Advanced Grid Mode functions and settings
+					ImGui::TextCenter("Grid Offset");
+					float w = ImGui::GetContentRegionAvail().x;
+					float inputsize = w / 3.0f;
+					inputsize -= 10.0f; //For text.
+					inputsize -= 5.0f; //For padding.
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, 3.0f));
+					ImGui::Text("X");
+					ImGui::SameLine();
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, -3.0f));
+					ImGui::PushItemWidth(inputsize - ImGui::GetFontSize());
+					ImGui::InputFloat("##XYZgridoffsetX", &pref.fEditorGridOffsetX, 0.0f, 0.0f, "%.1f");
+					if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Change Grid Offset X");
+					ImGui::PopItemWidth();
+					ImGui::SameLine();
+					ImGui::Text("Y");
+					ImGui::SameLine();
+					ImGui::PushItemWidth(inputsize - ImGui::GetFontSize());
+					ImGui::InputFloat("##XYZgridoffsetY", &pref.fEditorGridOffsetY, 0.0f, 0.0f, "%.1f");
+					if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Change Grid Offset Y");
+					ImGui::PopItemWidth();
+					ImGui::SameLine();
+					ImGui::Text("Z");
+					ImGui::SameLine();
+					ImGui::PushItemWidth(inputsize - ImGui::GetFontSize());
+					ImGui::InputFloat("##XYZgridoffsetZ", &pref.fEditorGridOffsetZ, 0.0f, 0.0f, "%.1f");
+					if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Change Grid Offset Z");
+					ImGui::PopItemWidth();
 
-				// can never have a grid size below one
-				if (pref.fEditorGridSizeX <= 1) pref.fEditorGridSizeX = 1.0f;
-				if (pref.fEditorGridSizeY <= 1) pref.fEditorGridSizeY = 1.0f;
-				if (pref.fEditorGridSizeZ <= 1) pref.fEditorGridSizeZ = 1.0f;
+					ImGui::TextCenter("Grid Size");
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, 3.0f));
+					ImGui::Text("X");
+					ImGui::SameLine();
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, -3.0f));
+					ImGui::SameLine();
+					ImGui::PushItemWidth(inputsize - ImGui::GetFontSize());
+					ImGui::InputFloat("##XYZgridsizeX", &pref.fEditorGridSizeX, 0.0f, 0.0f, "%.1f");
+					if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Change Grid Size X");
+					ImGui::PopItemWidth();
+					ImGui::SameLine();
+					ImGui::Text("Y");
+					ImGui::SameLine();
+					ImGui::PushItemWidth(inputsize - ImGui::GetFontSize());
+					ImGui::InputFloat("##XYZgridsizeY", &pref.fEditorGridSizeY, 0.0f, 0.0f, "%.1f");
+					if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Change Grid Size Y");
+					ImGui::PopItemWidth();
+					ImGui::SameLine();
+					ImGui::Text("Z");
+					ImGui::SameLine();
+					ImGui::PushItemWidth(inputsize - ImGui::GetFontSize());
+					ImGui::InputFloat("##XYZgridsizeZ", &pref.fEditorGridSizeZ, 0.0f, 0.0f, "%.1f");
+					if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Change Grid Size Z");
+					ImGui::PopItemWidth();
+
+					bButSpacer = false;
+					ImGui::Text("");
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w * 0.5) - ((but_gadget_size * 0.5) + button_width_fix), 0.0f));
+					if (ImGui::StyleButton("Default Grid Settings", ImVec2(but_gadget_size, 0)))
+					{
+						pref.fEditorGridOffsetX = 50;
+						pref.fEditorGridOffsetY = 0;
+						pref.fEditorGridOffsetZ = 50;
+						pref.fEditorGridSizeX = 100;
+						pref.fEditorGridSizeY = 10;
+						pref.fEditorGridSizeZ = 100;
+					}
+
+					// clever button to align grid to object (for older levels with arbitary alignments mixed together)
+					if (iEntityIndex > 0 && g.entityrubberbandlist.size() == 0)
+					{
+						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w * 0.5) - ((but_gadget_size * 0.5) + button_width_fix), 0.0f));
+						if (ImGui::StyleButton("Align Grid Offset To Object", ImVec2(but_gadget_size, 0)))
+						{
+							float x = t.entityelement[iEntityIndex].x;
+							float y = t.entityelement[iEntityIndex].y;
+							float z = t.entityelement[iEntityIndex].z;
+							int iSizeRoundedX = int(x / pref.fEditorGridSizeX) * pref.fEditorGridSizeX;
+							pref.fEditorGridOffsetX = x - iSizeRoundedX;
+							int iSizeRoundedY = int(y / pref.fEditorGridSizeY) * pref.fEditorGridSizeY;
+							pref.fEditorGridOffsetY = y - iSizeRoundedY;
+							int iSizeRoundedZ = int(z / pref.fEditorGridSizeZ) * pref.fEditorGridSizeZ;
+							pref.fEditorGridOffsetZ = z - iSizeRoundedZ;
+						}
+						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w * 0.5) - ((but_gadget_size * 0.5) + button_width_fix), 0.0f));
+						if (ImGui::StyleButton("Align Grid Size To Object", ImVec2(but_gadget_size, 0)))
+						{
+							float sx = ObjectSizeX(t.entityelement[iEntityIndex].obj, 1);
+							float sy = ObjectSizeY(t.entityelement[iEntityIndex].obj, 1);
+							float sz = ObjectSizeZ(t.entityelement[iEntityIndex].obj, 1);
+							pref.fEditorGridSizeX = sx;
+							pref.fEditorGridSizeY = sy;
+							pref.fEditorGridSizeZ = sz;
+						}
+					}
+
+					// can never have a grid size below one
+					if (pref.fEditorGridSizeX <= 1) pref.fEditorGridSizeX = 1.0f;
+					if (pref.fEditorGridSizeY <= 1) pref.fEditorGridSizeY = 1.0f;
+					if (pref.fEditorGridSizeZ <= 1) pref.fEditorGridSizeZ = 1.0f;
+				}
 			}
 		}
 

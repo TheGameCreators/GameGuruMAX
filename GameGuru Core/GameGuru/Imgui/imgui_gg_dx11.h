@@ -602,7 +602,7 @@ struct preferences {
 	int iCheckboxFilters[10] = { 1,1,1,1,1,1,1,1,1,1 };
 	
 	int iTerrainAdvanced = 0;
-	int iTerrainDebugMode = 0;
+	int iAdvancedGridModeSettings = 0;// iTerrainDebugMode = 0;
 	int iEnableAdvancedCharacterCreator = 0;
 
 	char cDefaultStandalonePath[260] = { "\0" };

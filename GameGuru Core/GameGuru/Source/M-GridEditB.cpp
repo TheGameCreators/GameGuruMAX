@@ -9468,8 +9468,17 @@ void Add_Grid_Snap_To_Position ( bool bFromWidgetMode )
 			fGripZ += pref.fEditorGridOffsetZ;
 
 			t.gridentityposx_f = fGripX;
-			if(pref.fEditorGridSizeY>0) t.gridentityposy_f = fGripY;
 			t.gridentityposz_f = fGripZ;
+			if (pref.fEditorGridSizeY > 0)
+			{
+				// only if above or on terrain
+				float fTerrainAtThisPoint = BT_GetGroundHeight (0, t.gridentityposx_f, t.gridentityposz_f);
+				if (fGripY < fTerrainAtThisPoint)
+				{
+					fGripY = fTerrainAtThisPoint;
+				}
+				t.gridentityposy_f = fGripY;
+			}
 		}
 
 		// 130517 - new EBE entity offset to align with 0,0,0 cornered entities from Aslum level and Store (Martin)
@@ -11624,15 +11633,15 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 			#ifdef PROCEDURALTERRAINWINDOW
 			if (g_iDevToolsOpen)
 			{
-				bTmp = pref.iTerrainDebugMode;
-				if (ImGui::Checkbox("Display Terrain Debug Mode", &bTmp)) {
-					pref.iTerrainDebugMode = bTmp;
+				bTmp = pref.iAdvancedGridModeSettings;// iTerrainDebugMode;
+				if (ImGui::Checkbox("Enable Advanced Grid Mode", &bTmp)) {
+					pref.iAdvancedGridModeSettings = bTmp;// iTerrainDebugMode = bTmp;
 				}
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Reveals the terrain debugging mode in the terrain panel in the level editor");
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Enables advanced functions and multi-axis settings in grid mode");
 			}
 			else
 			{
-				pref.iTerrainDebugMode = 0;
+				pref.iAdvancedGridModeSettings = 0;// iTerrainDebugMode = 0;
 			}
 			#endif
 
@@ -11715,7 +11724,7 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 			pref.iDisplayIntroScreen = 1;
 			pref.iImporterDome = 1;
 			pref.iTerrainAdvanced = 0;
-			pref.iTerrainDebugMode = 0;
+			pref.iAdvancedGridModeSettings = 0;// iTerrainDebugMode = 0;
 			pref.iEnableAdvancedCharacterCreator = 0;
 			pref.iStoryboardAdvanced = 0;
 			pref.iDisableProjectAutoSave = 0;

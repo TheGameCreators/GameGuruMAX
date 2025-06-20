@@ -9192,7 +9192,7 @@ void coreResetIMGUIFunctionalityPrefs(void)
 	pref.iSetColumnsEntityLib = 3;
 	pref.iTerrainAdvanced = 0;
 	pref.iStoryboardAdvanced = 0;
-	pref.iTerrainDebugMode = 0;
+	pref.iAdvancedGridModeSettings = 0;// iTerrainDebugMode = 0;
 	pref.iEnableAdvancedCharacterCreator = 0;
 	pref.iDisableProjectAutoSave = 0;
 	pref.iDisableLevelAutoSave = 0;

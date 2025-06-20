@@ -273,6 +273,8 @@ void weapon_projectile_init ( void )
 	*/
 	#endif
 
+	//PE: Also need to read from docwrite.
+	
 	// scan all projectiles in 'projectiletypes' folder
 	timestampactivity (0, "Preparing ProjectileTypes");
 	SetDir ( "gamecore" );
@@ -337,6 +339,7 @@ void weapon_getprojectileid ( void )
 
 void weapon_projectile_free ( void )
 {
+	void DeleteEmitterEffects(uint32_t root);
 	//  delete all projectiles (hide and reset them)
 	for ( t.tProj = 1 ; t.tProj <= g.weaponSystem.numProjectiles; t.tProj++ )
 	{
@@ -353,6 +356,8 @@ void weapon_projectile_loop ( void )
 #ifdef OPTICK_ENABLE
 	OPTICK_EVENT();
 #endif
+	//PE: Support WPE particles here.
+	
 	//  processes all active projectiles
 	t.tTimer = Timer();
 	for ( t.tProj = 1 ; t.tProj <= g.weaponSystem.numProjectiles; t.tProj++ )
@@ -410,6 +415,28 @@ void weapon_projectile_loop ( void )
 					}
 				}
 
+				if (t.WeaponProjectileBase[t.tProjType].iAtlasHeight > 0)
+				{
+					float fNextFrame = g.timeelapsed_f * t.WeaponProjectile[t.tProj].fDecalSpeed;
+					t.WeaponProjectile[t.tProj].fDecalFrame = t.WeaponProjectile[t.tProj].fDecalFrame + fNextFrame;
+					if (t.WeaponProjectile[t.tProj].fDecalFrame < 0) t.WeaponProjectile[t.tProj].fDecalFrame = 0;
+					if (t.WeaponProjectile[t.tProj].fDecalFrame > (t.WeaponProjectileBase[t.tProjType].iAtlasHeight * t.WeaponProjectileBase[t.tProjType].iAtlasWidth))
+						t.WeaponProjectile[t.tProj].fDecalFrame = 0;
+
+					if (ObjectExist(t.tobj) == 1)
+					{
+						LockVertexDataForLimbCore(t.tobj, 0, 1);
+						SetVertexDataNormals(0, 0, 1, 0);
+						SetVertexDataNormals(1, 0, 1, 0);
+						SetVertexDataNormals(2, 0, 1, 0);
+						SetVertexDataNormals(3, 0, 1, 0);
+						SetVertexDataNormals(4, 0, 1, 0);
+						SetVertexDataNormals(5, 0, 1, 0);
+						UnlockVertexData();
+						SetObjectUVManually(t.tobj, t.WeaponProjectile[t.tProj].fDecalFrame, t.WeaponProjectileBase[t.tProjType].iAtlasWidth, t.WeaponProjectileBase[t.tProjType].iAtlasHeight);
+					}
+				}
+
 				//  work out the new position using our speed and elapsed time
 				t.tXNewPos_f = t.tXOldPos_f + t.WeaponProjectile[t.tProj].xSpeed_f * t.ElapsedTime_f;
 				t.tYNewPos_f = t.tYOldPos_f + t.WeaponProjectile[t.tProj].ySpeed_f * t.ElapsedTime_f;
@@ -417,6 +444,17 @@ void weapon_projectile_loop ( void )
 				t.WeaponProjectile[t.tProj].xPos_f = t.tXNewPos_f;
 				t.WeaponProjectile[t.tProj].yPos_f = t.tYNewPos_f;
 				t.WeaponProjectile[t.tProj].zPos_f = t.tZNewPos_f;
+
+				if (t.WeaponProjectile[t.tProj].WPE_Root > 0)
+				{
+					float addy = 2; //PE: To fit projectile.
+					if (t.WeaponProjectileBase[t.tProjType].iAtlasHeight > 0)
+						addy = 5;
+					bool WickedCall_ParticleEffectPosition(uint32_t root, float fX, float fY, float fZ);
+					uint32_t root = t.WeaponProjectile[t.tProj].WPE_Root;
+					WickedCall_ParticleEffectPosition(root, t.tXNewPos_f, t.tYNewPos_f + addy, t.tZNewPos_f);
+				}
+
 			}
 			else
 			{
@@ -427,6 +465,15 @@ void weapon_projectile_loop ( void )
 				t.WeaponProjectile[t.tProj].xPos_f = t.tXNewPos_f;
 				t.WeaponProjectile[t.tProj].yPos_f = t.tYNewPos_f;
 				t.WeaponProjectile[t.tProj].zPos_f = t.tZNewPos_f;
+				if (t.WeaponProjectile[t.tProj].WPE_Root > 0)
+				{
+					float addy = 2; //PE: To fit projectile.
+					if (t.WeaponProjectileBase[t.tProjType].iAtlasHeight > 0)
+						addy = 5;
+					bool WickedCall_ParticleEffectPosition(uint32_t root, float fX, float fY, float fZ);
+					uint32_t root = t.WeaponProjectile[t.tProj].WPE_Root;
+					WickedCall_ParticleEffectPosition(root, t.tXNewPos_f, t.tYNewPos_f + addy, t.tZNewPos_f);
+				}
 			}
 
 			//  create dynamic light effect from all projectile (uses last one)
@@ -442,6 +489,10 @@ void weapon_projectile_loop ( void )
 					}
 				}
 			}
+
+			int custom_decal_explosion = 0;
+			if (t.WeaponProjectileBase[t.tProjType].explosion_decalid > 0)
+				custom_decal_explosion = t.WeaponProjectileBase[t.tProjType].explosion_decalid;
 
 			//  has this projectile exceeded its life?
 			t.tthisprojectileexploded=0;
@@ -470,7 +521,7 @@ void weapon_projectile_loop ( void )
 				t.tSoundID = t.WeaponProjectile[t.tProj].soundDeath;
 				t.tSourceEntity = t.WeaponProjectile[t.tProj].sourceEntity;
 				t.tHitObj = 0;
-				weapon_projectileresult_make ( );
+				weapon_projectileresult_make (custom_decal_explosion);
 				weapon_projectile_destroy ( );
 				t.tthisprojectileexploded=1;
 
@@ -520,7 +571,7 @@ void weapon_projectile_loop ( void )
 						t.tSoundID = t.WeaponProjectile[t.tProj].soundDeath;
 						t.tSourceEntity = t.WeaponProjectile[t.tProj].sourceEntity;
 						t.tHitObj = 0;
-						weapon_projectileresult_make ( );
+						weapon_projectileresult_make (custom_decal_explosion);
 						weapon_projectile_destroy ( );
 						t.tthisprojectileexploded=1;
 
@@ -566,7 +617,7 @@ void weapon_projectile_loop ( void )
 							t.tradius_f = t.WeaponProjectileBase[t.tProjType].damageRadius_f;
 							t.tSourceEntity = t.WeaponProjectile[t.tProj].sourceEntity;
 							t.tHitObj = 0;
-							weapon_projectileresult_make ( );
+							weapon_projectileresult_make (custom_decal_explosion);
 							weapon_projectile_destroy ( );
 							t.tthisprojectileexploded=1;
 
@@ -745,7 +796,7 @@ void weapon_projectile_loop ( void )
 									t.tradius_f = t.WeaponProjectileBase[t.tProjType].damageRadius_f;
 									t.tSoundID = t.WeaponProjectile[t.tProj].soundDeath;
 									t.tSourceEntity = t.WeaponProjectile[t.tProj].sourceEntity;
-									weapon_projectileresult_make ( );
+									weapon_projectileresult_make (custom_decal_explosion);
 									weapon_projectile_destroy ( );
 									t.tthisprojectileexploded=1;
 									if (  t.game.runasmultiplayer == 1 ) 
@@ -817,6 +868,40 @@ void weapon_projectile_loop ( void )
 						t.tSteamBulletOn = 1;
 						mp_update_projectile ( );
 					}
+				}
+			}
+		}
+	}
+}
+
+void weapon_projectile_activatedecals(void)
+{
+	for (t.tProj = 1; t.tProj <= g.weaponSystem.numProjectiles; t.tProj++)
+	{
+		if (t.WeaponProjectile[t.tProj].obj > 0)
+		{
+			t.tProjectileType = t.WeaponProjectile[t.tProj].baseType;
+
+			if (t.WeaponProjectileBase[t.tProjectileType].WPE_Effect.Len() > 0)
+			{
+				t.decal_s = t.WeaponProjectileBase[t.tProjectileType].WPE_Effect;
+				decal_find();
+				if (t.decalid < 0)  t.decalid = 0;
+				if (t.decalid > 0)
+				{
+					t.WeaponProjectileBase[t.tProjectileType].decalid = t.decalid;
+					t.decal[t.decalid].active = 1;
+				}
+			}
+			if (t.WeaponProjectileBase[t.tProjectileType].WPE_Explosion.Len() > 0)
+			{
+				t.decal_s = t.WeaponProjectileBase[t.tProjectileType].WPE_Explosion;
+				decal_find();
+				if (t.decalid < 0)  t.decalid = 0;
+				if (t.decalid > 0)
+				{
+					t.WeaponProjectileBase[t.tProjectileType].explosion_decalid = t.decalid;
+					t.decal[t.decalid].active = 1;
 				}
 			}
 		}
@@ -950,6 +1035,35 @@ void weapon_projectile_load ( void )
 	t.tInField_s = "explosionSparksSize" ; weapon_readfield(); t.WeaponProjectileBase[t.tNewProjBase].explosionSparksSize = (int)t.value1_f;
 	t.tInField_s = "projectileEventType" ; weapon_readfield(); t.WeaponProjectileBase[t.tNewProjBase].projectileEventType = (int)t.value1_f;
 
+	t.tInField_s = "wpeeffect"; weapon_readfield();
+	if (strlen(t.value_s.Get()) == 0)
+	{
+		t.WeaponProjectileBase[t.tNewProjBase].WPE_Effect = "";
+		t.WeaponProjectileBase[t.tNewProjBase].WPE_MeshID = -1;
+	}
+	else
+	{
+		t.WeaponProjectileBase[t.tNewProjBase].WPE_Effect = t.value_s;
+	}
+	t.tInField_s = "wpeexplosion"; weapon_readfield();
+	if (strlen(t.value_s.Get()) == 0)
+	{
+		t.WeaponProjectileBase[t.tNewProjBase].WPE_Explosion = "";
+	}
+	else
+	{
+		t.WeaponProjectileBase[t.tNewProjBase].WPE_Explosion = t.value_s;
+	}
+
+	t.tInField_s = "effect"; weapon_readfield();
+	if (t.value_s == "decal_animate8.fx")
+	{
+		//PE: Support classic atlas effects.
+		t.WeaponProjectileBase[t.tNewProjBase].iAtlasHeight = 8;
+		t.WeaponProjectileBase[t.tNewProjBase].iAtlasWidth = 8;
+	}
+
+
 	t.tInField_s = "object" ; weapon_readfield ( );
 	if (strlen(t.value_s.Get()) == 0)
 	{
@@ -960,11 +1074,43 @@ void weapon_projectile_load ( void )
 	}
 	else
 	{
-		t.tFileName_s = cstr("gamecore\\projectileTypes\\") + tProjectileFolder_s + t.value_s;
-		weapon_loadobject ();
-		if (t.tObjID == 0)
+		if (t.WeaponProjectileBase[t.tNewProjBase].iAtlasWidth > 0)
 		{
-			t.tResult = 0; return;
+			weapon_getfreeobject();
+			if (t.tObjID == 0)  return;
+			if (ObjectExist(t.tObjID))  DeleteObject(t.tObjID);
+			WickedCall_PresetObjectRenderLayer(GGRENDERLAYERS_CURSOROBJECT);
+			MakeObjectPlane(t.tObjID, 25, 25);
+			WickedCall_PresetObjectRenderLayer(GGRENDERLAYERS_NORMAL);
+			RotateObject(t.tObjID, 90, 0, 0);
+			float scale = 50.0f;
+			ScaleObject(t.tObjID, scale, scale, scale);
+			LockVertexDataForLimbCore(t.tObjID, 0, 1);
+			//PE: Move it up a bit.
+			for (int i = 0; i < GetVertexDataVertexCount(); i++)
+			{
+				float vertX = GetVertexDataPositionX(i);
+				float vertY = GetVertexDataPositionY(i);
+				float vertZ = GetVertexDataPositionZ(i);
+				SetVertexDataPosition(i, vertX, vertY + (scale*0.25f), vertZ);
+			}
+			SetVertexDataNormals(0, 0, 1, 0);
+			SetVertexDataNormals(1, 0, 1, 0);
+			SetVertexDataNormals(2, 0, 1, 0);
+			SetVertexDataNormals(3, 0, 1, 0);
+			SetVertexDataNormals(4, 0, 1, 0);
+			SetVertexDataNormals(5, 0, 1, 0);
+			UnlockVertexData();
+			SetObjectUVManually(t.tObjID, 0, t.WeaponProjectileBase[t.tProjType].iAtlasWidth, t.WeaponProjectileBase[t.tProjType].iAtlasHeight);
+		}
+		else
+		{
+			t.tFileName_s = cstr("gamecore\\projectileTypes\\") + tProjectileFolder_s + t.value_s;
+			weapon_loadobject();
+			if (t.tObjID == 0)
+			{
+				t.tResult = 0; return;
+			}
 		}
 	}
 	t.WeaponProjectileBase[t.tNewProjBase].baseObj = t.tObjID;
@@ -1140,6 +1286,12 @@ void weapon_projectile_setup ( int* piSndForBaseSound, int* piSndForBaseDestroy 
 				HideObject ( t.tObjID );
 			}
 
+			if (t.WeaponProjectileBase[t.tNewProjBase].WPE_Effect.Len() > 0)
+			{
+				//PE: Need clone but for now.
+				t.WeaponProjectile[t.tNew].WPE_Root = WickedCall_LoadWPE(t.WeaponProjectileBase[t.tNewProjBase].WPE_Effect.Get());
+			}
+
 			// make the tracer object
 			weapon_getfreeobject ( );
 			if ( t.tObjID  ==  0  )  break;
@@ -1312,7 +1464,17 @@ void weapon_projectile_make ( bool bUsingVRForAngle, bool bDoNotAdvanceToAvoidPe
 
 	//  adjustment to start position to avoid penetrating
 	PositionObject (  t.tobj,t.tStartX_f,t.tStartY_f,t.tStartZ_f );
-
+	if (t.WeaponProjectile[t.tProj].WPE_Root > 0)
+	{
+		bool WickedCall_ParticleEffectPosition(uint32_t root, float fX, float fY, float fZ);
+		uint32_t root = t.WeaponProjectile[t.tProj].WPE_Root;
+		WickedCall_ParticleEffectPosition(root, t.tStartX_f, t.tStartY_f, t.tStartZ_f);
+		//iAction = 1 Burst all. 2 = Pause. - 3 = Resume. - 4 = Restart - 5 - visible - 6 = not visible. - 7 = pause emit - 8 = resume emit
+		void WickedCall_PerformEmitterAction(int iAction, uint32_t emitter_root);
+		WickedCall_PerformEmitterAction(4, root);
+		WickedCall_PerformEmitterAction(5, root);
+		WickedCall_PerformEmitterAction(8, root);
+	}
 	//  auto targetting removed in favour of camera based targetting (if camera in locked mode)
 	if (  t.playercontrol.thirdperson.enabled == 1 && t.tSourceEntity == 0 ) 
 	{
@@ -1377,7 +1539,11 @@ void weapon_projectile_make ( bool bUsingVRForAngle, bool bDoNotAdvanceToAvoidPe
 	t.WeaponProjectile[t.tNewProj].yAng_f = ObjectAngleY(t.tobj);
 	t.WeaponProjectile[t.tNewProj].zAng_f = ObjectAngleZ(t.tobj);
 	t.WeaponProjectile[t.tNewProj].acceleration_f = t.tspeed_f * t.WeaponProjectileBase[t.tProjectileType].thrustModifier_f;
-
+	t.WeaponProjectile[t.tNewProj].fDecalFrame = t.WeaponProjectileBase[t.tProjectileType].fDecalFrame;
+	t.WeaponProjectile[t.tNewProj].fDecalSpeed = t.WeaponProjectileBase[t.tProjectileType].fDecalSpeed;
+	
+	//uint32_t WickedCall_LoadWPE(char* filename)
+	
 	//  calculate random rotation speeds
 	t.tSpeedRange = (int)((t.WeaponProjectileBase[t.tProjectileType].speedAngMaxX_f - t.WeaponProjectileBase[t.tProjectileType].speedAngMinX_f)*100);
 	t.WeaponProjectile[t.tNewProj].xAngSpeed_f = t.WeaponProjectileBase[t.tProjectileType].speedAngMinX_f + Rnd(t.tSpeedRange)/100.0;
@@ -1625,9 +1791,24 @@ void weapon_projectile_destroy ( void )
 		t.tRaveyParticlesEmitterID = t.WeaponProjectile[t.tProj].tempEmitter;
 		ravey_particles_delete_emitter ( );
 	}
+
+	if (t.WeaponProjectile[t.tProj].WPE_Root > 0)
+	{
+		//PE: Add a pauseemitter , so no one is added but the rest can just stay and emitter will stop.
+		bool WickedCall_ParticleEffectPosition(uint32_t root, float fX, float fY, float fZ);
+		uint32_t root = t.WeaponProjectile[t.tProj].WPE_Root;
+		//WickedCall_ParticleEffectPosition(root, t.tStartX_f, t.tStartY_f, t.tStartZ_f);
+		//iAction = 1 Burst all. 2 = Pause. - 3 = Resume. - 4 = Restart - 5 - visible - 6 = not visible.
+		void WickedCall_PerformEmitterAction(int iAction, uint32_t emitter_root);
+		//WickedCall_PerformEmitterAction(2, root);
+		//WickedCall_PerformEmitterAction(6, root);
+		WickedCall_PerformEmitterAction(7, root); //PE: Stop emit new particles. but keep simulation active.
+
+	}
+
 }
 
-void weapon_projectileresult_make ( void )
+void weapon_projectileresult_make (int customdecal )
 {
 	// creates a projectile result, which is an explosion, or decal, or many other possibilities. Takes;
 	// t.tProjectileName_s 
@@ -1644,6 +1825,9 @@ void weapon_projectileresult_make ( void )
 	// tSoundID, tSourceEntity
 	t.tResult = 0;
 	int iCustomDecal = 0;
+	if (customdecal > 0)
+		iCustomDecal = customdecal;
+
 	switch ( t.tProjectileResult ) 
 	{
 		case WEAPON_PROJECTILERESULT_DAMAGE:

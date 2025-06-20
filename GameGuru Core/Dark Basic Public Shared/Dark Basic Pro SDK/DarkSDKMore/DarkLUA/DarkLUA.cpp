@@ -6069,6 +6069,35 @@ int GetGunAnimationFramesFromName(lua_State* L)
 	}
 	else
 	{
+		//PE: Try to get it from the current weapon.
+		if (stricmp(AnimName, "reload") == NULL)
+		{
+			if (g.firemodes[t.gunid][0].action.startreload.s > 0 && g.firemodes[t.gunid][0].action.startreload.e >= g.firemodes[t.gunid][0].action.startreload.s)
+			{
+				lua_pushnumber(L, g.firemodes[t.gunid][0].action.startreload.s);
+				lua_pushnumber(L, g.firemodes[t.gunid][0].action.startreload.e);
+				return 2;
+			}
+		}
+		if (stricmp(AnimName, "idle") == NULL)
+		{
+			if (g.firemodes[t.gunid][0].action.idle.s > 0 && g.firemodes[t.gunid][0].action.idle.e >= g.firemodes[t.gunid][0].action.idle.s)
+			{
+				lua_pushnumber(L, g.firemodes[t.gunid][0].action.idle.s);
+				lua_pushnumber(L, g.firemodes[t.gunid][0].action.idle.e);
+				return 2;
+			}
+		}
+		if (stricmp(AnimName, "fire") == NULL)
+		{
+			if (g.firemodes[t.gunid][0].action.start.s > 0 && g.firemodes[t.gunid][0].action.start.e >= g.firemodes[t.gunid][0].action.start.s)
+			{
+				lua_pushnumber(L, g.firemodes[t.gunid][0].action.start.s);
+				lua_pushnumber(L, g.firemodes[t.gunid][0].action.start.e);
+				return 2;
+			}
+		}
+
 		lua_pushnumber(L, 0);
 		lua_pushnumber(L, 0);
 	}

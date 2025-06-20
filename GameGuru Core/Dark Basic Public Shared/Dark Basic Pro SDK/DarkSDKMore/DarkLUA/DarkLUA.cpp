@@ -3114,14 +3114,7 @@ luaMessage** ppLuaMessages = NULL;
  float GetLUATerrainHeightEx ( float fX, float fZ )
  {
 	float fReturnHeight = g.gdefaultterrainheight;
-	#ifdef WICKEDENGINE
 	fReturnHeight = BT_GetGroundHeight (0, fX, fZ);
-	#else
-	if (t.terrain.TerrainID > 0)
-	{
-		fReturnHeight = BT_GetGroundHeight (t.terrain.TerrainID, fX, fZ);
-	}
-	#endif
 	return fReturnHeight;
  }
  int GetTerrainHeight(lua_State *L)

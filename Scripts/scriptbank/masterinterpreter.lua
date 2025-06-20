@@ -218,6 +218,7 @@ g_masterinterpreter_act_disablecharacter = 116 -- Disable Character (Disables ob
 g_masterinterpreter_act_enablecharacter = 117 -- Enable Character (Restores the object as a regular character)
 g_masterinterpreter_act_claimcoverzone = 118 -- Claim Cover Zone (Registers this object as using the nearest cover zone)
 g_masterinterpreter_act_clearcoverzone = 119 -- Clear Cover Zone (Removes this object from the nearest cover zone)
+g_masterinterpreter_act_forgetcoverzones = 120 -- Forget Cover Zones (Wipe all memory of last cover zones so can search afresh)
 
 -- special callout manager to avoid insane chatter for characters
 g_calloutmanager = {}
@@ -260,6 +261,7 @@ function masterinterpreter_findclosestcoverzone ( e, output_e, mindistance, rang
 	if twoattempts == 0 then
      if havecoveree == nil then
 	  lastzoneoccupiedbye = 0
+	  closestdisttotarget = 9999
 	 else
       return havecoveree
 	 end
@@ -274,6 +276,7 @@ function masterinterpreter_findbestpositionwithincoverzone ( coverzoneee, defend
  local bestx = g_Entity[ coverzoneee ]['x']
  local besty = g_Entity[ coverzoneee ]['y']
  local bestz = g_Entity[ coverzoneee ]['z']
+ local bestii = -1
  local bestnearestangle = 99999
  if g_coverzone ~= nil then
   local ee = coverzoneee
@@ -287,12 +290,23 @@ function masterinterpreter_findbestpositionwithincoverzone ( coverzoneee, defend
          local thisangle = g_coverzone[ee].defendermap[ii].a
 		 if thisangle > 180 then thisangle=thisangle-360 end
 		 local nearestangle = math.abs(thisangle - defendangle)
-		 if ii == preferavoidii then nearestangle=nearestangle*2 end
+		 if ii == preferavoidii then nearestangle=9999 end
 		 if nearestangle < bestnearestangle then
-		  bestnearestangle = nearestangle
-		  bestx = g_coverzone[ee].defendermap[ii].x
-		  besty = g_coverzone[ee].defendermap[ii].y
-		  bestz = g_coverzone[ee].defendermap[ii].z
+		  -- final check if this IS the BEST
+		  local fromx = g_coverzone[ee].defendermap[ii].x
+		  local fromy = g_coverzone[ee].defendermap[ii].y
+		  local fromz = g_coverzone[ee].defendermap[ii].z
+		  local tox = g_PlayerPosX
+		  local toy = g_PlayerPosY
+		  local toz = g_PlayerPosZ
+		  hit = IntersectStaticPerformant(fromx,fromy,fromz,tox,toy,toz,0,0,0,0)
+		  if hit > 0 then
+		   bestnearestangle = nearestangle
+		   bestx = g_coverzone[ee].defendermap[ii].x
+		   besty = g_coverzone[ee].defendermap[ii].y
+		   bestz = g_coverzone[ee].defendermap[ii].z
+		   bestii = ii
+		  end
 		 end
 		end
 	   end
@@ -302,7 +316,7 @@ function masterinterpreter_findbestpositionwithincoverzone ( coverzoneee, defend
    end
   end
  end
- return bestx, besty, bestz
+ return bestx, besty, bestz, bestii
 end
 
 function masterinterpreter_scanforenemy ( e, output_e, anywilldo )
@@ -1172,7 +1186,7 @@ function masterinterpreter_getconditionresult ( e, output_e, conditiontype, cond
   end
  end
  if conditiontype == g_masterinterpreter_cond_claimedcoverzone then
-  if conditionparam1value == nil then conditionparam1value = 1000 end  
+  if conditionparam1value == nil then conditionparam1value = 1500 end  
   if g_coverzone ~= nil then
    local ee = masterinterpreter_findclosestcoverzone(e,output_e,0,conditionparam1value)
    if ee ~= nil then
@@ -2466,8 +2480,8 @@ function masterinterpreter_doaction ( e, output_e, actiontype, actionparam1, act
  
  -- Go To Cover Zone
  if actiontype == g_masterinterpreter_act_gotocoverzone then
-  if actionparam1value == nil then actionparam1value = 1000 end  
-  if g_Time > output_e['recalctimer'] + 2000 then
+  if actionparam1value == nil then actionparam1value = 1500 end  
+  if g_Time > output_e['recalctimer'] + 5000 then
    output_e['recalctimer'] = g_Time 
    local rangedetection = actionparam1value
    local ee = masterinterpreter_findclosestcoverzone(e,output_e,0,rangedetection)
@@ -2480,9 +2494,14 @@ function masterinterpreter_doaction ( e, output_e, actiontype, actionparam1, act
      if tda >  180 then tda=tda-360 end
 	 local defendangle = tda
 	 local preferavoidii = output_e['lastcoverzoneslotii']
-	 local goodDefenceX, goodDefenceY, goodDefenceZ = masterinterpreter_findbestpositionwithincoverzone(ee,defendangle,preferavoidii)
-     masterinterpreter_setnewtarget ( e, output_e, goodDefenceX, goodDefenceY, goodDefenceZ, 0 )
-	 output_e['lastcoverzoneslotii'] = ii
+	 local goodDefenceX, goodDefenceY, goodDefenceZ, goodChosenII = masterinterpreter_findbestpositionwithincoverzone(ee,defendangle,preferavoidii)
+	 if goodChosenII == -1 then
+	  -- forces different cover zone choice next time
+	  output_e['lastcoverzoneoccupied'] = ee
+	 else
+      masterinterpreter_setnewtarget ( e, output_e, goodDefenceX, goodDefenceY, goodDefenceZ, 0 )
+	  output_e['lastcoverzoneslotii'] = goodChosenII
+	 end
     end
    end
   end
@@ -2549,7 +2568,7 @@ function masterinterpreter_doaction ( e, output_e, actiontype, actionparam1, act
  
  -- Claim Cover Zone
  if actiontype == g_masterinterpreter_act_claimcoverzone then
-  if actionparam1value == nil then actionparam1value = 1000 end  
+  if actionparam1value == nil then actionparam1value = 1500 end  
   if g_coverzone ~= nil then
    local ee = masterinterpreter_findclosestcoverzone(e,output_e,0,actionparam1value)
    if ee ~= nil then
@@ -2565,7 +2584,7 @@ function masterinterpreter_doaction ( e, output_e, actiontype, actionparam1, act
  
  -- Clear Cover Zone
  if actiontype == g_masterinterpreter_act_clearcoverzone then
-  if actionparam1value == nil then actionparam1value = 1000 end  
+  if actionparam1value == nil then actionparam1value = 1500 end  
   if g_coverzone ~= nil then
    local ee = masterinterpreter_findclosestcoverzone(e,output_e,0,actionparam1value)
    if ee ~= nil then
@@ -2576,6 +2595,12 @@ function masterinterpreter_doaction ( e, output_e, actiontype, actionparam1, act
 	end
    end
   end
+ end
+ 
+ -- Forget Cover Zones
+ if actiontype == g_masterinterpreter_act_forgetcoverzones then
+  output_e['lastcoverzoneoccupied'] = -1
+  output_e['lastcoverzoneslotii'] = -1
  end
  
 end

@@ -1245,8 +1245,8 @@ void widget_loop ( void )
 							}
 							#endif
 
-							void Add_Grid_Snap_To_Position(void);
-							Add_Grid_Snap_To_Position();
+							void Add_Grid_Snap_To_Position(bool bFromWidgetMode);
+							Add_Grid_Snap_To_Position(true);
 
 							fPlanePosX = t.gridentityposx_f;
 							fPlanePosY = t.gridentityposy_f;

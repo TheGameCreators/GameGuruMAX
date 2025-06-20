@@ -9194,7 +9194,7 @@ void coreResetIMGUIFunctionalityPrefs(void)
 	pref.iSetColumnsEntityLib = 3;
 	pref.iTerrainAdvanced = 0;
 	pref.iStoryboardAdvanced = 0;
-	pref.iTerrainDebugMode = 0;
+	pref.iAdvancedGridModeSettings = 0;// iTerrainDebugMode = 0;
 	pref.iEnableAdvancedCharacterCreator = 0;
 	pref.iDisableProjectAutoSave = 0;
 	pref.iDisableLevelAutoSave = 0;
@@ -9224,7 +9224,7 @@ void coreResetIMGUIFunctionalityPrefs(void)
 	pref.fEditorGridOffsetY = 0.0f;
 	pref.fEditorGridOffsetZ = 50.0f;
 	pref.fEditorGridSizeX = 100.0f;
-	pref.fEditorGridSizeY = 100.0f;
+	pref.fEditorGridSizeY = 10.0f;
 	pref.fEditorGridSizeZ = 100.0f;
 	pref.iDevToolsOpen = 0;
 	extern int g_iDevToolsOpen;

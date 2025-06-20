@@ -3173,7 +3173,7 @@ void FPSC_LoadSETUPINI (bool bUseMySystemFolder)
 						}
 					}
 
-					// DOCDOC: melee key = Not Used
+					// DOCDOC: melee key = Specifies melee key for this weapon
 					if (t.field_s == "melee key")  g.ggunmeleekey = t.value1;
 
 					// DOCDOC: switchtoalt = Not Used

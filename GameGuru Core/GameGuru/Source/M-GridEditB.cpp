@@ -9243,7 +9243,7 @@ void Wicked_Update_Visibles(void* voidvisual)
 #endif
 
 //PE: Using t.gridentityposx_f,t.gridentityposy_f,t.gridentityposz_f,t.gridentity,t.gridentityobj
-void Add_Grid_Snap_To_Position(void)
+void Add_Grid_Snap_To_Position ( bool bFromWidgetMode )
 {
 	// no snapping at all until move
 	if (g_bHoldGridEntityPosWhenManaged == true)
@@ -9422,11 +9422,25 @@ void Add_Grid_Snap_To_Position(void)
 		else
 		{
 			//LB: apply grid alignment with custom offset for full end user control
-			fHitOffsetX = 0; fHitOffsetZ = 0; // allows more intuitive placement of chosen object
-			fHitOffsetY = 0; // adding grid Y mode in 2025!
-			float fGripX = t.gridentityposx_f + fHitOffsetX + (pref.fEditorGridSizeX / 2);
-			float fGripY = t.gridentityposy_f + fHitOffsetY + (pref.fEditorGridSizeY / 2);
-			float fGripZ = t.gridentityposz_f + fHitOffsetZ + (pref.fEditorGridSizeZ / 2);
+			float fGripX, fGripY, fGripZ;
+			if (bFromWidgetMode == true)
+			{
+				// widget mode uses its own drag offset system
+				fHitOffsetX = 0; 
+				fHitOffsetZ = 0;
+				fHitOffsetY = 0;
+				fGripX = t.gridentityposx_f + fHitOffsetX + (pref.fEditorGridSizeX / 2);
+				fGripY = t.gridentityposy_f + fHitOffsetY + (pref.fEditorGridSizeY / 2);
+				fGripZ = t.gridentityposz_f + fHitOffsetZ + (pref.fEditorGridSizeZ / 2);
+			}
+			else
+			{
+				// smart mode needs retains fHitOffsetXYZ to know the initial click offset to allow fine placement
+				// and not the old legacy snap to from anchor in center of object (was a nice idea but not how most users expect it to work)
+				fGripX = t.gridentityposx_f + (pref.fEditorGridSizeX / 2);
+				fGripY = t.gridentityposy_f + (pref.fEditorGridSizeY / 2);
+				fGripZ = t.gridentityposz_f + (pref.fEditorGridSizeZ / 2);
+			}
 
 			fGripX -= pref.fEditorGridOffsetX;
 			if (fGripX < 0)
@@ -9436,12 +9450,15 @@ void Add_Grid_Snap_To_Position(void)
 			fGripX += pref.fEditorGridOffsetX;
 
 			// new for 2025
-			fGripY -= pref.fEditorGridOffsetY;
-			if (fGripY < 0)
-				fGripY = ((int(fGripY / pref.fEditorGridSizeY) - 1) * pref.fEditorGridSizeY);
-			else
-				fGripY = (int(fGripY / pref.fEditorGridSizeY) * pref.fEditorGridSizeY);
-			fGripY += pref.fEditorGridOffsetY;
+			if (pref.fEditorGridSizeY > 0)
+			{
+				fGripY -= pref.fEditorGridOffsetY;
+				if (fGripY < 0)
+					fGripY = ((int(fGripY / pref.fEditorGridSizeY) - 1) * pref.fEditorGridSizeY);
+				else
+					fGripY = (int(fGripY / pref.fEditorGridSizeY) * pref.fEditorGridSizeY);
+				fGripY += pref.fEditorGridOffsetY;
+			}
 
 			fGripZ -= pref.fEditorGridOffsetZ;
 			if (fGripZ < 0)
@@ -9451,8 +9468,17 @@ void Add_Grid_Snap_To_Position(void)
 			fGripZ += pref.fEditorGridOffsetZ;
 
 			t.gridentityposx_f = fGripX;
-			t.gridentityposy_f = fGripY;
 			t.gridentityposz_f = fGripZ;
+			if (pref.fEditorGridSizeY > 0)
+			{
+				// only if above or on terrain
+				float fTerrainAtThisPoint = BT_GetGroundHeight (0, t.gridentityposx_f, t.gridentityposz_f);
+				if (fGripY < fTerrainAtThisPoint)
+				{
+					fGripY = fTerrainAtThisPoint;
+				}
+				t.gridentityposy_f = fGripY;
+			}
 		}
 
 		// 130517 - new EBE entity offset to align with 0,0,0 cornered entities from Aslum level and Store (Martin)
@@ -11607,15 +11633,15 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 			#ifdef PROCEDURALTERRAINWINDOW
 			if (g_iDevToolsOpen)
 			{
-				bTmp = pref.iTerrainDebugMode;
-				if (ImGui::Checkbox("Display Terrain Debug Mode", &bTmp)) {
-					pref.iTerrainDebugMode = bTmp;
+				bTmp = pref.iAdvancedGridModeSettings;// iTerrainDebugMode;
+				if (ImGui::Checkbox("Enable Advanced Grid Mode", &bTmp)) {
+					pref.iAdvancedGridModeSettings = bTmp;// iTerrainDebugMode = bTmp;
 				}
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Reveals the terrain debugging mode in the terrain panel in the level editor");
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Enables advanced functions and multi-axis settings in grid mode");
 			}
 			else
 			{
-				pref.iTerrainDebugMode = 0;
+				pref.iAdvancedGridModeSettings = 0;// iTerrainDebugMode = 0;
 			}
 			#endif
 
@@ -11698,7 +11724,7 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 			pref.iDisplayIntroScreen = 1;
 			pref.iImporterDome = 1;
 			pref.iTerrainAdvanced = 0;
-			pref.iTerrainDebugMode = 0;
+			pref.iAdvancedGridModeSettings = 0;// iTerrainDebugMode = 0;
 			pref.iEnableAdvancedCharacterCreator = 0;
 			pref.iStoryboardAdvanced = 0;
 			pref.iDisableProjectAutoSave = 0;
@@ -35378,7 +35404,7 @@ void Welcome_Screen(void)
 						memset(pDatatmp, 0, sizeof(pDatatmp));
 						DWORD dwDataReturnedSize = 0;
 						char cUrl[10240];
-						sprintf(cUrl, "repos/TheGameCreators/GameGuruMAX/commits?&per_page=100");
+						sprintf(cUrl, "repos/Dark-Basic-Software-Limited/GameGuruMAX/commits?&per_page=100");
 
 						// access features list from store server
 						UINT iError = StoreOpenURLForDataOrFile("api.github.com", pDataReturned, &dwDataReturnedSize, "", "GET", cUrl, NULL);

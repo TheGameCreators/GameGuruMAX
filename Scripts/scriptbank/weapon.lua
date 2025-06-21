@@ -1,10 +1,11 @@
--- Weapon v14 - Necrym and Lee
+-- Weapon v15 - Necrym and Lee
 -- DESCRIPTION: Assign to a weapon object to be collected, and play an optional pickup <Sound0>.
 -- DESCRIPTION: [PICKUP_RANGE=75(1,200)]
 -- DESCRIPTION: [@PICKUP_STYLE=2(1=Ranged, 2=Accurate)]
 -- DESCRIPTION: [!PLAY_PICKUP=0]
 -- DESCRIPTION: [!ACTIVATE_LOGIC=0]
--- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)] Use emmisive color for shape option
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline,3=Icon)] Use emmisive color for shape option
+-- DESCRIPTION: [HIGHLIGHT_ICON_IMAGEFILE$="imagebank\\icons\\pickup.png"]
 
 local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
@@ -16,18 +17,24 @@ local pickup_style		= {}
 local play_pickup		= {}
 local activate_logic	= {}
 local item_highlight 	= {}
-
+local highlight_icon	= {}
 local weapon_name		= {}
+
+local status 			= {}
+local hl_icon	 		= {}
+local hl_imgwidth		= {}
+local hl_imgheight		= {}
 
 weapon_therecanbeonlyone = 0
 weapon_temprompttimer = 0
 
-function weapon_properties(e, pickup_range, pickup_style, play_pickup, activate_logic, item_highlight)
+function weapon_properties(e, pickup_range, pickup_style, play_pickup, activate_logic, item_highlight, highlight_icon_imagefile)
 	weapon[e].pickup_range = pickup_range or 75
 	weapon[e].pickup_style = pickup_style
 	weapon[e].play_pickup = play_pickup or 0
 	weapon[e].activate_logic = activate_logic or 0
 	weapon[e].item_highlight = item_highlight or 0
+	weapon[e].highlight_icon = highlight_icon_imagefile
 end
 
 function weapon_init_name(e,name)
@@ -37,10 +44,29 @@ function weapon_init_name(e,name)
 	weapon[e].play_pickup = 0
 	weapon[e].activate_logic = 0
 	weapon[e].item_highlight = 0
+	weapon[e].highlight_icon = "imagebank\\icons\\pickup.png"
 	weapon_name[e] = name
+	
+	status[e] = "init"
+	hl_icon[e] = 0
+	hl_imgwidth[e] = 0
+	hl_imgheight[e] = 0
 end
 
 function weapon_main(e)
+
+	if status[e] == "init" then
+		if weapon[e].item_highlight == 3 and weapon[e].highlight_icon ~= "" then
+			hl_icon[e] = CreateSprite(LoadImage(weapon[e].highlight_icon))
+			hl_imgwidth[e] = GetImageWidth(LoadImage(weapon[e].highlight_icon))
+			hl_imgheight[e] = GetImageHeight(LoadImage(weapon[e].highlight_icon))
+			SetSpriteSize(hl_icon[e],-1,-1)
+			SetSpriteDepth(hl_icon[e],100)
+			SetSpriteOffset(hl_icon[e],hl_imgwidth[e]/2.0, hl_imgheight[e]/2.0)
+			SetSpritePosition(hl_icon[e],500,500)
+		end
+		status[e] = "endinit"
+	end		
 	local PlayerDist = GetPlayerDistance(e)
 	local LookingAt = GetPlrLookingAtEx(e,1)
 	if weapon_therecanbeonlyone==-1 then
@@ -49,7 +75,7 @@ function weapon_main(e)
 	if weapon[e].pickup_style == 2 then
 		if PlayerDist < weapon[e].pickup_range and g_PlayerHealth > 0 and g_PlayerThirdPerson==0 then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,weapon[e].pickup_range,weapon[e].item_highlight)
+			module_misclib.pinpoint(e,weapon[e].pickup_range,weapon[e].item_highlight,hl_icon[e])
 			--end pinpoint select object--
 		end
 	end
@@ -59,7 +85,7 @@ function weapon_main(e)
 			if LookingAt == 1 and weapon_therecanbeonlyone==0 then weapon_therecanbeonlyone = e end
 			if LookingAt == 0 and weapon_therecanbeonlyone==e then weapon_therecanbeonlyone = 0 end
 		end
-		if weapon[e].pickup_style == 2 then
+		if weapon[e].pickup_style == 2 and g_tEnt == e then
 			if g_tEnt > 0 and weapon_therecanbeonlyone==0 then weapon_therecanbeonlyone = e end
 			if g_tEnt == 0 and weapon_therecanbeonlyone==e then weapon_therecanbeonlyone = 0 end
 		end
@@ -67,7 +93,7 @@ function weapon_main(e)
 			-- reused haskey flag for use when auto collect from dead character if player already got the weapon
 			weapon_therecanbeonlyone = e
 		end
-		if weapon_therecanbeonlyone==e then
+		if weapon_therecanbeonlyone==e and g_tEnt == e then
 			--with inventory you can collect as many weapons as you like
 			if weapon_temprompttimer > 0 then
 				PromptLocal("Cannot collect the " .. weapon_name[e] .. " into preferred slot")
@@ -95,17 +121,21 @@ function weapon_main(e)
 								PromptLocal(e,"Press E to " .. actiontext .. " the " .. weapon_name[e] )
 							end
 						else
-							PromptLocal(e,"Press Y Button to " .. actiontext .. " the " .. weapon_name[e] )
+							if weapon[e].prompt_display == 1 then
+								PromptLocal(e,"Press Y Button to " .. actiontext .. " the " .. weapon_name[e] )
+							end	
 						end
 					else
 						if g_PlayerController==0 then
 							if GetHeadTracker() == 1 then
 								PromptLocal(e,"Right trigger to pick up the " .. weapon_name[e] )
 							else
-								PromptLocal(e,"Press E to pick up the " .. weapon_name[e] )
-							end
+								PromptLocal(e,"Press E or LMB to pick up the " .. weapon_name[e] )
+							end	
 						else
-							PromptLocal(e,"Press Y Button to pick up the " .. weapon_name[e] )
+							if weapon[e].prompt_display == 1 then
+								PromptLocal(e,"Press Y Button to pick up the " .. weapon_name[e] )
+							end	
 						end
 					end
 				end

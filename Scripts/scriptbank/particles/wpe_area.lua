@@ -1,9 +1,9 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
 -- Wicked Particle Emmitter - Area v4 
 -- DESCRIPTION: Will display particle at and around this objects area.
--- DESCRIPTION: Attach to an object and activate by a linked switch or zone or set Is Active to ON.
+-- DESCRIPTION: Attach to an object and activate by a linked switch or zone or set is active.
 -- DESCRIPTION: [WPEFILE$="particlesbank//wpe//firearea.pe"]
--- DESCRIPTION: [IsActive!=1] if unticked will need to be activated by switch or zone
+-- DESCRIPTION: [IsActive!=0]
 -- DESCRIPTION: [OffsetY=0] controls how far above the object the effect is displayed.
 -- DESCRIPTION: <Sound0> Looped Sound Effect
 
@@ -27,7 +27,7 @@ function wpe_area_init(e)
 	wpearea[e] = {}
 	wpearea[e].wpefile = ""
 	wpearea[e].effectid = ""
-	wpearea[e].isactive = 1
+	wpearea[e].isactive = 0
 	wpearea[e].offsety = 0
 	
 	status[e] = "init"
@@ -58,8 +58,7 @@ function wpe_area_main(e)
 			LoopSound(e,0)
 			SetSoundVolume(sndvol[e])
 		end
-
-		WParticleEffectPosition(wpearea[e].effectid,g_Entity[e]['x'],g_Entity[e]['y']+wpearea[e].offsety,g_Entity[e]['z'])
+		WParticleEffectPosition(wpearea[e].effectid,g_Entity[e]['x'],g_Entity[e]['y']+wpearea[e].offsety,g_Entity[e]['z'],0,g_Entity[e]['angley'],0)
 		WParticleEffectVisible(wpearea[e].effectid,1)
 		WParticleEffectAction(wpearea[e].effectid,3)
 	end

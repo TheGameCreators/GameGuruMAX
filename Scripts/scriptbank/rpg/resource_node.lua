@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Resource Node v16 by Necrym59
+-- Resource Node v17 by Necrym59
 -- DESCRIPTION: Allows to use this object as a resource node to give the player the selected resource item.
 -- DESCRIPTION: [@NODE_TYPE=1(1=Growth, 2=Extraction)]
 -- DESCRIPTION: [@NODE_TOOL_NAME$=-1(0=AnyWeaponList)] Specific Weapon/Tool to use - (No Weapon=Any)
@@ -107,6 +107,7 @@ function resource_node_init(e)
 	starthealth[e] = 500
 	healthcheck[e] = starthealth[e]
 	wait[e] = math.huge	
+	SetEntityAlwaysActive(e,1)
 end
 
 function resource_node_main(e)

@@ -10533,13 +10533,39 @@ int WParticleEffectPosition(lua_State* L)
 	float fX = lua_tonumber(L, 2);
 	float fY = lua_tonumber(L, 3);
 	float fZ = lua_tonumber(L, 4);
-
+	float fXa = 0;
+	float fYa = 0;
+	float fZa = 0;
+	bool bRot = false;
+	if (n >= 7)
+	{
+		fXa = lua_tonumber(L, 5);
+		fYa = lua_tonumber(L, 6);
+		fZa = lua_tonumber(L, 7);
+		bRot = true;
+	}
 	Scene& scene = wiScene::GetScene();
 	TransformComponent* root_tranform = scene.transforms.GetComponent(root);
 	if (root_tranform)
 	{
+		float normalizedDegreesX = fmod(fXa, 360.0f);
+		if (fXa < 0)
+			fXa += 360.0f;
+		float rotationRadiansX = fXa * (XM_PI / 180.0f); //PE: to radians
+		float normalizedDegreesY = fmod(fYa, 360.0f);
+		if (fYa < 0)
+			fYa += 360.0f;
+		float rotationRadiansY = fYa * (XM_PI / 180.0f); //PE: to radians
+		float normalizedDegreesZ = fmod(fZa, 360.0f);
+		if (fZa < 0)
+			fZa += 360.0f;
+		float rotationRadiansZ = fZa * (XM_PI / 180.0f); //PE: to radians
+
 		root_tranform->ClearTransform();
 		root_tranform->Translate(XMFLOAT3(fX, fY, fZ));
+		XMFLOAT3 rot = { rotationRadiansX ,rotationRadiansY ,rotationRadiansZ }; //PE: 0 - XM_2PI
+		if(bRot)
+			root_tranform->RotateRollPitchYaw(rot);
 		root_tranform->UpdateTransform();
 	}
 

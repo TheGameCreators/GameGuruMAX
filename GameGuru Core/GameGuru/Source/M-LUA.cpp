@@ -418,6 +418,16 @@ void lua_loop_begin ( void )
 	LuaSetInt (  "g_PlayerGunFired", iGunIsFiring );
 	LuaSetInt (  "g_PlayerGunAmmoCount", t.slidersmenuvalue[t.slidersmenunames.weapon][1].value );
 	LuaSetInt (  "g_PlayerGunClipCount", t.slidersmenuvalue[t.slidersmenunames.weapon][2].value );
+
+	//PE: These hardcoded and new "Total Ammo Remaining" , are missing in g_UserGlobal.
+	char pUserDefinedGlobal[256];
+	sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", "Gun Ammo Remaining");
+	LuaSetInt(pUserDefinedGlobal, t.slidersmenuvalue[t.slidersmenunames.weapon][1].value + t.slidersmenuvalue[t.slidersmenunames.weapon][2].value);
+	sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", "Health Remaining");
+	LuaSetInt(pUserDefinedGlobal, t.player[t.plrid].health);
+	sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", "Lives Remaining");
+	LuaSetInt(pUserDefinedGlobal, t.player[t.plrid].lives);
+
 	LuaSetInt (  "g_PlayerGunZoomed", t.gunzoommode );
 	LuaSetInt (  "g_Time", Timer()-t.aisystem.cumilativepauses );
 	LuaSetFloat (  "g_TimeElapsed", g.timeelapsed_f );

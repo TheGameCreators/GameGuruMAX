@@ -7281,7 +7281,40 @@ uint32_t WickedCall_LoadWiScene(char* filename, bool attached, char* changename,
 	return root;
 }
 
-//iAction = 1 Burst all. 2 = Pause. - 3 = Resume. - 4 = Restart
+uint32_t WickedCall_LoadWPE(char* filename)
+{
+	Scene& scene = wiScene::GetScene();
+	uint32_t root = 0;
+	uint32_t count_before = scene.emitters.GetCount();
+
+	char path[MAX_PATH];
+	strcpy(path, filename);
+	GG_GetRealPath(path, 0);
+
+	WickedCall_LoadWiScene(path, false, NULL, NULL);
+	uint32_t count_after = scene.emitters.GetCount();
+	if (count_before != count_after)
+	{
+		Entity emitter = scene.emitters.GetEntity(scene.emitters.GetCount() - 1);
+		if (scene.emitters.GetCount() > 0)
+		{
+			HierarchyComponent* hier = scene.hierarchy.GetComponent(emitter);
+			if (hier)
+			{
+				root = hier->parentID;
+			}
+		}
+		wiEmittedParticle* ec = scene.emitters.GetComponent(emitter);
+		if (ec)
+		{
+			ec->Restart();
+			ec->SetVisible(false);
+		}
+	}
+	return root;
+}
+
+//iAction = 1 Burst all. 2 = Pause. - 3 = Resume. - 4 = Restart - 5 - visible - 6 = not visible. - 7 = pause emit - 8 = resume emit
 void WickedCall_PerformEmitterAction(int iAction, uint32_t emitter_root)
 {
 
@@ -7319,11 +7352,45 @@ void WickedCall_PerformEmitterAction(int iAction, uint32_t emitter_root)
 						ec->Restart();
 						break;
 					}
+					case 5:
+					{
+						ec->SetVisible(true);
+						break;
+					}
+					case 6:
+					{
+						ec->SetVisible(false);
+						break;
+					}
+					case 7:
+					{
+						ec->SetEmitPaused(true);
+						break;
+					}
+					case 8:
+					{
+						ec->SetEmitPaused(false);
+						break;
+					}
 				}
 			}
 		}
 	}
 
+}
+
+bool WickedCall_ParticleEffectPosition(uint32_t root, float fX, float fY, float fZ)
+{
+	Scene& scene = wiScene::GetScene();
+	TransformComponent* root_tranform = scene.transforms.GetComponent(root);
+	if (root_tranform)
+	{
+		root_tranform->ClearTransform();
+		root_tranform->Translate(XMFLOAT3(fX, fY, fZ));
+		root_tranform->UpdateTransform();
+		return true;
+	}
+	return false;
 }
 
 //#define WPEDebug

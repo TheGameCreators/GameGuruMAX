@@ -221,5 +221,6 @@ uint32_t WickedCall_LoadWiScene(char* filename, bool attached, char* changename,
 
 void WickedCall_PerformEmitterAction(int iAction, uint32_t emitter_root);
 void WickedCall_UpdateEmitters(void);
+uint32_t WickedCall_LoadWPE(char* filename);
 uint32_t WickedCall_CreateEmitter(std::string& name, float posX, float posY, float posZ, uint32_t proot);
 

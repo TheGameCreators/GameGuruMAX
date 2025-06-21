@@ -7275,6 +7275,49 @@ void ParseLuaScriptWithElementID(entityeleproftype *tmpeleprof, char * script, i
 									//PE: Let some lists work on zones also.
 									if (labels.size() == 2)
 									{
+
+										
+										if (stricmp(labels[1].c_str(), "armanimsetlist") == NULL)
+										{
+											labels.clear();
+											labels.push_back(cVariable);
+											labels.push_back("None");
+
+											char animlist[MAX_PATH];
+											strcpy(animlist, "gamecore\\interactive_anims.txt");
+											GG_GetRealPath(animlist, 0);
+											if (FileExist(animlist) == 1)
+											{
+												FILE* fAnimList = GG_fopen(animlist, "r");
+												if (fAnimList)
+												{
+													char ctmp[MAX_PATH];
+													while (!feof(fAnimList))
+													{
+														strcpy(ctmp, "");
+														fgets(ctmp, MAX_PATH - 1, fAnimList);
+														if (strlen(ctmp) > 0 && ctmp[strlen(ctmp) - 1] == '\n')
+															ctmp[strlen(ctmp) - 1] = 0;
+														if (strlen(ctmp) > 0)
+															labels.push_back(&ctmp[0]);
+													}
+													fclose(fAnimList);
+												}
+											}
+											if (labels.size() > 1)
+											{
+												tmpeleprof->PropertiesVariable.VariableValueFrom[tmpeleprof->PropertiesVariable.iVariables] = 1;
+												tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = labels.size();
+											}
+											else
+											{
+												tmpeleprof->PropertiesVariable.VariableValueFrom[tmpeleprof->PropertiesVariable.iVariables] = 0;
+												tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = 0;
+											}
+
+										}
+										
+
 										if (stricmp(labels[1].c_str(), "effectlist") == NULL)
 										{
 											labels.clear();
@@ -7398,8 +7441,10 @@ void ParseLuaScriptWithElementID(entityeleproftype *tmpeleprof, char * script, i
 												globallist_labels.clear();
 												globallist_labels.push_back(cVariable);
 												globallist_labels.push_back("None");
-												globallist_labels.push_back("Ammo Remaining");
+												//PE: Need to push these to g_UserGlobal[''].
+												globallist_labels.push_back("Gun Ammo Remaining");
 												globallist_labels.push_back("Health Remaining");
+												globallist_labels.push_back("Lives Remaining");
 
 												for (int allhudscreensnodeid = 0; allhudscreensnodeid < STORYBOARD_MAXNODES; allhudscreensnodeid++)
 												{

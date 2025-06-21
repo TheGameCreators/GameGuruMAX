@@ -6069,6 +6069,35 @@ int GetGunAnimationFramesFromName(lua_State* L)
 	}
 	else
 	{
+		//PE: Try to get it from the current weapon.
+		if (stricmp(AnimName, "reload") == NULL)
+		{
+			if (g.firemodes[t.gunid][0].action.startreload.s > 0 && g.firemodes[t.gunid][0].action.startreload.e >= g.firemodes[t.gunid][0].action.startreload.s)
+			{
+				lua_pushnumber(L, g.firemodes[t.gunid][0].action.startreload.s);
+				lua_pushnumber(L, g.firemodes[t.gunid][0].action.startreload.e);
+				return 2;
+			}
+		}
+		if (stricmp(AnimName, "idle") == NULL)
+		{
+			if (g.firemodes[t.gunid][0].action.idle.s > 0 && g.firemodes[t.gunid][0].action.idle.e >= g.firemodes[t.gunid][0].action.idle.s)
+			{
+				lua_pushnumber(L, g.firemodes[t.gunid][0].action.idle.s);
+				lua_pushnumber(L, g.firemodes[t.gunid][0].action.idle.e);
+				return 2;
+			}
+		}
+		if (stricmp(AnimName, "fire") == NULL)
+		{
+			if (g.firemodes[t.gunid][0].action.start.s > 0 && g.firemodes[t.gunid][0].action.start.e >= g.firemodes[t.gunid][0].action.start.s)
+			{
+				lua_pushnumber(L, g.firemodes[t.gunid][0].action.start.s);
+				lua_pushnumber(L, g.firemodes[t.gunid][0].action.start.e);
+				return 2;
+			}
+		}
+
 		lua_pushnumber(L, 0);
 		lua_pushnumber(L, 0);
 	}
@@ -10504,13 +10533,39 @@ int WParticleEffectPosition(lua_State* L)
 	float fX = lua_tonumber(L, 2);
 	float fY = lua_tonumber(L, 3);
 	float fZ = lua_tonumber(L, 4);
-
+	float fXa = 0;
+	float fYa = 0;
+	float fZa = 0;
+	bool bRot = false;
+	if (n >= 7)
+	{
+		fXa = lua_tonumber(L, 5);
+		fYa = lua_tonumber(L, 6);
+		fZa = lua_tonumber(L, 7);
+		bRot = true;
+	}
 	Scene& scene = wiScene::GetScene();
 	TransformComponent* root_tranform = scene.transforms.GetComponent(root);
 	if (root_tranform)
 	{
+		float normalizedDegreesX = fmod(fXa, 360.0f);
+		if (fXa < 0)
+			fXa += 360.0f;
+		float rotationRadiansX = fXa * (XM_PI / 180.0f); //PE: to radians
+		float normalizedDegreesY = fmod(fYa, 360.0f);
+		if (fYa < 0)
+			fYa += 360.0f;
+		float rotationRadiansY = fYa * (XM_PI / 180.0f); //PE: to radians
+		float normalizedDegreesZ = fmod(fZa, 360.0f);
+		if (fZa < 0)
+			fZa += 360.0f;
+		float rotationRadiansZ = fZa * (XM_PI / 180.0f); //PE: to radians
+
 		root_tranform->ClearTransform();
 		root_tranform->Translate(XMFLOAT3(fX, fY, fZ));
+		XMFLOAT3 rot = { rotationRadiansX ,rotationRadiansY ,rotationRadiansZ }; //PE: 0 - XM_2PI
+		if(bRot)
+			root_tranform->RotateRollPitchYaw(rot);
 		root_tranform->UpdateTransform();
 	}
 

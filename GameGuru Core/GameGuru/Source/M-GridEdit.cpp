@@ -1361,6 +1361,7 @@ void mapeditorexecutable_init ( void )
 
 					g.projectfilename_s = t.returnstring_s;
 					gridedit_load_map();
+					g_EntityClipboard.clear(); //PE: Clear any old copy/paste.
 					#ifdef WICKEDENGINE
 					t.terrain.grassregionx1 = t.terrain.grassregionx2;
 					grass_init();
@@ -2169,6 +2170,8 @@ void mapeditorexecutable_loop(void)
 				g_bAllowBackwardCompatibleConversion = true;
 				gridedit_load_map();
 				g_bAllowBackwardCompatibleConversion = false;
+
+				g_EntityClipboard.clear(); //PE: Clear any old copy/paste.
 
 				#ifdef WICKEDENGINE
 
@@ -4779,115 +4782,119 @@ void mapeditorexecutable_loop(void)
 						{
 							// duplicate new entity as clone of relevant original clipboard entity
 							int e = g_EntityClipboard[i];
-							t.gridentity = t.entityelement[e].bankindex;
-							#ifdef WICKEDENGINE
-							//PE: all t.gridentity... need to be set for this to work correctly.
-							t.entid = t.gridentity;
-							entity_fillgrideleproffromprofile();  // t.entid
-							t.gridentityposx_f = t.entityelement[e].x;
-							t.gridentityposy_f = t.entityelement[e].y;
-							t.gridentityposz_f = t.entityelement[e].z;
-							t.gridentityrotatex_f = t.entityelement[e].rx;
-							t.gridentityrotatey_f = t.entityelement[e].ry;
-							t.gridentityrotatez_f = t.entityelement[e].rz;
-							t.gridentityrotatequatmode = t.entityelement[e].quatmode;
-							t.gridentityrotatequatx_f = t.entityelement[e].quatx;
-							t.gridentityrotatequaty_f = t.entityelement[e].quaty;
-							t.gridentityrotatequatz_f = t.entityelement[e].quatz;
-							t.gridentityrotatequatw_f = t.entityelement[e].quatw;
-							if (t.entityprofile[t.gridentity].ismarker == 10)
+							//PE: Crash from paste from another level.
+							if (e < t.entityelement.size())
 							{
-								t.gridentityscalex_f = 100.0f + t.entityelement[e].scalex;
-								t.gridentityscaley_f = 100.0f + t.entityelement[e].scaley;
-								t.gridentityscalez_f = 100.0f + t.entityelement[e].scalez;
+								t.gridentity = t.entityelement[e].bankindex;
+#ifdef WICKEDENGINE
+								//PE: all t.gridentity... need to be set for this to work correctly.
+								t.entid = t.gridentity;
+								entity_fillgrideleproffromprofile();  // t.entid
+								t.gridentityposx_f = t.entityelement[e].x;
+								t.gridentityposy_f = t.entityelement[e].y;
+								t.gridentityposz_f = t.entityelement[e].z;
+								t.gridentityrotatex_f = t.entityelement[e].rx;
+								t.gridentityrotatey_f = t.entityelement[e].ry;
+								t.gridentityrotatez_f = t.entityelement[e].rz;
+								t.gridentityrotatequatmode = t.entityelement[e].quatmode;
+								t.gridentityrotatequatx_f = t.entityelement[e].quatx;
+								t.gridentityrotatequaty_f = t.entityelement[e].quaty;
+								t.gridentityrotatequatz_f = t.entityelement[e].quatz;
+								t.gridentityrotatequatw_f = t.entityelement[e].quatw;
+								if (t.entityprofile[t.gridentity].ismarker == 10)
+								{
+									t.gridentityscalex_f = 100.0f + t.entityelement[e].scalex;
+									t.gridentityscaley_f = 100.0f + t.entityelement[e].scaley;
+									t.gridentityscalez_f = 100.0f + t.entityelement[e].scalez;
+								}
+								else
+								{
+									t.gridentityscalex_f = ObjectScaleX(t.entityelement[e].obj);
+									t.gridentityscaley_f = ObjectScaleY(t.entityelement[e].obj);
+									t.gridentityscalez_f = ObjectScaleZ(t.entityelement[e].obj);
+								}
+								t.grideleprof = t.entityelement[e].eleprof;
+								entity_cleargrideleprofrelationshipdata();
+								t.grideleprof.newparticle.emitterid = -1; //PE: Must always get a new emitter ID.
+#endif
+
+#ifdef WICKEDENGINE
+								//PE: InstanceObject - Cursor,Object Tools - objects must always be real clones.
+								extern bool bNextObjectMustBeClone;
+								bNextObjectMustBeClone = true;
+#endif
+
+								gridedit_addentitytomap();
+
+#ifdef WICKEDENGINE
+								bNextObjectMustBeClone = false;
+#endif
+
+								if (e == g_EntityClipboardAnchorEntityIndex) iAnchorEntityIndex = t.e;
+								t.entityelement[t.e].x = t.entityelement[e].x + fShiftOffsetForPasteX;
+								t.entityelement[t.e].y = t.entityelement[e].y;
+								t.entityelement[t.e].z = t.entityelement[e].z + fShiftOffsetForPasteZ;
+								t.entityelement[t.e].rx = t.entityelement[e].rx;
+								t.entityelement[t.e].ry = t.entityelement[e].ry;
+								t.entityelement[t.e].rz = t.entityelement[e].rz;
+								t.entityelement[t.e].quatmode = t.entityelement[e].quatmode;
+								t.entityelement[t.e].quatx = t.entityelement[e].quatx;
+								t.entityelement[t.e].quaty = t.entityelement[e].quaty;
+								t.entityelement[t.e].quatz = t.entityelement[e].quatz;
+								t.entityelement[t.e].quatw = t.entityelement[e].quatw;
+								t.entityelement[t.e].editorfixed = t.entityelement[e].editorfixed;
+								t.entityelement[t.e].staticflag = t.entityelement[e].staticflag;
+								t.entityelement[t.e].scalex = t.entityelement[e].scalex;
+								t.entityelement[t.e].scaley = t.entityelement[e].scaley;
+								t.entityelement[t.e].scalez = t.entityelement[e].scalez;
+								t.entityelement[t.e].soundset = t.entityelement[e].soundset;
+								t.entityelement[t.e].soundset1 = t.entityelement[e].soundset1;
+								t.entityelement[t.e].soundset2 = t.entityelement[e].soundset2;
+								t.entityelement[t.e].soundset3 = t.entityelement[e].soundset3;
+								t.entityelement[t.e].soundset4 = t.entityelement[e].soundset4;
+								t.entityelement[t.e].soundset5 = t.entityelement[e].soundset5;
+								t.entityelement[t.e].soundset6 = t.entityelement[e].soundset6;
+								//PE: We have a new particle id here, so cant just copy.
+								newparticletype backup_newparticle = t.entityelement[t.e].eleprof.newparticle;
+								t.entityelement[t.e].eleprof = t.entityelement[e].eleprof;
+								t.entityelement[t.e].eleprof.newparticle = backup_newparticle;
+								PositionObject(t.entityelement[t.e].obj, t.entityelement[t.e].x, t.entityelement[t.e].y, t.entityelement[t.e].z);
+								RotateObject(t.entityelement[t.e].obj, t.entityelement[t.e].rx, t.entityelement[t.e].ry, t.entityelement[t.e].rz);
+
+								// Can't copy object relations so ensure previous are cleared
+								t.entityelement[t.e].eleprof.iObjectLinkID = 0;
+								//PE: This caused a crash iObjectRelationshipsData[j] > 10 (should have been j) made memory overwrite inside eleprof
+								for (int j = 0; j < 10; j++)
+								{
+									t.entityelement[t.e].eleprof.iObjectRelationships[j] = 0;
+									t.entityelement[t.e].eleprof.iObjectRelationshipsType[j] = 0;
+									t.entityelement[t.e].eleprof.iObjectRelationshipsData[j] = 0;
+								}
+
+								// and add to new rubber band group
+								sRubberBandType rubberbandItem;
+								rubberbandItem.e = t.e;
+								rubberbandItem.x = t.entityelement[t.e].x;
+								rubberbandItem.y = t.entityelement[t.e].y;
+								rubberbandItem.z = t.entityelement[t.e].z;
+#ifdef WICKEDENGINE
+								rubberbandItem.px = t.entityelement[t.e].x;
+								rubberbandItem.py = t.entityelement[t.e].y;
+								rubberbandItem.pz = t.entityelement[t.e].z;
+								rubberbandItem.rx = t.entityelement[t.e].rx;
+								rubberbandItem.ry = t.entityelement[t.e].ry;
+								rubberbandItem.rz = t.entityelement[t.e].rz;
+								rubberbandItem.quatmode = t.entityelement[t.e].quatmode;
+								rubberbandItem.quatx = t.entityelement[t.e].quatx;
+								rubberbandItem.quaty = t.entityelement[t.e].quaty;
+								rubberbandItem.quatz = t.entityelement[t.e].quatz;
+								rubberbandItem.quatw = t.entityelement[t.e].quatw;
+								rubberbandItem.scalex = t.entityelement[t.e].scalex;
+								rubberbandItem.scaley = t.entityelement[t.e].scaley;
+								rubberbandItem.scalez = t.entityelement[t.e].scalez;
+#endif
+								g.entityrubberbandlist.push_back(rubberbandItem);
 							}
-							else
-							{
-								t.gridentityscalex_f = ObjectScaleX(t.entityelement[e].obj);
-								t.gridentityscaley_f = ObjectScaleY(t.entityelement[e].obj);
-								t.gridentityscalez_f = ObjectScaleZ(t.entityelement[e].obj);
-							}
-							t.grideleprof = t.entityelement[e].eleprof;
-							entity_cleargrideleprofrelationshipdata();
-							t.grideleprof.newparticle.emitterid = -1; //PE: Must always get a new emitter ID.
-							#endif
-
-							#ifdef WICKEDENGINE
-							//PE: InstanceObject - Cursor,Object Tools - objects must always be real clones.
-							extern bool bNextObjectMustBeClone;
-							bNextObjectMustBeClone = true;
-							#endif
-
-							gridedit_addentitytomap();
-
-							#ifdef WICKEDENGINE
-							bNextObjectMustBeClone = false;
-							#endif
-
-							if (e == g_EntityClipboardAnchorEntityIndex) iAnchorEntityIndex = t.e;
-							t.entityelement[t.e].x = t.entityelement[e].x + fShiftOffsetForPasteX;
-							t.entityelement[t.e].y = t.entityelement[e].y;
-							t.entityelement[t.e].z = t.entityelement[e].z + fShiftOffsetForPasteZ;
-							t.entityelement[t.e].rx = t.entityelement[e].rx;
-							t.entityelement[t.e].ry = t.entityelement[e].ry;
-							t.entityelement[t.e].rz = t.entityelement[e].rz;		
-							t.entityelement[t.e].quatmode = t.entityelement[e].quatmode;
-							t.entityelement[t.e].quatx = t.entityelement[e].quatx;
-							t.entityelement[t.e].quaty = t.entityelement[e].quaty;
-							t.entityelement[t.e].quatz = t.entityelement[e].quatz;
-							t.entityelement[t.e].quatw = t.entityelement[e].quatw;
-							t.entityelement[t.e].editorfixed = t.entityelement[e].editorfixed;
-							t.entityelement[t.e].staticflag = t.entityelement[e].staticflag;
-							t.entityelement[t.e].scalex = t.entityelement[e].scalex;
-							t.entityelement[t.e].scaley = t.entityelement[e].scaley;
-							t.entityelement[t.e].scalez = t.entityelement[e].scalez;
-							t.entityelement[t.e].soundset = t.entityelement[e].soundset;
-							t.entityelement[t.e].soundset1 = t.entityelement[e].soundset1;
-							t.entityelement[t.e].soundset2 = t.entityelement[e].soundset2;
-							t.entityelement[t.e].soundset3 = t.entityelement[e].soundset3;
-							t.entityelement[t.e].soundset4 = t.entityelement[e].soundset4;
-							t.entityelement[t.e].soundset5 = t.entityelement[e].soundset5;
-							t.entityelement[t.e].soundset6 = t.entityelement[e].soundset6;
-							//PE: We have a new particle id here, so cant just copy.
-							newparticletype backup_newparticle = t.entityelement[t.e].eleprof.newparticle;
-							t.entityelement[t.e].eleprof = t.entityelement[e].eleprof;
-							t.entityelement[t.e].eleprof.newparticle = backup_newparticle;
-							PositionObject(t.entityelement[t.e].obj, t.entityelement[t.e].x, t.entityelement[t.e].y, t.entityelement[t.e].z);
-							RotateObject(t.entityelement[t.e].obj, t.entityelement[t.e].rx, t.entityelement[t.e].ry, t.entityelement[t.e].rz);
-
-							// Can't copy object relations so ensure previous are cleared
-							t.entityelement[t.e].eleprof.iObjectLinkID = 0;
-							//PE: This caused a crash iObjectRelationshipsData[j] > 10 (should have been j) made memory overwrite inside eleprof
-							for (int j = 0; j < 10; j++)
-							{
-								t.entityelement[t.e].eleprof.iObjectRelationships[j] = 0;
-								t.entityelement[t.e].eleprof.iObjectRelationshipsType[j] = 0;
-								t.entityelement[t.e].eleprof.iObjectRelationshipsData[j] = 0;
-							}
-
-							// and add to new rubber band group
-							sRubberBandType rubberbandItem;
-							rubberbandItem.e = t.e;
-							rubberbandItem.x = t.entityelement[t.e].x;
-							rubberbandItem.y = t.entityelement[t.e].y;
-							rubberbandItem.z = t.entityelement[t.e].z;
-							#ifdef WICKEDENGINE
-							rubberbandItem.px = t.entityelement[t.e].x;
-							rubberbandItem.py = t.entityelement[t.e].y;
-							rubberbandItem.pz = t.entityelement[t.e].z;
-							rubberbandItem.rx = t.entityelement[t.e].rx;
-							rubberbandItem.ry = t.entityelement[t.e].ry;
-							rubberbandItem.rz = t.entityelement[t.e].rz;				
-							rubberbandItem.quatmode = t.entityelement[t.e].quatmode;
-							rubberbandItem.quatx = t.entityelement[t.e].quatx;
-							rubberbandItem.quaty = t.entityelement[t.e].quaty;
-							rubberbandItem.quatz = t.entityelement[t.e].quatz;
-							rubberbandItem.quatw = t.entityelement[t.e].quatw;
-							rubberbandItem.scalex = t.entityelement[t.e].scalex;
-							rubberbandItem.scaley = t.entityelement[t.e].scaley;
-							rubberbandItem.scalez = t.entityelement[t.e].scalez;
-							#endif
-							g.entityrubberbandlist.push_back(rubberbandItem);
 						}
 
 						// switch widget to newly pasted entity so can instantly widget it about

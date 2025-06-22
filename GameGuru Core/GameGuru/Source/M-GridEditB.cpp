@@ -45220,6 +45220,7 @@ void process_storeboard(bool bInitOnly)
 								extern bool g_bAllowBackwardCompatibleConversion;
 								g_bAllowBackwardCompatibleConversion = true;
 								gridedit_load_map();
+								g_EntityClipboard.clear(); //PE: Clear any old copy/paste.
 								g_bAllowBackwardCompatibleConversion = false;
 
 								t.terrain.grassregionx1 = t.terrain.grassregionx2;
@@ -53480,9 +53481,43 @@ int DrawOccludedObjects(bool bDebug,bool bBox, int* iHiddenObjects, int* spot, i
 										AABB* aabb = wiScene::GetScene().aabb_objects.GetComponent(rootEntity);
 										if (aabb)
 										{
+											float sizeX = aabb->_max.x - aabb->_min.x;
+											float sizeY = aabb->_max.y - aabb->_min.y;
+											float sizeZ = aabb->_max.z - aabb->_min.z;
+											bool bMeshWorked = false;
 											XMFLOAT4X4 hoverBox;
-											XMStoreFloat4x4(&hoverBox, aabb->getAsBoxMatrix());
-											wiRenderer::DrawBox(hoverBox, XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f));
+											//PE: Strange gamecore\ammo\enhanced\762x39\762x39ammo.x aabb is wrong in wicked ?
+											if (sizeX > 20000.0f || sizeY > 20000.0f || sizeZ > 20000.0f)
+											{
+												//PE: Try mesh.
+												if (object->mesh_index != 0 && (int)object->mesh_index != -1)
+												{
+													if (object->transform_index != 0 && object->transform_index != -1)
+													{
+														MeshComponent* mesh = &wiScene::GetScene().meshes[object->mesh_index];
+														TransformComponent* transform = &wiScene::GetScene().transforms[object->transform_index];
+														if (mesh)
+														{
+															AABB aabb = mesh->aabb;
+															aabb._min.x += transform->world._41;
+															aabb._min.y += transform->world._42;
+															aabb._min.z += transform->world._43;
+															aabb._max.x += transform->world._41;
+															aabb._max.y += transform->world._42;
+															aabb._max.z += transform->world._43;
+
+															XMStoreFloat4x4(&hoverBox, aabb.getAsBoxMatrix());
+															wiRenderer::DrawBox(hoverBox, XMFLOAT4(1.0f, 0.7f, 0.0f, 1.0f));
+															bMeshWorked = true;
+														}
+													}
+												}
+											}
+											if (!bMeshWorked)
+											{
+												XMStoreFloat4x4(&hoverBox, aabb->getAsBoxMatrix());
+												wiRenderer::DrawBox(hoverBox, XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f));
+											}
 
 											//PE: Expanded bounding box.
 											/*

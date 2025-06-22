@@ -3756,6 +3756,8 @@ void game_preparelevel ( void )
 	//  particles/flak/debris required
 	decal_activatedecalsfromentities ( );
 	material_activatedecals ( );
+	void weapon_projectile_activatedecals(void);
+	weapon_projectile_activatedecals();
 	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 	// load in decals (and new particle decals)

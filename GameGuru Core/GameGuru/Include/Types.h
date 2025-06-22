@@ -1455,6 +1455,18 @@ struct weaponProjectileBaseType
 	int overridespotlighting;
 	int cacheProjectile;
 	bool cacheLoaded;
+
+	int iAtlasWidth = 0;
+	int iAtlasHeight = 0;
+	cstr WPE_Effect = "";
+	cstr WPE_Explosion = "";
+	uint32_t WPE_Root = 0;
+	uint32_t WPE_MeshID = -1;
+	float fDecalFrame = 0;
+	float fDecalSpeed = 1.0f;
+	int decalid = -1;
+	int explosion_decalid = -1;
+
 	// Constructor
 	weaponProjectileBaseType ( )
 	{
@@ -1538,6 +1550,16 @@ struct weaponProjectileBaseType
 		 mode = 0;
 		 name_s = "";
 		 activeFlag = 0;
+		 iAtlasWidth = 0;
+		 iAtlasHeight = 0;
+		 WPE_Effect = "";
+		 WPE_Explosion = "";
+		 WPE_MeshID = -1;
+		 fDecalFrame = 0;
+		 fDecalSpeed = 1.0f;
+		 decalid = -1;
+		 explosion_decalid = -1;
+		 WPE_Root = 0;
 	}
 	// End of Constructor
 
@@ -1592,7 +1614,9 @@ struct weaponProjectileType
 	float yTurnSpeed_f;
 	float zTurnSpeed_f;
 	float acceleration_f;
-
+	float fDecalFrame = 0;
+	float fDecalSpeed = 1.0f;
+	uint32_t WPE_Root = 0;
 
 	// Constructor
 	weaponProjectileType ( )
@@ -1636,6 +1660,10 @@ struct weaponProjectileType
 		 obj = 0;
 		 activeFlag = 0;
 		 baseType = 0;
+		 fDecalFrame = 0;
+		 fDecalSpeed = 1.0f;
+		 WPE_Root = 0;
+
 	}
 	// End of Constructor
 

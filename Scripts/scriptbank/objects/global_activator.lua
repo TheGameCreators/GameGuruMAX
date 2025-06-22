@@ -75,8 +75,7 @@ function global_activator_main(e)
 	if g_Entity[e]['activated'] == 1 then
 		if glactivator[e].global_to_monitor == "" then Text(50,50,3,"No Global to Monitor") end
 		if glactivator[e].global_to_monitor ~= "" then
-			--if _G["g_UserGlobal['"..glactivator[e].global_to_monitor.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..glactivator[e].global_to_monitor.."']"] end			
-			currentvalue[e] = g_PlayerGunAmmoCount -- TEMP ONLY
+			if _G["g_UserGlobal['"..glactivator[e].global_to_monitor.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..glactivator[e].global_to_monitor.."']"] end			
 			
 			--Single Use --
 			if glactivator[e].activation_mode == 1 then
@@ -116,7 +115,7 @@ function global_activator_main(e)
 							PerformLogicConnections(e)
 							ActivateIfUsed(e)							
 							PlaySound(e,0)
-							triged[e] = 1	
+							triged[e] = 1
 						end
 						_G["g_UserGlobal['"..glactivator[e].message_global.."']"] = glactivator[e].message_text	
 						multiswitch[e] = 1

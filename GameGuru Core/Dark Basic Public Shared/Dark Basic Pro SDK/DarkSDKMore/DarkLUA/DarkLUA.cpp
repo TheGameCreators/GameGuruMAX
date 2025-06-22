@@ -6035,11 +6035,12 @@ int GetObjectExist ( lua_State *L )
 void gun_PlayObject(int iObjID, float fStart, float fEnd);
 void gun_StopObject(int iObjID);
 void gun_LoopObject(int iObjID, float fStart, float fEnd);
-void gun_StopObject(int iObjID);
 void gun_SetObjectFrame(int iObjID, float fValue);
+void gun_SetObjectSpeed(int iObjID, float fValue);
 
 float iGunAnimStart = 0;
 float iGunAnimEnd = 0;
+float fOldGunSpeed = 0;
 int iGunAnimMode = 2; // 0 = Play , 1 = Loop, 2 = stop
 extern bool bCustomGunAnimationRunning;
 
@@ -6123,6 +6124,8 @@ int GunAnimationPlaying(lua_State* L)
 		{
 			gun_StopObject(t.currentgunobj);
 			gun_SetObjectFrame(t.currentgunobj, iGunAnimEnd);
+			if (fOldGunSpeed > 1)
+				gun_SetObjectSpeed(t.currentgunobj, fOldGunSpeed);
 			lua_pushnumber(L, 0);
 			bCustomGunAnimationRunning = false;
 			t.gunmode = 9; //PE: switch to idle.
@@ -6150,6 +6153,15 @@ int GunAnimationPlaying(lua_State* L)
 	return 1;
 
 }
+int SetGunAnimationSpeed(lua_State* L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	float speed = lua_tonumber(L, 1);
+	fOldGunSpeed = GetSpeed(t.currentgunobj);
+	gun_SetObjectSpeed(t.currentgunobj, speed);
+	return 0;
+}
 int PlayGunAnimation(lua_State* L)
 {
 	lua = L;
@@ -6175,6 +6187,8 @@ int StopGunAnimation(lua_State* L)
 	lua = L;
 	int n = lua_gettop(L);
 	gun_StopObject(t.currentgunobj);
+	if (fOldGunSpeed > 1)
+		gun_SetObjectSpeed(t.currentgunobj, fOldGunSpeed);
 	iGunAnimMode = 2;
 	bCustomGunAnimationRunning = false;
 	t.gunmode = 9; //PE: switch to idle.
@@ -14137,6 +14151,8 @@ void addFunctions()
 	lua_register(lua, "PlayGunAnimation", PlayGunAnimation);
 	lua_register(lua, "GunAnimationPlaying", GunAnimationPlaying);
 	lua_register(lua, "GetGunAnimationFramesFromName", GetGunAnimationFramesFromName);
+	lua_register(lua, "SetGunAnimationSpeed", SetGunAnimationSpeed);
+	
 
 }
 

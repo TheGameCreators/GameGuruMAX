@@ -1,8 +1,8 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Auto Reload v2 by Necrym59
+-- Auto Reload v4 by Necrym59
 -- DESCRIPTION: Allows the auto-reload of a weapon upon empty clip
 -- DESCRIPTION: Attach to an object set Always Active ON
--- DESCRIPTION: [@MODE$=1(1=On, 2=Off, 3=Ask)]
+-- DESCRIPTION: [@MODE$=1(1=On, 2=Off, 3=Prompt)]
 -- DESCRIPTION: [PROMPT$="Select Y or N for Weapon Auto-Reloading"]
 
 g_autoReload		= {}
@@ -12,7 +12,6 @@ local mode			= {}
 
 local doonce		= {}
 local status		= {}
-local resetkey		= {}
 
 function autoreload_properties(e, mode, prompt)
 	autoreload[e].mode = mode
@@ -25,7 +24,6 @@ function autoreload_init(e)
 	autoreload[e].prompt = "Select Y or N for Weapon Auto-Reloading"		
 	
 	doonce[e] = 0
-	resetkey[e] = 0
 	status[e] = "init"
 end
 
@@ -52,14 +50,9 @@ function autoreload_main(e)
 	
 	if g_autoReload == 1 then
 		if g_PlayerGunAmmoCount == 0 then
-			--Force R keystroke (Reload weapon)
-			SetGamePlayerStatePlrKeyForceKeystate(19)
-			resetkey[e] = g_Time + 100
+			--Force Reload weapon
+			SetGamePlayerStateFiringMode(2)
 		end
-	end
-	if g_Time > resetkey[e] then
-		--Reset keybuffer
-		SetGamePlayerStatePlrKeyForceKeystate(0)
 	end
 end
 

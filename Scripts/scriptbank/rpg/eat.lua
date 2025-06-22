@@ -1,4 +1,4 @@
--- Eat v10 by Necrym59
+-- Eat v11 by Necrym59
 -- DESCRIPTION: The object will give the player a health boost or loss if consumed and can also effect a user global if required.
 -- DESCRIPTION: Set AlwaysActive = On.
 -- DESCRIPTION: [PROMPT_TEXT$="Press E to consume"]
@@ -10,7 +10,8 @@
 -- DESCRIPTION: [RESPAWNING=0!=0]
 -- DESCRIPTION: [RESPAWN_TIME=1(1,60)] in minutes
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
--- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline,3=Icon)]
+-- DESCRIPTION: [HIGHLIGHT_ICON_IMAGEFILE$="imagebank\\icons\\eat.png"]
 -- DESCRIPTION: <Sound0> when consuming.
 -- DESCRIPTION: <Sound1> when poisoned.
 
@@ -29,6 +30,7 @@ local respawning 			= {}
 local respawn_time 			= {}
 local prompt_display 		= {}
 local item_highlight 		= {}
+local highlight_icon 		= {}
 
 local tEnt 					= {}
 local selectobj 			= {}
@@ -41,8 +43,11 @@ local pressed				= {}
 local actioned				= {}
 local respawntime			= {}
 local status 				= {}
+local hl_icon				= {}
+local hl_imgwidth			= {}
+local hl_imgheight			= {}
 
-function eat_properties(e, prompt_text, quantity, pickup_range, effect, user_global_affected, poisoning_effect, respawning, respawn_time, prompt_display, item_highlight)
+function eat_properties(e, prompt_text, quantity, pickup_range, effect, user_global_affected, poisoning_effect, respawning, respawn_time, prompt_display, item_highlight, highlight_icon_imagefile)
 	eat[e].prompt_text = prompt_text
 	eat[e].quantity = quantity
 	eat[e].pickup_range = pickup_range
@@ -53,6 +58,7 @@ function eat_properties(e, prompt_text, quantity, pickup_range, effect, user_glo
 	eat[e].respawn_time = respawn_time
 	eat[e].prompt_display = prompt_display
 	eat[e].item_highlight = item_highlight
+	eat[e].highlight_icon = highlight_icon_imagefile
 end
 
 function eat_init(e)
@@ -67,6 +73,7 @@ function eat_init(e)
 	eat[e].respawn_time = 10
 	eat[e].prompt_display = 1
 	eat[e].item_highlight = 0
+	eat[e].highlight_icon =	"imagebank\\icons\\eat.png"
 	
 	currentvalue[e] = 0
 	addquantity[e] = 0
@@ -79,12 +86,24 @@ function eat_init(e)
 	g_tEnt = 0
 	selectobj[e] = 0
 	respawntime[e] = 0
+	hl_icon[e] = 0
+	hl_imgwidth[e] = 0
+	hl_imgheight[e] = 0	
 	status[e] = "init"
 end
 
 function eat_main(e)
 	
 	if status[e] == "init" then
+		if eat[e].item_highlight == 3 and eat[e].highlight_icon ~= "" then
+			hl_icon[e] = CreateSprite(LoadImage(eat[e].highlight_icon))
+			hl_imgwidth[e] = GetImageWidth(LoadImage(eat[e].highlight_icon))
+			hl_imgheight[e] = GetImageHeight(LoadImage(eat[e].highlight_icon))
+			SetSpriteSize(hl_icon[e],-1,-1)
+			SetSpriteDepth(hl_icon[e],100)
+			SetSpriteOffset(hl_icon[e],hl_imgwidth[e]/2.0, hl_imgheight[e]/2.0)
+			SetSpritePosition(hl_icon[e],500,500)
+		end
 		if eat[e].effect == 1 then addquantity[e] = 1 end
 		if eat[e].effect == 2 then addquantity[e] = 2 end
 		poisoned[e] = eat[e].quantity * 30
@@ -95,11 +114,11 @@ function eat_main(e)
 	
 	if PlayerDist < eat[e].pickup_range and GetEntityVisibility(e) == 1 then
 		--pinpoint select object--
-		module_misclib.pinpoint(e,eat[e].pickup_range,eat[e].item_highlight)
+		module_misclib.pinpoint(e,eat[e].pickup_range,eat[e].item_highlight,hl_icon[e])
 		tEnt[e] = g_tEnt
 		--end pinpoint select object--
 		
-		if PlayerDist < eat[e].pickup_range and tEnt[e] ~= 0 and GetEntityVisibility(e) == 1 then
+		if PlayerDist < eat[e].pickup_range and tEnt[e] == e and GetEntityVisibility(e) == 1 then
 			if doonce[e] == 0 then
 				if eat[e].prompt_display == 1 then PromptLocal(e,eat[e].prompt_text) end
 				if eat[e].prompt_display == 2 then Prompt(eat[e].prompt_text) end

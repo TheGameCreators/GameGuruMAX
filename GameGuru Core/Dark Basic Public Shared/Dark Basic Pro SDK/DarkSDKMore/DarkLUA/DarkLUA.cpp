@@ -6126,6 +6126,7 @@ int GunAnimationPlaying(lua_State* L)
 			gun_SetObjectFrame(t.currentgunobj, iGunAnimEnd);
 			if (fOldGunSpeed > 1)
 				gun_SetObjectSpeed(t.currentgunobj, fOldGunSpeed);
+			fOldGunSpeed = 0;
 			lua_pushnumber(L, 0);
 			bCustomGunAnimationRunning = false;
 			t.gunmode = 9; //PE: switch to idle.
@@ -6158,7 +6159,8 @@ int SetGunAnimationSpeed(lua_State* L)
 	int n = lua_gettop(L);
 	if (n < 1) return 0;
 	float speed = lua_tonumber(L, 1);
-	fOldGunSpeed = GetSpeed(t.currentgunobj);
+	if(fOldGunSpeed == 0)
+		fOldGunSpeed = GetSpeed(t.currentgunobj);
 	gun_SetObjectSpeed(t.currentgunobj, speed);
 	return 0;
 }
@@ -6189,6 +6191,7 @@ int StopGunAnimation(lua_State* L)
 	gun_StopObject(t.currentgunobj);
 	if (fOldGunSpeed > 1)
 		gun_SetObjectSpeed(t.currentgunobj, fOldGunSpeed);
+	fOldGunSpeed = 0;
 	iGunAnimMode = 2;
 	bCustomGunAnimationRunning = false;
 	t.gunmode = 9; //PE: switch to idle.

@@ -2973,6 +2973,17 @@ int fillgloballistwithdecals(std::vector <cstr> & list_s)
 	return retvalue;
 }
 
+int fillgloballistwithvoices(std::vector <cstr>& list_s)
+{
+	Dim(list_s, 4);
+	list_s[0] = "player";
+	int retvalue = 1;
+	list_s[retvalue] = "male"; retvalue++;
+	list_s[retvalue] = "female"; retvalue++;
+	list_s[retvalue] = "custom"; retvalue++;
+	return retvalue - 1;
+}
+
 void setpropertylist ( int group, int controlindex, char* data_s, char* field_s, char* desc_s, int listtype )
 {
 	int listmax = 0;
@@ -27999,6 +28010,14 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 		}
 		if (ImGui::IsItemHovered()) ImGui::SetTooltip("Sets whether the flashlight is disabled for the player");
 
+		// additional sound control for player start marker
+		edit_grideleprof->soundset_s = imgui_setpropertylist2c_v2(t.group, t.controlindex, edit_grideleprof->soundset_s.Get(), "Preferred Voice", "Choose the style of voice for the player", 32, readonly, false, false, false, 0);
+		if (ImGui::IsItemHovered()) ImGui::SetTooltip("Choose the style of voice for the player");
+
+		edit_grideleprof->soundset1_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset1_s.Get(), "Hard Impact", "", "audiobank\\", readonly);
+		//if (ImGui::IsItemHovered()) ImGui::SetTooltip("Choose an optional sound when player strikes a non-character, typically a hard surface");
+		edit_grideleprof->soundset2_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset2_s.Get(), "Soft Impact", "", "audiobank\\", readonly);
+		//if (ImGui::IsItemHovered()) ImGui::SetTooltip("Choose an optional sound when player strieks a character, typically soft and fleshy");
 	}
 	else
 	{
@@ -30142,6 +30161,19 @@ char* imgui_setpropertylist2c_v2(int group, int controlindex, char* data_s, char
 	{
 		listmax = fillgloballistwithdecals(t.list_s);
 		for (int n = 0; n < listmax; n++)
+		{
+			if (ldata_s == t.list_s[n])
+			{
+				current_selection = n;
+				break;
+			}
+		}
+	}
+
+	if (listtype == 32)
+	{
+		listmax = fillgloballistwithvoices(t.list_s);
+		for (int n = 0; n <= listmax; n++)
 		{
 			if (ldata_s == t.list_s[n])
 			{

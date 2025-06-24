@@ -1,4 +1,4 @@
--- videoinzone v5
+-- videoinzone v6
 -- DESCRIPTION: When the player enters this zone the video from <Video Slot>.
 -- DESCRIPTION: [ZONEHEIGHT=100] controls how far above the zone the player can be before the zone is not triggered.
 -- DESCRIPTION: [@ALLOW_SKIP=1(1=Yes, 2=No)]
@@ -32,6 +32,7 @@ function videoinzone_main(e)
 	if status[e] == "init" then
 		if g_videoinzone[e]['spawnatstart'] == 1 then SetActivated(e,1) end
 		if g_videoinzone[e]['spawnatstart'] == 0 then SetActivated(e,0) end
+		status[e] = "endinit"
 	end
 
 	if g_Entity[e]['activated'] == 1 then

@@ -1,5 +1,5 @@
--- videoinzone v5
--- DESCRIPTION: When the player enters this zone the video from <Video Slot>.
+-- videoinzone v6
+-- DESCRIPTION: When the player enters this zone the video from <Video Slot> and is then destroyed
 -- DESCRIPTION: [ZONEHEIGHT=100] controls how far above the zone the player can be before the zone is not triggered.
 -- DESCRIPTION: [@ALLOW_SKIP=1(1=Yes, 2=No)]
 -- DESCRIPTION: [@PAUSE_AMBIENT_TRACK=1(1=Yes, 2=No)]
@@ -7,22 +7,28 @@
 
 g_videoinzone_mode = {}
 g_videoinzone = {}
+
+local zoneheight = {}
+local allow_skip = {}
+local pause_ambient_track = {}
+local spawnatstart = {}
+
 local status = {}
 
-function videoinzone_properties(e, zoneheight, allow_skip)
+function videoinzone_properties(e, zoneheight, allow_skip, pause_ambient_track, spawnatstart)
 	g_videoinzone[e]['zoneheight'] = zoneheight
 	g_videoinzone[e]['allow_skip'] = allow_skip
-	g_videoinzone[e]['pause_ambient_track'] = 1	
-	g_videoinzone[e]['spawnatstart'] = SpawnAtStart or 1	
+	g_videoinzone[e]['pause_ambient_track'] = pause_ambient_track
+	g_videoinzone[e]['spawnatstart'] = spawnatstart or 0	
 end
 
 function videoinzone_init(e)
-	g_videoinzone_mode[e] = 0
 	g_videoinzone[e] = {}
 	g_videoinzone[e]['zoneheight'] = 100
 	g_videoinzone[e]['allow_skip'] = 2
 	g_videoinzone[e]['pause_ambient_track'] = 1
 	g_videoinzone[e]['spawnatstart'] = 1
+	g_videoinzone_mode[e] = 0	
 
 	status[e] = "init"
 end
@@ -32,6 +38,7 @@ function videoinzone_main(e)
 	if status[e] == "init" then
 		if g_videoinzone[e]['spawnatstart'] == 1 then SetActivated(e,1) end
 		if g_videoinzone[e]['spawnatstart'] == 0 then SetActivated(e,0) end
+		status[e] = "endinit"
 	end
 
 	if g_Entity[e]['activated'] == 1 then

@@ -62,38 +62,59 @@ function coverzone_main(e)
 											foundbestrealangle = realangle
 										end
 									end
+									local tblocktype = 1
 									if foundbestcount > 1 then
-										DoTokenDrop(fromx,fromy,fromz,1,50000)
+										-- test if can stand here
+										local tox = fromx
+										local toy = fromy
+										local toz = fromz
+										local realangle = foundlastbestrealangle
+										tox = tox + math.sin(math.rad(realangle))*tr
+										toz = toz + math.cos(math.rad(realangle))*tr
+										local higher = 60
+										hit = IntersectStaticPerformant(fromx,fromy+higher,fromz,tox,toy+higher,toz,0,0,0,0)
+										if hit > 0 then
+											-- with peekability to the left
+											realangle = foundlastbestrealangle - 90
+											local sidestepdist = 40
+											local sidefromx = fromx + math.sin(math.rad(realangle))*sidestepdist
+											local sidefromz = fromz + math.cos(math.rad(realangle))*sidestepdist
+											realangle = foundlastbestrealangle
+											local lookviewdist=200
+											tox = sidefromx + math.sin(math.rad(realangle))*lookviewdist
+											toz = sidefromz + math.cos(math.rad(realangle))*lookviewdist
+											hit = IntersectStaticPerformant(sidefromx,fromy+higher,sidefromz,tox,toy+higher,toz,0,0,0,0)
+											if hit == 0 then
+												tblocktype = 2
+											end
+										end
+										if hit > 0 then
+											-- with peekability to the right
+											realangle = foundlastbestrealangle + 90
+											local sidestepdist = 40
+											local sidefromx = fromx + math.sin(math.rad(realangle))*sidestepdist
+											local sidefromz = fromz + math.cos(math.rad(realangle))*sidestepdist
+											realangle = foundlastbestrealangle
+											local lookviewdist=200
+											tox = sidefromx + math.sin(math.rad(realangle))*lookviewdist
+											toz = sidefromz + math.cos(math.rad(realangle))*lookviewdist
+											hit = IntersectStaticPerformant(sidefromx,fromy+higher,sidefromz,tox,toy+higher,toz,0,0,0,0)
+											if hit == 0 then
+												if tblocktype == 2 then
+													if math.random(1,2)==1 then tblocktype = 3 end
+												else
+													tblocktype = 3
+												end
+											end
+										end
+										DoTokenDrop(fromx,fromy,fromz,1,4000 + (tblocktype*2000))
 										defendermapindex=defendermapindex+1
 										g_coverzone[e].defendermap[defendermapindex] = {}
 										g_coverzone[e].defendermap[defendermapindex].x = fromx
 										g_coverzone[e].defendermap[defendermapindex].y = fromy
 										g_coverzone[e].defendermap[defendermapindex].z = fromz
 										g_coverzone[e].defendermap[defendermapindex].a = foundlastbestrealangle
-									end
-								end
-								if techniquetype == 2 then
-									-- this technique allocates ANY cover position that provides ANY coverage for a direction
-									for aa = 0, 15, 1 do
-										local fromx = basex+xx
-										local fromy = basey
-										local fromz = basez+zz
-										local tox = fromx
-										local toy = fromy
-										local toz = fromz
-										local realangle = aa*22.5
-										tox = tox + math.sin(math.rad(realangle))*tr
-										toz = toz + math.cos(math.rad(realangle))*tr
-										hit = IntersectStaticPerformant(fromx,fromy,fromz,tox,toy,toz,0,0,0,0)
-										if hit ~= 0 then
-											DoTokenDrop(fromx,fromy,fromz,1,50000)
-											defendermapindex=defendermapindex+1
-											g_coverzone[e].defendermap[defendermapindex] = {}
-											g_coverzone[e].defendermap[defendermapindex].x = fromx
-											g_coverzone[e].defendermap[defendermapindex].y = fromy
-											g_coverzone[e].defendermap[defendermapindex].z = fromz
-											g_coverzone[e].defendermap[defendermapindex].a = realangle
-										end
+										g_coverzone[e].defendermap[defendermapindex].blocktype = tblocktype
 									end
 								end
 							end

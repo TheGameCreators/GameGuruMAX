@@ -96,6 +96,7 @@ g_masterinterpreter_cond_navmeshclear = 76 -- Navmesh Clear (Is true if the obje
 g_masterinterpreter_cond_pathcompletionistance = 77 -- Path Completion Distance (Is true if the object within specified distance from completion)
 g_masterinterpreter_cond_claimedcoverzone = 78 -- Claimed Cover Zone (Is true if this object has claimed closest cover zone)
 g_masterinterpreter_cond_ifseeducked = 79 -- If See Ducked (Is true when see the target position when while ducked down)
+g_masterinterpreter_cond_iscovertype = 80 -- Is Cover Type (Current cover matches specified cover type 0-all 1-low 2-highleft 3-highright)
 
 -- Actions
 g_masterinterpreter_act_gotostate = 0 -- Go To State (Jumps immediately to the specified state if the state)
@@ -277,6 +278,7 @@ function masterinterpreter_findbestpositionwithincoverzone ( coverzoneee, defend
  local besty = g_Entity[ coverzoneee ]['y']
  local bestz = g_Entity[ coverzoneee ]['z']
  local bestii = -1
+ local bestblocktype = -1
  local bestnearestangle = 99999
  if g_coverzone ~= nil then
   local ee = coverzoneee
@@ -305,6 +307,7 @@ function masterinterpreter_findbestpositionwithincoverzone ( coverzoneee, defend
 		   bestx = g_coverzone[ee].defendermap[ii].x
 		   besty = g_coverzone[ee].defendermap[ii].y
 		   bestz = g_coverzone[ee].defendermap[ii].z
+		   bestblocktype = g_coverzone[ee].defendermap[ii].blocktype
 		   bestii = ii
 		  end
 		 end
@@ -316,7 +319,7 @@ function masterinterpreter_findbestpositionwithincoverzone ( coverzoneee, defend
    end
   end
  end
- return bestx, besty, bestz, bestii
+ return bestx, besty, bestz, bestii, bestblocktype
 end
 
 function masterinterpreter_scanforenemy ( e, output_e, anywilldo )
@@ -826,10 +829,10 @@ function masterinterpreter_getconditionresult ( e, output_e, conditiontype, cond
   if conditiontype == g_masterinterpreter_cond_ifseeducked then
    targetscanprofile_ducked = 1
   end
-  if targetscanprofile_instant == 1 then masterinterpreter_resetscan(e) end
   local hit = 0
-  if targetscanprofile_ducked == 1 then 
-   fromy = fromy - 30
+  if targetscanprofile_instant == 1 then 
+   if targetscanprofile_ducked == 1 then fromy = fromy - 30 end
+   masterinterpreter_resetscan(e)
    hit = IntersectStaticPerformant(fromx,fromy,fromz,TargetX,TargetY+60,TargetZ,g_Entity[e]['obj'],-1,0,1)
   else
    hit = masterinterpreter_rayscan(e, output_e, fromx,fromy,fromz, TargetX,TargetY+60,TargetZ, g_Entity[e]['obj'], 1)
@@ -1198,6 +1201,13 @@ function masterinterpreter_getconditionresult ( e, output_e, conditiontype, cond
 	 end
     end
    end
+  end
+ end
+ if conditiontype == g_masterinterpreter_cond_iscovertype then
+  if conditionparam1value == nil then conditionparam1value = 0 end  
+  if output_e['lastcoverzoneblocktype'] ~= nil then
+   if conditionparam1value==0 and output_e['lastcoverzoneblocktype'] ~= -1 then return 1 end
+   if conditionparam1value>0 and output_e['lastcoverzoneblocktype'] == conditionparam1value then return 1 end
   end
  end
  
@@ -2494,13 +2504,14 @@ function masterinterpreter_doaction ( e, output_e, actiontype, actionparam1, act
      if tda >  180 then tda=tda-360 end
 	 local defendangle = tda
 	 local preferavoidii = output_e['lastcoverzoneslotii']
-	 local goodDefenceX, goodDefenceY, goodDefenceZ, goodChosenII = masterinterpreter_findbestpositionwithincoverzone(ee,defendangle,preferavoidii)
+	 local goodDefenceX, goodDefenceY, goodDefenceZ, goodChosenII, goodBlockType = masterinterpreter_findbestpositionwithincoverzone(ee,defendangle,preferavoidii)
 	 if goodChosenII == -1 then
 	  -- forces different cover zone choice next time
 	  output_e['lastcoverzoneoccupied'] = ee
 	 else
       masterinterpreter_setnewtarget ( e, output_e, goodDefenceX, goodDefenceY, goodDefenceZ, 0 )
 	  output_e['lastcoverzoneslotii'] = goodChosenII
+	  output_e['lastcoverzoneblocktype'] = goodBlockType
 	 end
     end
    end
@@ -2601,6 +2612,7 @@ function masterinterpreter_doaction ( e, output_e, actiontype, actionparam1, act
  if actiontype == g_masterinterpreter_act_forgetcoverzones then
   output_e['lastcoverzoneoccupied'] = -1
   output_e['lastcoverzoneslotii'] = -1
+  output_e['lastcoverzoneblocktype'] = -1
  end
  
 end
@@ -2641,7 +2653,8 @@ function master_interpreter_core.masterinterpreter_restart( output_e, entity_e )
  output_e['lastanimtriggerindex'] = 0
  output_e['ammo'] = -1
  output_e['lastcoverzoneoccupied'] = 0
- output_e['lastcoverzoneslotii'] = 0
+ output_e['lastcoverzoneslotii'] = -1
+ output_e['lastcoverzoneblocktype'] = -1
 
  -- will persist script switches 
  if output_e['wholastactivated'] == nil then output_e['wholastactivated'] = -1 end

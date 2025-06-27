@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast as an Poison effect to damage the target.
--- Poison Spell v24
+-- Poison Spell v25
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Poison Spell, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="You cast Poison spell"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -10,9 +10,12 @@
 -- DESCRIPTION: [PLAYER_LEVEL=0(0,100))] player level to be able use this spell
 -- DESCRIPTION: [PARTICLE1_NAME$=""] eg: SpellParticle1
 -- DESCRIPTION: [PARTICLE2_NAME$=""] eg: SpellParticle2
--- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
--- DESCRIPTION: <Sound0> when cast effect successful
--- DESCRIPTION: <Sound1> when cast effect unsuccessful
+-- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline,3=Icon)]
+-- DESCRIPTION: [HIGHLIGHT_ICON_IMAGEFILE$="imagebank\\icons\\pickup.png"]
+-- DESCRIPTION: <Sound0> pickup sound
+-- DESCRIPTION: <Sound1> when cast effect successful
+-- DESCRIPTION: <Sound2> when cast effect unsuccessful
 
 local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
@@ -31,7 +34,9 @@ local cast_radius				= {}
 local player_level				= {}
 local particle1_name			= {}
 local particle2_name			= {}
+local prompt_display			= {}
 local item_highlight 			= {}
+local highlight_icon 			= {}
 
 local cast_timeout 		= {}
 local tAllegiance 		= {}
@@ -50,8 +55,11 @@ local tlevelrequired	= {}
 local tplayerlevel		= {}
 local played			= {}
 local entaffected		= {}
+local hl_icon 			= {}
+local hl_imgwidth 		= {}
+local hl_imgheight 		= {}
 
-function poison_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_damage, cast_radius, player_level, particle1_name, particle2_name, item_highlight)
+function poison_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_damage, cast_radius, player_level, particle1_name, particle2_name, prompt_display, item_highlight, highlight_icon_imagefile)
 	poison_spell[e].prompt_text = prompt_text
 	poison_spell[e].useage_text = useage_text
 	poison_spell[e].pickup_range = pickup_range
@@ -62,7 +70,9 @@ function poison_spell_properties(e, prompt_text, useage_text, pickup_range, user
 	poison_spell[e].player_level = player_level
 	poison_spell[e].particle1_name = lower(particle1_name)
 	poison_spell[e].particle2_name = lower(particle2_name)
-	poison_spell[e].item_highlight = item_highlight	
+	poison_spell[e].prompt_display = prompt_display	
+	poison_spell[e].item_highlight = item_highlight
+	poison_spell[e].highlight_icon = highlight_icon_imagefile	
 end
 
 function poison_spell_init(e)
@@ -79,7 +89,10 @@ function poison_spell_init(e)
 	poison_spell[e].particle2_name = ""
 	poison_spell[e].particle1_number = 0
 	poison_spell[e].particle2_number = 0
-	poison_spell[e].item_highlight = 0	
+	poison_spell[e].prompt_display = 1
+	poison_spell[e].item_highlight = 0
+	poison_spell[e].highlight_icon = "imagebank\\icons\\pickup.png"
+	
 	poison_spell[e].cast_timeout = 0	
 	status[e] = "init"
 	tAllegiance[e] = 0
@@ -97,37 +110,49 @@ function poison_spell_init(e)
 	casttarget[e] = 0
 	poison_time[e] = 500
 	current_time[e] = 0
+	hl_icon[e] = 0
+	hl_imgwidth[e] = 0
+	hl_imgheight[e] = 0	
 end
 
 function poison_spell_main(e)
 
-	-- get particles for spell effects
-	if poison_spell[e].particle1_number == 0 and poison_spell[e].particle1_name ~= "" then
-		for n = 1, g_EntityElementMax do
-			if n ~= nil and g_Entity[n] ~= nil then
-				if lower(GetEntityName(n)) == poison_spell[e].particle1_name then
-					poison_spell[e].particle1_number = n
-					SetPosition(n,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
-					Hide(n)
-					break
-				end
-			end
-		end
-	end
-	if poison_spell[e].particle2_number == 0 and poison_spell[e].particle2_name ~= "" then
-		for m = 1, g_EntityElementMax do
-			if m ~= nil and g_Entity[m] ~= nil then
-				if lower(GetEntityName(m)) == poison_spell[e].particle2_name then
-					poison_spell[e].particle2_number = m
-					SetPosition(m,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
-					Hide(m)
-					break
-				end
-			end
-		end
-	end
 	-- handle states
 	if status[e] == "init" then
+		if poison_spell[e].item_highlight == 3 and poison_spell[e].highlight_icon ~= "" then
+			hl_icon[e] = CreateSprite(LoadImage(poison_spell[e].highlight_icon))
+			hl_imgwidth[e] = GetImageWidth(LoadImage(poison_spell[e].highlight_icon))
+			hl_imgheight[e] = GetImageHeight(LoadImage(poison_spell[e].highlight_icon))
+			SetSpriteSize(hl_icon[e],-1,-1)
+			SetSpriteDepth(hl_icon[e],100)
+			SetSpriteOffset(hl_icon[e],hl_imgwidth[e]/2.0, hl_imgheight[e]/2.0)
+			SetSpritePosition(hl_icon[e],500,500)
+		end
+		-- get particles for spell effects
+		if poison_spell[e].particle1_number == 0 and poison_spell[e].particle1_name ~= "" then
+			for n = 1, g_EntityElementMax do
+				if n ~= nil and g_Entity[n] ~= nil then
+					if lower(GetEntityName(n)) == poison_spell[e].particle1_name then
+						poison_spell[e].particle1_number = n
+						SetPosition(n,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
+						Hide(n)
+						break
+					end
+				end
+			end
+		end
+		if poison_spell[e].particle2_number == 0 and poison_spell[e].particle2_name ~= "" then
+			for m = 1, g_EntityElementMax do
+				if m ~= nil and g_Entity[m] ~= nil then
+					if lower(GetEntityName(m)) == poison_spell[e].particle2_name then
+						poison_spell[e].particle2_number = m
+						SetPosition(m,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
+						Hide(m)
+						break
+					end
+				end
+			end
+		end	
 		tplayerlevel[e] = 0
 		tlevelrequired[e] = poison_spell[e].player_level
 		cradius[e] = 100.0 - poison_spell[e].cast_radius
@@ -137,16 +162,18 @@ function poison_spell_main(e)
 		local PlayerDist = GetPlayerDistance(e)
 		if PlayerDist < poison_spell[e].pickup_range then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,poison_spell[e].pickup_range,poison_spell[e].item_highlight)
+			module_misclib.pinpoint(e,poison_spell[e].pickup_range,poison_spell[e].item_highlight,hl_icon[e])
 			sEnt[e] = g_tEnt
 			--end pinpoint select object--
 		end	
-		if PlayerDist < poison_spell[e].pickup_range and sEnt[e] ~= 0 then
+		if PlayerDist < poison_spell[e].pickup_range and sEnt[e] == e then
 			if GetEntityCollectable(e) == 1 then
 				if GetEntityCollected(e) == 0 then
-					PromptDuration(poison_spell[e].prompt_text,1000)
+					if poison_spell[e].prompt_display == 1 then PromptLocal(e,poison_spell[e].prompt_text) end
+					if poison_spell[e].prompt_display == 2 then Prompt(poison_spell[e].prompt_text) end
 					if g_KeyPressE == 1 then
 						SetEntityCollected(e,1)
+						PlayNon3DSound(e,0)
 						status[e] = "have_spell"
 					end
 				end
@@ -263,19 +290,19 @@ function poison_spell_main(e)
 					-- prompt we did it
 					PromptDuration(poison_spell[e].useage_text,2000)
 					poison_spell[e].cast_timeout = Timer()
-					PlaySound(e,0)				
+					PlayNon3DSound(e,1)				
 				else
 					-- not successful
 					PromptDuration("Not enough mana",2000)
 					SetEntityUsed(e,0)
 					casttarget[e] = 0
 					if played[e] == 0 then
-						PlaySound(e,1)
+						PlayNon3DSound(e,2)
 						played[e] = 1
 					end
 				end			
 				_G["g_UserGlobal['"..poison_spell[e].user_global_affected.."']"] = mymana
-			end
+			end			
 		end		
 	end
 end

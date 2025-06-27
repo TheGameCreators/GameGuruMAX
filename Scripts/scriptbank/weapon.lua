@@ -1,4 +1,4 @@
--- Weapon v15 - Necrym and Lee
+-- Weapon v16 - Necrym and Lee
 -- DESCRIPTION: Assign to a weapon object to be collected, and play an optional pickup <Sound0>.
 -- DESCRIPTION: [PICKUP_RANGE=75(1,200)]
 -- DESCRIPTION: [@PICKUP_STYLE=2(1=Ranged, 2=Accurate)]
@@ -82,8 +82,14 @@ function weapon_main(e)
 
 	if PlayerDist < weapon[e].pickup_range and g_PlayerHealth > 0 and g_PlayerThirdPerson==0 then
 		if weapon[e].pickup_style == 1 then
-			if LookingAt == 1 and weapon_therecanbeonlyone==0 then weapon_therecanbeonlyone = e end
-			if LookingAt == 0 and weapon_therecanbeonlyone==e then weapon_therecanbeonlyone = 0 end
+			if LookingAt == 1 and weapon_therecanbeonlyone==0 then 
+				weapon_therecanbeonlyone = e
+				g_tEnt = e
+			end
+			if LookingAt == 0 and weapon_therecanbeonlyone==e then
+				weapon_therecanbeonlyone = 0
+				g_tEnt = 0
+			end			
 		end
 		if weapon[e].pickup_style == 2 and g_tEnt == e then
 			if g_tEnt > 0 and weapon_therecanbeonlyone==0 then weapon_therecanbeonlyone = e end

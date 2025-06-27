@@ -10,6 +10,7 @@
 -- DESCRIPTION: [PLAYER_LEVEL=0(0,100))] player level to be able use this spell
 -- DESCRIPTION: [PARTICLE1_NAME$=""] eg: SpellParticle1
 -- DESCRIPTION: [PARTICLE2_NAME$=""] eg: SpellParticle2
+-- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline,3=Icon)]
 -- DESCRIPTION: [HIGHLIGHT_ICON_IMAGEFILE$="imagebank\\icons\\pickup.png"]
 -- DESCRIPTION: <Sound0> pickup sound
@@ -33,6 +34,7 @@ local cast_radius 			= {}
 local player_level 			= {}
 local particle1_name 		= {}
 local particle2_name 		= {}
+local prompt_display		= {}
 local item_highlight 		= {}
 local highlight_icon 		= {}
 
@@ -50,7 +52,7 @@ local hl_icon 			= {}
 local hl_imgwidth 		= {}
 local hl_imgheight 		= {}
 
-function area_damage_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_damage, cast_radius, player_level, particle1_name, particle2_name, item_highlight, highlight_icon_imagefile)
+function area_damage_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_damage, cast_radius, player_level, particle1_name, particle2_name, prompt_display, item_highlight, highlight_icon_imagefile)
 	area_damage_spell[e].prompt_text = prompt_text
 	area_damage_spell[e].useage_text = useage_text
 	area_damage_spell[e].pickup_range = pickup_range
@@ -61,6 +63,7 @@ function area_damage_spell_properties(e, prompt_text, useage_text, pickup_range,
 	area_damage_spell[e].player_level = player_level
 	area_damage_spell[e].particle1_name = lower(particle1_name)
 	area_damage_spell[e].particle2_name = lower(particle2_name)
+	area_damage_spell[e].prompt_display = prompt_display	
 	area_damage_spell[e].item_highlight = item_highlight
 	area_damage_spell[e].highlight_icon = highlight_icon_imagefile
 end
@@ -79,6 +82,7 @@ function area_damage_spell_init(e)
 	area_damage_spell[e].particle2_name = ""
 	area_damage_spell[e].particle1_number = 0
 	area_damage_spell[e].particle2_number = 0
+	area_damage_spell[e].prompt_display = 1	
 	area_damage_spell[e].item_highlight = 0	
 	area_damage_spell[e].highlight_icon = "imagebank\\icons\\pickup.png"
 	area_damage_spell[e].cast_timeout = 0	
@@ -149,7 +153,8 @@ function area_damage_spell_main(e)
 		if PlayerDist < area_damage_spell[e].pickup_range and tEnt[e] == e then
 			if GetEntityCollectable(e) == 1 then
 				if GetEntityCollected(e) == 0 then
-					PromptDuration(area_damage_spell[e].prompt_text,1000)
+					if area_damage_spell[e].prompt_display == 1 then PromptLocal(e,area_damage_spell[e].prompt_text) end
+					if area_damage_spell[e].prompt_display == 2 then Prompt(area_damage_spell[e].prompt_text) end					
 					if g_KeyPressE == 1 then
 						SetEntityCollected(e,1)
 						PlayNon3DSound(e,0)

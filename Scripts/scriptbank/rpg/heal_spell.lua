@@ -1,5 +1,5 @@
--- DESCRIPTION: When collected can be cast to heal the player.
--- Heal Spell v24
+-- Heal Spell v25
+-- DESCRIPTION: When collected, can be cast to heal the player.
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Healing Spell"]
 -- DESCRIPTION: [USEAGE_TEXT$="You gain some health"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -10,9 +10,12 @@
 -- DESCRIPTION: [PLAYER_LEVEL=0(0,100))] player level to be able use this spell
 -- DESCRIPTION: [PARTICLE1_NAME$=""] eg: SpellParticle1
 -- DESCRIPTION: [PARTICLE2_NAME$=""] eg: SpellParticle2
--- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
--- DESCRIPTION: <Sound0> when effect successful
--- DESCRIPTION: <Sound1> when effect unsuccessful
+-- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline,3=Icon)]
+-- DESCRIPTION: [HIGHLIGHT_ICON_IMAGEFILE$="imagebank\\icons\\pickup.png"]
+-- DESCRIPTION: <Sound0> pickup sound
+-- DESCRIPTION: <Sound1> when cast effect successful
+-- DESCRIPTION: <Sound2> when cast effect unsuccessful
 
 local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
@@ -31,7 +34,9 @@ local cast_radius 				= {}
 local player_level 				= {}
 local particle1_name 			= {}
 local particle2_name 			= {}
+local prompt_display			= {}
 local item_highlight 			= {}
+local highlight_icon 			= {}
 
 local cast_timeout 		= {}
 local tAllegiance 		= {}
@@ -47,9 +52,11 @@ local tlevelrequired	= {}
 local tplayerlevel		= {}
 local healcount 		= {}
 local entaffected 		= {}
+local hl_icon 			= {}
+local hl_imgwidth 		= {}
+local hl_imgheight 		= {}
 
-function heal_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_value, cast_radius, player_level, particle1_name, particle2_name, item_highlight)
-	heal_spell[e] = g_Entity[e]
+function heal_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_value, cast_radius, player_level, particle1_name, particle2_name, prompt_display, item_highlight, highlight_icon_imagefile)
 	heal_spell[e].prompt_text = prompt_text
 	heal_spell[e].useage_text = useage_text
 	heal_spell[e].pickup_range = pickup_range
@@ -60,11 +67,13 @@ function heal_spell_properties(e, prompt_text, useage_text, pickup_range, user_g
 	heal_spell[e].player_level = player_level
 	heal_spell[e].particle1_name = lower(particle1_name)
 	heal_spell[e].particle2_name = lower(particle2_name)
+	heal_spell[e].prompt_display = prompt_display	
 	heal_spell[e].item_highlight = item_highlight
+	heal_spell[e].highlight_icon = highlight_icon_imagefile	
 end
 
 function heal_spell_init(e)
-	heal_spell[e] = g_Entity[e]
+	heal_spell[e] = {}
 	heal_spell[e].prompt_text = "E to Collect"
 	heal_spell[e].useage_text = "You gain some health"
 	heal_spell[e].pickup_range = 80
@@ -77,8 +86,11 @@ function heal_spell_init(e)
 	heal_spell[e].particle2_name = ""
 	heal_spell[e].particle1_number = 0
 	heal_spell[e].particle2_number = 0
-	heal_spell[e].item_highlight = 0
-	heal_spell[e].cast_timeout = 0	
+	heal_spell[e].prompt_display = prompt_display	
+	heal_spell[e].item_highlight = item_highlight
+	heal_spell[e].highlight_icon = "imagebank\\icons\\pickup.png"
+	heal_spell[e].cast_timeout = 0
+	
 	status[e] = "init"
 	tAllegiance[e] = 0
 	tEnt[e] = 0
@@ -92,37 +104,49 @@ function heal_spell_init(e)
 	tplayerlevel[e] = 0
 	tlevelrequired[e] = 0
 	healcount[e] = 1
+	hl_icon[e] = 0
+	hl_imgwidth[e] = 0
+	hl_imgheight[e] = 0	
 end
 
 function heal_spell_main(e)
-	heal_spell[e] = g_Entity[e]
-	-- get particles for spell effects
-	if heal_spell[e].particle1_number == 0 and heal_spell[e].particle1_name ~= "" then
-		for n = 1, g_EntityElementMax do
-			if n ~= nil and g_Entity[n] ~= nil then
-				if lower(GetEntityName(n)) == heal_spell[e].particle1_name then
-					heal_spell[e].particle1_number = n
-					SetPosition(n,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
-					Hide(n)
-					break
-				end
-			end
-		end
-	end
-	if heal_spell[e].particle2_number == 0 and heal_spell[e].particle2_name ~= "" then
-		for m = 1, g_EntityElementMax do
-			if m ~= nil and g_Entity[m] ~= nil then
-				if lower(GetEntityName(m)) == heal_spell[e].particle2_name then
-					heal_spell[e].particle2_number = m
-					SetPosition(m,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
-					Hide(m)
-					break
-				end
-			end
-		end
-	end
+
 	-- handle states
 	if status[e] == "init" then
+		if heal_spell[e].item_highlight == 3 and heal_spell[e].highlight_icon ~= "" then
+			hl_icon[e] = CreateSprite(LoadImage(heal_spell[e].highlight_icon))
+			hl_imgwidth[e] = GetImageWidth(LoadImage(heal_spell[e].highlight_icon))
+			hl_imgheight[e] = GetImageHeight(LoadImage(heal_spell[e].highlight_icon))
+			SetSpriteSize(hl_icon[e],-1,-1)
+			SetSpriteDepth(hl_icon[e],100)
+			SetSpriteOffset(hl_icon[e],hl_imgwidth[e]/2.0, hl_imgheight[e]/2.0)
+			SetSpritePosition(hl_icon[e],500,500)
+		end	
+		-- get particles for spell effects
+		if heal_spell[e].particle1_number == 0 and heal_spell[e].particle1_name ~= "" then
+			for n = 1, g_EntityElementMax do
+				if n ~= nil and g_Entity[n] ~= nil then
+					if lower(GetEntityName(n)) == heal_spell[e].particle1_name then
+						heal_spell[e].particle1_number = n
+						SetPosition(n,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
+						Hide(n)
+						break
+					end
+				end
+			end
+		end
+		if heal_spell[e].particle2_number == 0 and heal_spell[e].particle2_name ~= "" then
+			for m = 1, g_EntityElementMax do
+				if m ~= nil and g_Entity[m] ~= nil then
+					if lower(GetEntityName(m)) == heal_spell[e].particle2_name then
+						heal_spell[e].particle2_number = m
+						SetPosition(m,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
+						Hide(m)
+						break
+					end
+				end
+			end
+		end	
 		tplayerlevel[e] = 0
 		tlevelrequired[e] = heal_spell[e].player_level
 		cradius[e] = 180.0 - heal_spell[e].cast_radius
@@ -132,16 +156,18 @@ function heal_spell_main(e)
 		local PlayerDist = GetPlayerDistance(e)
 		if PlayerDist < heal_spell[e].pickup_range then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,heal_spell[e].pickup_range,heal_spell[e].item_highlight)
+			module_misclib.pinpoint(e,heal_spell[e].pickup_range,heal_spell[e].item_highlight,hl_icon[e])
 			sEnt[e] = g_tEnt
 			--end pinpoint select object--
 		end	
-		if PlayerDist < heal_spell[e].pickup_range and sEnt[e] ~= 0 then
+		if PlayerDist < heal_spell[e].pickup_range and sEnt[e] == e then
 			if GetEntityCollectable(e) == 1 then
 				if GetEntityCollected(e) == 0 then
-					PromptDuration(heal_spell[e].prompt_text,1000)
+					if heal_spell[e].prompt_display == 1 then PromptLocal(e,heal_spell[e].prompt_text) end
+					if heal_spell[e].prompt_display == 2 then Prompt(heal_spell[e].prompt_text) end				
 					if g_KeyPressE == 1 then
 						SetEntityCollected(e,1)
+						PlayNon3DSound(e,0)
 						status[e] = "have_spell"
 					end
 				end
@@ -237,13 +263,13 @@ function heal_spell_main(e)
 				-- prompt we did it
 				PromptDuration(heal_spell[e].useage_text,2000)
 				heal_spell[e].cast_timeout = Timer()
-				PlaySound(e,0)
+				PlayNon3DSound(e,1)
 			else
 				-- not successful
 				PromptDuration("Not enough mana",2000)
 				SetEntityUsed(e,0)
 				if played[e] == 0 then
-					PlaySound(e,1)
+					PlayNon3DSound(e,2)
 					played[e] = 1
 				end
 			end

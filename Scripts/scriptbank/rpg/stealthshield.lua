@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Stealth Shield v15
+-- Stealth Shield v16
 -- DESCRIPTION: The Stealth shield object will give the player Stealth capability while activated.
 -- DESCRIPTION: [@STYLE=1(1=Pickup, 2=Collected)]
 -- DESCRIPTION: [PICKUP_RANGE=80(0,100)]
@@ -12,13 +12,15 @@
 -- DESCRIPTION: [DISCOVERY_RANGE=50(50,2000)]
 -- DESCRIPTION: [SHIELD_RADIUS=800(50,2000)]
 -- DESCRIPTION: [NO_OF_USES=1(1,3)]
--- DESCRIPTION: [ICON_IMAGEFILE$="imagebank\\misc\\testimages\\stealthshield_icon.png"]
+-- DESCRIPTION: [@DISABLE_WEAPON=1(1=On, 2=Off)]
+-- DESCRIPTION: [STEALTH_ICON_IMAGEFILE$="imagebank\\misc\\testimages\\stealthshield_icon.png"]
 -- DESCRIPTION: [ICON_POSITION_X=50(0,100)]
 -- DESCRIPTION: [ICON_POSITION_Y=90(0,100)]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
--- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
--- DESCRIPTION: [DISABLE_WEAPON!=0]
-
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline,3=Icon)]
+-- DESCRIPTION: [HIGHLIGHT_ICON_IMAGEFILE$="imagebank\\icons\\pickup.png"]
+-- DESCRIPTION: <Sound0> - Activation Sound
+-- DESCRIPTION: <Sound1> - Deactivation Sound
 
 local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
@@ -36,17 +38,22 @@ local duration			= {}
 local discovery_range 	= {}
 local shield_radius		= {}
 local no_of_uses		= {}
+local disable_weapon 	= {}
+local icon_image		= {}
 local icon_size 		= {}
 local icon_position_x 	= {}
 local icon_position_y 	= {}
 local prompt_display 	= {}
 local item_highlight 	= {}
-local disable_weapon 	= {}
+local highlight_icon	= {}
 
 local shieldactive 		= {}
 local shieldedEnt		= {}
 local entrange			= {}
 local status 			= {}
+local hl_icon			= {}
+local hl_imgwidth		= {}
+local hl_imgheight		= {}
 local shieldtime		= {}
 local useage_text 		= {}
 local use_count			= {}
@@ -59,7 +66,7 @@ local selectobj 		= {}
 local last_gun			= {}
 local doonce			= {}
 
-function stealthshield_properties(e, style, pickup_range, prompt_text, use_text, on_text, off_text, mode, duration, discovery_range, shield_radius, no_of_uses, icon_imagefile, icon_position_x, icon_position_y, prompt_display, item_highlight, disable_weapon)
+function stealthshield_properties(e, style, pickup_range, prompt_text, use_text, on_text, off_text, mode, duration, discovery_range, shield_radius, no_of_uses, disable_weapon, stealth_icon_imagefile, icon_position_x, icon_position_y, prompt_display, item_highlight, highlight_icon_imagefile)
 	stealthshield[e].style = style
 	stealthshield[e].pickup_range = pickup_range
 	stealthshield[e].prompt_text = prompt_text
@@ -71,12 +78,13 @@ function stealthshield_properties(e, style, pickup_range, prompt_text, use_text,
 	stealthshield[e].discovery_range = discovery_range
 	stealthshield[e].shield_radius = shield_radius
 	stealthshield[e].no_of_uses = no_of_uses or 1
-	stealthshield[e].icon_image = iconimage_file
+	stealthshield[e].disable_weapon = disable_weapon or 1	
+	stealthshield[e].icon_image = stealth_icon_imagefile
 	stealthshield[e].icon_position_x = icon_position_x
 	stealthshield[e].icon_position_y = icon_position_y
 	stealthshield[e].prompt_display = prompt_display
 	stealthshield[e].item_highlight = item_highlight
-	stealthshield[e].disable_weapon = disable_weapon or 0
+	stealthshield[e].highlight_icon = highlight_icon_imagefile	
 end
 
 function stealthshield_init(e)
@@ -92,14 +100,18 @@ function stealthshield_init(e)
 	stealthshield[e].discovery_range = 50
 	stealthshield[e].shield_radius = 800
 	stealthshield[e].no_of_uses = 1
+	stealthshield[e].disable_weapon = 1		
 	stealthshield[e].icon_image = "imagebank\\misc\\testimages\\stealthshield_icon.png"
 	stealthshield[e].icon_position_x = 90
 	stealthshield[e].icon_position_y = 80
 	stealthshield[e].prompt_display = 1
 	stealthshield[e].item_highlight = 0
-	stealthshield[e].disable_weapon = 0	
+	stealthshield[e].highlight_icon = "imagebank\\icons\\pickup.png"
 
 	status[e] = "init"
+	hl_icon[e] = 0
+	hl_imgwidth[e] = 0
+	hl_imgheight[e] = 0	
 	shieldtime[e] = 0
 	shieldactive[e] = 0
 	shieldedEnt[e] = 0
@@ -124,6 +136,15 @@ end
 function stealthshield_main(e)
 
 	if status[e] == "init" then
+		if stealthshield[e].item_highlight == 3 and stealthshield[e].highlight_icon ~= "" then
+			hl_icon[e] = CreateSprite(LoadImage(stealthshield[e].highlight_icon))
+			hl_imgwidth[e] = GetImageWidth(LoadImage(stealthshield[e].highlight_icon))
+			hl_imgheight[e] = GetImageHeight(LoadImage(stealthshield[e].highlight_icon))
+			SetSpriteSize(hl_icon[e],-1,-1)
+			SetSpriteDepth(hl_icon[e],100)
+			SetSpriteOffset(hl_icon[e],hl_imgwidth[e]/2.0, hl_imgheight[e]/2.0)
+			SetSpritePosition(hl_icon[e],500,500)
+		end	
 		if stealthshield[e].style == 1 then Show(e) end
 		if stealthshield[e].style == 2 then
 			CollisionOff(e)
@@ -145,14 +166,14 @@ function stealthshield_main(e)
 		local PlayerDist = GetPlayerDistance(e)
 		if PlayerDist < stealthshield[e].pickup_range then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,stealthshield[e].pickup_range,stealthshield[e].item_highlight)
+			module_misclib.pinpoint(e,stealthshield[e].pickup_range,stealthshield[e].item_highlight,hl_icon[e])
 			tEnt[e] = g_tEnt
 			--end pinpoint select object--
-			if PlayerDist < stealthshield[e].pickup_range and tEnt[e] ~= 0 and GetEntityVisibility(e) == 1 then
+			if PlayerDist < stealthshield[e].pickup_range and tEnt[e] == e and GetEntityVisibility(e) == 1 then
 				if stealthshield[e].prompt_display == 1 then PromptLocal(e,stealthshield[e].prompt_text) end
 				if stealthshield[e].prompt_display == 2 then Prompt(stealthshield[e].prompt_text) end			
 				if g_KeyPressE == 1 then
-					PromptDuration(stealthshield[e].use_text,1000)
+					PromptDuration(stealthshield[e].use_text,2000)
 					PlaySound(e,0)
 					Hide(e)
 					CollisionOff(e)
@@ -163,16 +184,18 @@ function stealthshield_main(e)
 	end
 
 	if status[e] == "collected" then
+		ResetPosition(e,g_PlayerPosX,g_PlayerPosY+500,g_PlayerPosZ)
 		if shieldactive[e] == 0 and use_count[e] < stealthshield[e].no_of_uses then
 			if GetInKey() == "=" or GetInKey() == "+" then -- Key to turn On
 				PromptDuration(stealthshield[e].on_text,1000)
+				PlayNon3DSound(e,0)
 				if stealthshield[e].mode == 1 then shieldtime[e] = g_Time + (stealthshield[e].duration * 1000) end
 				if stealthshield[e].mode == 2 then shieldtime[e] = (g_Time + (stealthshield[e].duration * math.random(1000,3000))) end
 				shieldactive[e] = 1
 				SetSpriteColor(stealthicon[e],255,255,255,100)
 				use_count[e] = use_count[e] + 1
 				if stealthshield[e].disable_weapon == 1 then 
-					last_gun[e] = g_PlayerGunName					
+					last_gun[e] = g_PlayerGunName
 					SetPlayerWeapons(0)
 				end	
 			end
@@ -180,6 +203,7 @@ function stealthshield_main(e)
 		if shieldactive[e] == 1 then
 			if GetInKey() == "_" or GetInKey() == "-" then -- Key to turn Off
 				PromptDuration(stealthshield[e].off_text,1000)
+				PlayNon3DSound(e,1)
 				shieldactive[e] = 0
 				shieldtime[e] = 0
 				if use_count[e] == stealthshield[e].no_of_uses then Destroy(e) end

@@ -3274,6 +3274,9 @@ void entity_lua_changeplayerweapon(void)
 
 void entity_lua_changeplayerweaponid(void)
 {
+	extern bool bForceGunUnderWater;
+	if (bForceGunUnderWater)
+		return;
 	// if no gun, this will load in gun if it is not already in memory (normally all pre-loaded but standalonelevelreload mode can load a level with missing guns)
 	// so this will be called from the GameLoopLoadStats global function for all weapons currently held by player at that point in game when start the fresh level
 	int iWeaponID = t.v;

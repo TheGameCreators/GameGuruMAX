@@ -6043,12 +6043,22 @@ float iGunAnimEnd = 0;
 float fOldGunSpeed = 0;
 int iGunAnimMode = 2; // 0 = Play , 1 = Loop, 2 = stop
 extern bool bCustomGunAnimationRunning;
+bool bForceGunUnderWater = false;
 
 void GunInitAnimationSettings(void)
 {
 	iGunAnimStart = 0;
 	iGunAnimEnd = 0;
 	iGunAnimMode = 2;
+	bCustomGunAnimationRunning = false;
+	bForceGunUnderWater = false;
+}
+int ForceGunUnderWater(lua_State* L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	bForceGunUnderWater = lua_tonumber(L, 1);
+	return 0;
 }
 int GetGunAnimationFramesFromName(lua_State* L)
 {
@@ -6120,7 +6130,15 @@ int GunAnimationPlaying(lua_State* L)
 	if (iGunAnimMode == 0)
 	{
 		//PE: Stop animation when done.
-		if (frame >= iGunAnimEnd)
+
+		bool playing = false;
+		if (t.currentgunobj > 0)
+		{
+			sObject* pObject = g_ObjectList[t.currentgunobj];
+			playing = WickedCall_GetAnimationPlayingState(pObject);
+		}
+
+		if (frame >= iGunAnimEnd || !playing)
 		{
 			gun_StopObject(t.currentgunobj);
 			gun_SetObjectFrame(t.currentgunobj, iGunAnimEnd);
@@ -8756,7 +8774,7 @@ int SetGamePlayerControlData ( lua_State *L, int iDataMode )
 		case 22 : break;
 		case 23 : t.playercontrol.gravityactive = lua_tonumber(L, 1); break;
 		case 24 : t.playercontrol.plrhitfloormaterial = lua_tonumber(L, 1); break;
-		case 25 : t.playercontrol.underwater = lua_tonumber(L, 1); break;
+		case 25:  t.playercontrol.underwater = lua_tonumber(L, 1); break;
 		case 26 : t.playercontrol.jumpmode = lua_tonumber(L, 1); break;
 		case 27 : t.playercontrol.jumpmodecanaffectvelocitycountdown_f = lua_tonumber(L, 1); break;
 		case 28 : t.playercontrol.speed_f = lua_tonumber(L, 1); break;
@@ -9078,7 +9096,7 @@ int GetGamePlayerControlData ( lua_State *L, int iDataMode )
 		case 22 : break;
 		case 23 : lua_pushnumber ( L, t.playercontrol.gravityactive ); break;
 		case 24 : lua_pushnumber ( L, t.playercontrol.plrhitfloormaterial ); break;
-		case 25 : lua_pushnumber ( L, t.playercontrol.underwater ); break;
+		case 25:  lua_pushnumber(L, t.playercontrol.underwater); break;
 		case 26 : lua_pushnumber ( L, t.playercontrol.jumpmode ); break;
 		case 27 : lua_pushnumber ( L, t.playercontrol.jumpmodecanaffectvelocitycountdown_f ); break;
 		case 28 : lua_pushnumber ( L, t.playercontrol.speed_f ); break;
@@ -14155,7 +14173,7 @@ void addFunctions()
 	lua_register(lua, "GunAnimationPlaying", GunAnimationPlaying);
 	lua_register(lua, "GetGunAnimationFramesFromName", GetGunAnimationFramesFromName);
 	lua_register(lua, "SetGunAnimationSpeed", SetGunAnimationSpeed);
-	
+	lua_register(lua, "ForceGunUnderWater", ForceGunUnderWater);
 
 }
 

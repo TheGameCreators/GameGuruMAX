@@ -2676,15 +2676,16 @@ GetTerrainCollisionDetails( objectId, num )
 -- GetCollectionQuestAttributeLabel : value = GetCollectionQuestAttributeLabel(attribindex) -- returns the label string stored at this position in the attribute list
 -- GetCollectionQuestQuantity : totalquests = GetCollectionQuestQuantity() -- returns total number of quests in the game
 -- GetCollectionQuestAttribute : value = GetCollectionQuestAttribute(questindex,"attrib") -- returns the value stored in the attrib label of the specified quest
--- MakeInventoryContainer : MakeInventoryContainer
--- GetInventoryTotal : GetInventoryTotal
--- GetInventoryName : GetInventoryName
--- GetInventoryExist : GetInventoryExist
--- GetInventoryQuantity : GetInventoryQuantity
--- GetInventoryItem : GetInventoryItem
--- GetInventoryItemID : GetInventoryItemID
--- GetInventoryItemSlot : GetInventoryItemSlot
--- SetInventoryItemSlot : SetInventoryItemSlot
--- MoveInventoryItem : MoveInventoryItem ( from, to, collectionID, slot ) 
--- DeleteAllInventoryContainers : DeleteAllInventoryContainers()
--- AddInventoryItem : AddInventoryItem ( to, collectionID, newe, slot )
+
+-- MakeInventoryContainer : containerindex = MakeInventoryContainer(inventory container name) -- creates a new inventory container
+-- GetInventoryTotal : quantity = GetInventoryTotal() -- returns to total number of inventory slots available
+-- GetInventoryName : string = GetInventoryName(index) -- returns the name of the inventory container at specified index
+-- GetInventoryExist : value = GetInventoryExist(index) -- returns one if the inventory container exists at specified index (HUD "HUD Screen 2" neds to exist)
+-- GetInventoryQuantity : quantity = GetInventoryQuantity(inventory container name) -- returns the number of items inside the specified inventory container)
+-- GetInventoryItem : collectionItemID = GetInventoryItem(inventory container name,index) -- returns the ID of the item at the specified index of the container
+-- GetInventoryItemID : entityelementID = GetInventoryItemID(inventory container name,index) -- returns the Entity ID of the item at the specified index of the container
+-- GetInventoryItemSlot : slotindex = GetInventoryItemSlot(inventory container name,index) -- returns the Slot Index of the item at the specified index of the container
+-- SetInventoryItemSlot : SetInventoryItemSlot(inventory container name,index,newslot) -- sets a new slot index for the item at the specified index of the container
+-- MoveInventoryItem : MoveInventoryItem ( container name from, container name to, collectionID, entityelementID, slot index ) -- moves an item across containers
+-- DeleteAllInventoryContainers : DeleteAllInventoryContainers() -- deletes ALL inventory containers - destructive!
+-- AddInventoryItem : AddInventoryItem ( container name, collectionID, newe, slot index ) -- adds a new item of collection and entityelement value to specified slot in the container

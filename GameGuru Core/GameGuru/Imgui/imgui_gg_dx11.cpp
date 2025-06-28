@@ -7284,7 +7284,8 @@ void ParseLuaScriptWithElementID(entityeleproftype *tmpeleprof, char * script, i
 											labels.push_back("None");
 
 											char animlist[MAX_PATH];
-											strcpy(animlist, "gamecore\\interactive_anims.txt");
+											//strcpy(animlist, "gamecore\\interactive_anims.txt");
+											strcpy(animlist, "gamecore\\guns\\interactive\\interactive_anims.txt");
 											GG_GetRealPath(animlist, 0);
 											if (FileExist(animlist) == 1)
 											{

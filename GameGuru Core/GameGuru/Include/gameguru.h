@@ -3534,6 +3534,8 @@ struct Stemps
 	float tcenterobjy_f;
 	int tcharacterobj;
 	int tdamagesource;
+	int tfromtheplayer;
+	int tfromtheplayerentityelementid;
 	cstr tDestFileName;
 	float tdestheight_f;
 	float tDifference_f;
@@ -7914,6 +7916,8 @@ struct Stemps
 		 tdestheight_f = 0.0f;
 		 tDestFileName = "";
 		 tdamagesource = 0;
+		 tfromtheplayer = 0;
+		 tfromtheplayerentityelementid = 0;
 		 tcharacterobj = 0;
 		 tcenterobjy_f = 0.0f;
 		 tcciversion_s = "";

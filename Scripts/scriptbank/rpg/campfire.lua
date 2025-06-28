@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Campfire v13 by Necrym59
+-- Campfire v14 by Necrym59
 -- DESCRIPTION: This object will stow and deploy like a camp fire?
 -- DESCRIPTION: Apply to an object to be used as a campfire.
 -- DESCRIPTION: [USE_RANGE=120]
@@ -19,7 +19,8 @@
 -- DESCRIPTION: [AFFECT_HEALTH!=0] if ON will affect players health by Affect Amount
 -- DESCRIPTION: [BURN_LIFE=30] in seconds (0=Continuous Burn)
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
--- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)] Use emmisive color for shape option
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline,3=Icon)] Use emmisive color for shape option
+-- DESCRIPTION: [HIGHLIGHT_ICON_IMAGEFILE$="imagebank\\icons\\burn.png"]
 -- DESCRIPTION: <Sound0> for collection sound.
 -- DESCRIPTION: <Sound1> for deloyment sound.
 -- DESCRIPTION: <Sound2> for campfire sound.
@@ -46,9 +47,10 @@ local user_global_affected	= {}
 local affect_type			= {}
 local affect_amount			= {}
 local affect_health			= {}
-local prompt_display		= {}
-local item_highlight		= {}
 local burn_life				= {}
+local prompt_display		= {}
+local item_highlight 		= {}
+local highlight_icon 		= {}
 
 local particle_number		= {}
 local light_number			= {}
@@ -66,8 +68,11 @@ local hurttime				= {}
 local keypressed			= {}
 local tobeused				= {}
 local svol					= {}
+local hl_icon 				= {}
+local hl_imgwidth			= {}
+local hl_imgheight			= {}
 	 
-function campfire_properties(e, use_range, pickup_text, deploy_text, use_text, resource_required, heat_range, heat_delay, particle_name, light_name, glow_effect, is_deployed, user_global_affected, affect_type, affect_amount, affect_health, burn_life, prompt_display, item_highlight)
+function campfire_properties(e, use_range, pickup_text, deploy_text, use_text, resource_required, heat_range, heat_delay, particle_name, light_name, glow_effect, is_deployed, user_global_affected, affect_type, affect_amount, affect_health, burn_life, prompt_display, item_highlight, highlight_icon_imagefile)
 	campfire[e].use_range = use_range
 	campfire[e].pickup_text = pickup_text
 	campfire[e].deploy_text = deploy_text
@@ -86,6 +91,7 @@ function campfire_properties(e, use_range, pickup_text, deploy_text, use_text, r
 	campfire[e].burn_life = burn_life
 	campfire[e].prompt_display = prompt_display
 	campfire[e].item_highlight = item_highlight
+	campfire[e].highlight_icon = highlight_icon_imagefile	
 end
  
  
@@ -109,7 +115,7 @@ function campfire_init(e)
 	campfire[e].burn_life = 30
 	campfire[e].prompt_display = 1
 	campfire[e].item_highlight = 1
-	
+	campfire[e].highlight_icon = "imagebank\\icons\\burn.png"
 	campfire[e].particle_number = 0
 	campfire[e].light_number = 0
 
@@ -117,6 +123,9 @@ function campfire_init(e)
 	svol[e] = 0
 	tEnt[e] = 0
 	g_tEnt = 0
+	hl_icon[e] = 0
+	hl_imgwidth[e] = 0
+	hl_imgheight[e] = 0	
 	campfire_deployed[e] = 0
 	campfire_state[e] = "out"
 	campfire_onoff[e] = "off"
@@ -131,6 +140,15 @@ end
 function campfire_main(e)
 
 	if status[e] == "init" then
+		if campfire[e].item_highlight == 3 and campfire[e].highlight_icon ~= "" then
+			hl_icon[e] = CreateSprite(LoadImage(campfire[e].highlight_icon))
+			hl_imgwidth[e] = GetImageWidth(LoadImage(campfire[e].highlight_icon))
+			hl_imgheight[e] = GetImageHeight(LoadImage(campfire[e].highlight_icon))
+			SetSpriteSize(hl_icon[e],-1,-1)
+			SetSpriteDepth(hl_icon[e],100)
+			SetSpriteOffset(hl_icon[e],hl_imgwidth[e]/2.0, hl_imgheight[e]/2.0)
+			SetSpritePosition(hl_icon[e],500,500)
+		end	
 		new_y = math.rad(g_PlayerAngY)
 		fire_x = g_PlayerPosX + (math.sin(new_y) * 70)
 		fire_z = g_PlayerPosZ + (math.cos(new_y) * 70)
@@ -187,11 +205,11 @@ function campfire_main(e)
 		end
 		if PlayerDist < campfire[e].use_range then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,campfire[e].use_range,campfire[e].item_highlight)
+			module_misclib.pinpoint(e,campfire[e].use_range,campfire[e].item_highlight,hl_icon[e])
 			tEnt[e] = g_tEnt
 			--end pinpoint select object--	
 			
-			if PlayerDist < campfire[e].use_range and tEnt[e] ~= 0 and GetEntityVisibility(e) == 1 then
+			if PlayerDist < campfire[e].use_range and tEnt[e] == e and GetEntityVisibility(e) == 1 then
 				if campfire_state[e] == "deployed" then					
 					SetLightRange(campfire[e].light_number,0)
 					SetEntityEmissiveStrength(e,0)						
@@ -200,7 +218,7 @@ function campfire_main(e)
 					if campfire[e].prompt_display == 1 then PromptLocal(e,campfire[e].use_text) end
 					if campfire[e].prompt_display == 2 then	Prompt(campfire[e].use_text)	end
 				end
-				if campfire_onoff[e] == "off" then
+				if campfire_onoff[e] == "off" then					
 					if campfire[e].prompt_display == 1 and tobeused[e] == 0 then PromptLocal(e,campfire[e].pickup_text.. " or " ..campfire[e].resource_required.. " is required to use") end
 					if campfire[e].prompt_display == 2 and tobeused[e] == 0 then PromptDuration(campfire[e].pickup_text.. " or " ..campfire[e].resource_required.. " is required to use",2000) end					
 					if campfire[e].prompt_display == 1 and tobeused[e] > 0 then PromptLocal(e,campfire[e].use_text.. " or " ..campfire[e].pickup_text) end
@@ -259,7 +277,7 @@ function campfire_main(e)
 		ResetPosition(campfire[e].particle_number, g_Entity[e]['x'], g_Entity[e]['y'], g_Entity[e]['z'])		
 		SetLightPosition(campfire[e].light_number, g_Entity[e]['x'], g_Entity[e]['y']+15, g_Entity[e]['z'])
 		SetLightRange(campfire[e].light_number,0)
-		if PlayerDist < campfire[e].use_range and tEnt[e] ~= 0 and GetEntityVisibility(e) == 1 then			
+		if PlayerDist < campfire[e].use_range and tEnt[e] == e and GetEntityVisibility(e) == 1 then			
 			if g_KeyPressE == 1 and keypressed[e] == 0 then
 				if tobeused[e] == 0 then
 					keypressed[e] = 0

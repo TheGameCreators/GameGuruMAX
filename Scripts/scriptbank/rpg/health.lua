@@ -1,15 +1,16 @@
 -- DESCRIPTION: The object will give the player an health boost or deduction if used. Can be used as a resource  and a user global can also receive a value.
--- Health v22 by Necrym59 and Lee
+-- Health v23 by Necrym59 and Lee
 -- DESCRIPTION: [PROMPT_TEXT$="E to consume"]
 -- DESCRIPTION: [PROMPT_IF_COLLECTABLE$="E to collect"]
 -- DESCRIPTION: [USEAGE_TEXT$="Health applied"]
 -- DESCRIPTION: [QUANTITY=10(1,100)]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
--- DESCRIPTION: [@PICKUP_STYLE=1(1=Automatic, 2=Manual)]
+-- DESCRIPTION: [@PICKUP_STYLE=1(1=Ranged, 2=Accurate)]
 -- DESCRIPTION: [@EFFECT=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] for use with another User Global g: MyGlobal
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
--- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline,3=Icon)]
+-- DESCRIPTION: [HIGHLIGHT_ICON_IMAGEFILE$="imagebank\\icons\\pickup.png"]
 -- DESCRIPTION: <Sound0> for use sound.
 -- DESCRIPTION: <Sound1> for collection sound.
 
@@ -29,13 +30,18 @@ local effect = {}
 local user_global_affected = {}
 local prompt_display = {}
 local item_highlight = {}
+local highlight_icon = {}
 
 local currentvalue = {}
 local addquantity = {}
 local selectobj = {}
 local tEnt = {}
+local status = {}
+local hl_icon = {}
+local hl_imgwidth = {}
+local hl_imgheight = {}
 
-function health_properties(e, prompt_text, prompt_if_collectable, useage_text, quantity, pickup_range, pickup_style, effect, user_global_affected, prompt_display, item_highlight)
+function health_properties(e, prompt_text, prompt_if_collectable, useage_text, quantity, pickup_range, pickup_style, effect, user_global_affected, prompt_display, item_highlight, highlight_icon_imagefile)
 	health[e].prompt_text = prompt_text
 	health[e].prompt_if_collectable = prompt_if_collectable
 	health[e].useage_text = useage_text
@@ -46,7 +52,8 @@ function health_properties(e, prompt_text, prompt_if_collectable, useage_text, q
 	if user_global_affected == nil then user_global_affected = "" end
 	health[e].user_global_affected = user_global_affected
 	health[e].prompt_display = prompt_display
-	health[e].item_highlight = item_highlight	
+	health[e].item_highlight = item_highlight
+	health[e].highlight_icon = highlight_icon_imagefile	
 end
 
 function health_init(e)
@@ -58,18 +65,36 @@ function health_init(e)
 	health[e].pickup_range = 80
 	health[e].pickup_style = 1
 	health[e].effect = 1
-	health[e].user_global_affected = "MyGlobal"
+	health[e].user_global_affected = ""
 	health[e].prompt_display = 1
 	health[e].item_highlight = 0
+	health[e].highlight_icon = "imagebank\\icons\\pickup.png"
 	
+	status[e] = "init"
 	tEnt[e] = 0
 	g_tEnt = 0
 	selectobj[e] = 0
 	currentvalue[e] = 0
 	addquantity[e] = 0
+	hl_icon[e] = 0
+	hl_imgwidth[e] = 0
+	hl_imgheight[e] = 0	
 end
 
 function health_main(e)
+	
+	if status[e] == "init" then
+		if health[e].item_highlight == 3 and health[e].highlight_icon ~= "" then
+			hl_icon[e] = CreateSprite(LoadImage(health[e].highlight_icon))
+			hl_imgwidth[e] = GetImageWidth(LoadImage(health[e].highlight_icon))
+			hl_imgheight[e] = GetImageHeight(LoadImage(health[e].highlight_icon))
+			SetSpriteSize(hl_icon[e],-1,-1)
+			SetSpriteDepth(hl_icon[e],100)
+			SetSpriteOffset(hl_icon[e],hl_imgwidth[e]/2.0, hl_imgheight[e]/2.0)
+			SetSpritePosition(hl_icon[e],500,500)
+		end
+		status[e] = "endinit"
+	end	
 
 	local use_item_now = 0
 	local PlayerDist = GetPlayerDistance(e)
@@ -84,11 +109,11 @@ function health_main(e)
 
 	if health[e].pickup_style == 2 and PlayerDist < health[e].pickup_range then
 		--pinpoint select object--
-		module_misclib.pinpoint(e,health[e].pickup_range,health[e].item_highlight)
+		module_misclib.pinpoint(e,health[e].pickup_range,health[e].item_highlight,hl_icon[e])
 		tEnt[e] = g_tEnt
 		--end pinpoint select object--	
 
-		if PlayerDist < health[e].pickup_range and tEnt[e] ~= 0 then
+		if PlayerDist < health[e].pickup_range and tEnt[e] == e then
 			if GetEntityCollectable(tEnt[e]) == 0 then
 				if health[e].prompt_display == 1 then PromptLocal(e,health[e].prompt_text) end
 				if health[e].prompt_display == 2 then Prompt(health[e].prompt_text) end
@@ -132,7 +157,7 @@ function health_main(e)
 		SetPlayerHealth(g_PlayerHealth + health[e].quantity)
 		if g_PlayerHealth > g_PlayerStartStrength then g_PlayerHealth = g_PlayerStartStrength end
 		SetPlayerHealthCore(g_PlayerHealth)
-		if health[e].user_global_affected > "" then
+		if health[e].user_global_affected ~= "" then
 			if _G["g_UserGlobal['"..health[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..health[e].user_global_affected.."']"] end
 			_G["g_UserGlobal['"..health[e].user_global_affected.."']"] = currentvalue[e] + health[e].quantity
 		end
@@ -140,7 +165,7 @@ function health_main(e)
 	if addquantity[e] == 2 then
 		SetPlayerHealth(g_PlayerHealth - health[e].quantity)
 		SetPlayerHealthCore(g_PlayerHealth)
-		if health[e].user_global_affected > "" then
+		if health[e].user_global_affected ~= "" then
 			if _G["g_UserGlobal['"..health[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..health[e].user_global_affected.."']"] end
 			_G["g_UserGlobal['"..health[e].user_global_affected.."']"] = currentvalue[e] - health[e].quantity
 		end

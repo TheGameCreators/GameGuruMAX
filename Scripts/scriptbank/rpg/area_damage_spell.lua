@@ -1,4 +1,4 @@
--- Area Damage Spell v24 by Necrym59 and Lee
+-- Area Damage Spell v25 by Necrym59 and Lee
 -- DESCRIPTION: When collected can be cast as an Area Damage effect, damaging anything within an area surrounding the player.
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Area Damage Spell"]
 -- DESCRIPTION: [USEAGE_TEXT$="Area Damage Inflicted"]
@@ -10,9 +10,11 @@
 -- DESCRIPTION: [PLAYER_LEVEL=0(0,100))] player level to be able use this spell
 -- DESCRIPTION: [PARTICLE1_NAME$=""] eg: SpellParticle1
 -- DESCRIPTION: [PARTICLE2_NAME$=""] eg: SpellParticle2
--- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
--- DESCRIPTION: <Sound0> when cast effect successful
--- DESCRIPTION: <Sound1> when cast effect unsuccessful
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline,3=Icon)]
+-- DESCRIPTION: [HIGHLIGHT_ICON_IMAGEFILE$="imagebank\\icons\\pickup.png"]
+-- DESCRIPTION: <Sound0> pickup sound
+-- DESCRIPTION: <Sound1> when cast effect successful
+-- DESCRIPTION: <Sound2> when cast effect unsuccessful
 
 local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
@@ -32,6 +34,7 @@ local player_level 			= {}
 local particle1_name 		= {}
 local particle2_name 		= {}
 local item_highlight 		= {}
+local highlight_icon 		= {}
 
 local cast_timeout 		= {}
 local tAllegiance 		= {}
@@ -43,8 +46,11 @@ local entaffected 		= {}
 local tlevelrequired 	= {}
 local tplayerlevel 		= {}
 local played			= {}
+local hl_icon 			= {}
+local hl_imgwidth 		= {}
+local hl_imgheight 		= {}
 
-function area_damage_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_damage, cast_radius, player_level, particle1_name, particle2_name, item_highlight)
+function area_damage_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_damage, cast_radius, player_level, particle1_name, particle2_name, item_highlight, highlight_icon_imagefile)
 	area_damage_spell[e].prompt_text = prompt_text
 	area_damage_spell[e].useage_text = useage_text
 	area_damage_spell[e].pickup_range = pickup_range
@@ -56,6 +62,7 @@ function area_damage_spell_properties(e, prompt_text, useage_text, pickup_range,
 	area_damage_spell[e].particle1_name = lower(particle1_name)
 	area_damage_spell[e].particle2_name = lower(particle2_name)
 	area_damage_spell[e].item_highlight = item_highlight
+	area_damage_spell[e].highlight_icon = highlight_icon_imagefile
 end
 
 function area_damage_spell_init(e)
@@ -73,6 +80,7 @@ function area_damage_spell_init(e)
 	area_damage_spell[e].particle1_number = 0
 	area_damage_spell[e].particle2_number = 0
 	area_damage_spell[e].item_highlight = 0	
+	area_damage_spell[e].highlight_icon = "imagebank\\icons\\pickup.png"
 	area_damage_spell[e].cast_timeout = 0	
 	status[e] = "init"
 	tEnt[e] = 0
@@ -82,37 +90,49 @@ function area_damage_spell_init(e)
 	tplayerlevel[e] = 0
 	tlevelrequired[e] = 0
 	played[e] = 0
+	hl_icon[e] = 0
+	hl_imgwidth[e] = 0
+	hl_imgheight[e] = 0
 end
 
 function area_damage_spell_main(e)
 
-	-- get particles for spell effects
-	if area_damage_spell[e].particle1_number == 0 and area_damage_spell[e].particle1_name ~= "" then
-		for n = 1, g_EntityElementMax do
-			if n ~= nil and g_Entity[n] ~= nil then
-				if lower(GetEntityName(n)) == area_damage_spell[e].particle1_name then
-					area_damage_spell[e].particle1_number = n
-					SetPosition(n,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
-					Hide(n)
-					break
-				end
-			end
-		end
-	end
-	if area_damage_spell[e].particle2_number == 0 and area_damage_spell[e].particle2_name ~= "" then
-		for m = 1, g_EntityElementMax do
-			if m ~= nil and g_Entity[m] ~= nil then
-				if lower(GetEntityName(m)) == area_damage_spell[e].particle2_name then
-					area_damage_spell[e].particle2_number = m
-					SetPosition(m,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
-					Hide(m)
-					break
-				end
-			end
-		end
-	end
 	-- handle states
 	if status[e] == "init" then
+		if area_damage_spell[e].item_highlight == 3 and area_damage_spell[e].highlight_icon ~= "" then
+			hl_icon[e] = CreateSprite(LoadImage(area_damage_spell[e].highlight_icon))
+			hl_imgwidth[e] = GetImageWidth(LoadImage(area_damage_spell[e].highlight_icon))
+			hl_imgheight[e] = GetImageHeight(LoadImage(area_damage_spell[e].highlight_icon))
+			SetSpriteSize(hl_icon[e],-1,-1)
+			SetSpriteDepth(hl_icon[e],100)
+			SetSpriteOffset(hl_icon[e],hl_imgwidth[e]/2.0, hl_imgheight[e]/2.0)
+			SetSpritePosition(hl_icon[e],500,500)
+		end	
+		-- get particles for spell effects
+		if area_damage_spell[e].particle1_number == 0 and area_damage_spell[e].particle1_name ~= "" then
+			for n = 1, g_EntityElementMax do
+				if n ~= nil and g_Entity[n] ~= nil then
+					if lower(GetEntityName(n)) == area_damage_spell[e].particle1_name then
+						area_damage_spell[e].particle1_number = n
+						SetPosition(n,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
+						Hide(n)
+						break
+					end
+				end
+			end
+		end
+		if area_damage_spell[e].particle2_number == 0 and area_damage_spell[e].particle2_name ~= "" then
+			for m = 1, g_EntityElementMax do
+				if m ~= nil and g_Entity[m] ~= nil then
+					if lower(GetEntityName(m)) == area_damage_spell[e].particle2_name then
+						area_damage_spell[e].particle2_number = m
+						SetPosition(m,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
+						Hide(m)
+						break
+					end
+				end
+			end
+		end	
 		tplayerlevel[e] = 0
 		tlevelrequired[e] = area_damage_spell[e].player_level
 		cradius[e] = 100.0 - area_damage_spell[e].cast_radius
@@ -122,16 +142,17 @@ function area_damage_spell_main(e)
 		local PlayerDist = GetPlayerDistance(e)
 		if PlayerDist < area_damage_spell[e].pickup_range then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,area_damage_spell[e].pickup_range,area_damage_spell[e].item_highlight)
+			module_misclib.pinpoint(e,area_damage_spell[e].pickup_range,area_damage_spell[e].item_highlight,hl_icon[e])
 			tEnt[e] = g_tEnt
 			--end pinpoint select object--	
 		end	
-		if PlayerDist < area_damage_spell[e].pickup_range and tEnt[e] ~= 0 then
+		if PlayerDist < area_damage_spell[e].pickup_range and tEnt[e] == e then
 			if GetEntityCollectable(e) == 1 then
 				if GetEntityCollected(e) == 0 then
 					PromptDuration(area_damage_spell[e].prompt_text,1000)
 					if g_KeyPressE == 1 then
 						SetEntityCollected(e,1)
+						PlayNon3DSound(e,0)
 						status[e] = "have_spell"
 					end
 				end
@@ -223,7 +244,7 @@ function area_damage_spell_main(e)
 				PromptDuration(area_damage_spell[e].useage_text,2000)
 				area_damage_spell[e].cast_timeout = Timer()
 				if played[e] == 0 then
-					PlaySound(e,0)
+					PlaySound(e,1)
 					played[e] = 1
 				end
 			else
@@ -231,7 +252,7 @@ function area_damage_spell_main(e)
 				PromptDuration("Not enough mana",2000)
 				SetEntityUsed(e,0)
 				if played[e] == 0 then
-					PlaySound(e,1)
+					PlaySound(e,2)
 					played[e] = 1
 				end
 			end

@@ -43,6 +43,7 @@ function navbar_objective_init_name(e,name)
 	g_navigation_entity[e].entity_name = ""
 	g_navigation_entity[e].tname = name
 	entity_no[e] = 0
+	SetEntityAlwaysActive(e,1)
 end 
 
 function navbar_objective_main(e)

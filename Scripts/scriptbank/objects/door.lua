@@ -56,7 +56,8 @@ function door_init(e)
 	door_pressed[e] = 0
 	tEnt[e] = 0
 	autodelay[e] = math.huge
-	selectobj[e] = 0	
+	selectobj[e] = 0
+	SetEntityAlwaysActive(e,1)	
 end
 
 function door_main(e)
@@ -99,7 +100,7 @@ function door_main(e)
 			module_misclib.pinpoint(e,nRange,0)
 			tEnt[e] = g_tEnt
 			--end pinpoint select object--	
-			if PlayerDist < nRange and GetEntityVisibility(e) == 1 and tEnt[e] ~= 0 then
+			if PlayerDist < nRange and GetEntityVisibility(e) == 1 and tEnt[e] == e then
 				if g_Entity[e]['haskey'] ~= 1 then
 					if door[e]['prompt_display'] == 1 then TextCenterOnX(50,52,1,door[e]['lockedtext']) end
 					if door[e]['prompt_display'] == 2 then Prompt(door[e]['lockedtext']) end					

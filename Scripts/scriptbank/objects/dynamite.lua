@@ -252,10 +252,25 @@ function dynamite_main(e)
 	if g_Entity[e].activated == 1 and dynamite_armed[e] == 1 then
 		SetEntityHealth(e,0)
 		MakeAISound(g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ,dynamite[e].enemy_hear_distance,1,e)
+		for ee = 1, g_EntityElementMax, 1 do
+			if e ~= ee then
+				if g_Entity[ee] ~= nil and math.ceil(GetFlatDistance(ee,e)) <= dynamite[e].player_safe_distance then
+					SetEntityHealth(ee,0)
+				end
+			end
+		end
 	end
 
 	if g_KeyPressE == 0 then
 		timer_running[e] = 0
 		pressed[e] = 0
+	end
+end
+
+function GetFlatDistance(e,v)
+	if g_Entity[e] ~= nil and g_Entity[v] ~= nil then
+		local distDX = g_Entity[e]['x'] - g_Entity[v]['x']
+		local distDZ = g_Entity[e]['z'] - g_Entity[v]['z']
+		return math.sqrt((distDX*distDX)+(distDZ*distDZ));
 	end
 end

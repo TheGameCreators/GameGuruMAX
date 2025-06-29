@@ -108,6 +108,7 @@ function door_sliding_init( e )
 	tEnt[e] = 0
 	g_tEnt = 0	
 	selectobj[e] = 0
+	SetEntityAlwaysActive(e,1)
 	------------------------------------------------------
 	local door = g_door_sliding[ e ]
 	door.obj = g_Entity[ e ].obj

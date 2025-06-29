@@ -29,6 +29,7 @@ function oneway_door_init_name( e, name )
 	names[ e ] = name
 	oneway_door[e] = g_Entity[e]
 	oneway_door[e].close_delay = 3
+	SetEntityAlwaysActive(e,1)
 end
 
 local timeLastFrame = nil

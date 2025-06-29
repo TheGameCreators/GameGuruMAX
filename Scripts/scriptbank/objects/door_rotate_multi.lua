@@ -52,6 +52,7 @@ function door_rotate_multi_init( e )
 	controlEnt[e] = nil
 	tEnt[e] = 0
 	selectobj[e] = 0
+	SetEntityAlwaysActive(e,1)
 end
 
 function door_rotate_multi_main( e )

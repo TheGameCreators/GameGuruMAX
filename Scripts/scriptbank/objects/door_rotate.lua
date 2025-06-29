@@ -86,6 +86,7 @@ function door_rotate_init_name( e, name )
 					      }
 	tEnt[e] = 0
 	selectobj[e] = 0
+	SetEntityAlwaysActive(e,1)
 end
 
 function door_rotate_main(e)

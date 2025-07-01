@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Boat v20 by Necrym59
+-- Boat v21 by Necrym59
 -- DESCRIPTION: Creates a rideable boat object behavior: Set Physics=ON, Gravity=OFF, IsImobile=YES.
 -- DESCRIPTION: [PROMPT_TEXT$="E to embark"]
 -- DESCRIPTION: [USE_RANGE=80]
@@ -14,11 +14,16 @@
 -- DESCRIPTION: [BOAT_POWER=5(0,50)]
 -- DESCRIPTION: [BOAT_BRAKE=5(0,50)]
 -- DESCRIPTION: [BOAT_BUOYANCY=1(0,5)]
+-- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline,3=Icon)]
+-- DESCRIPTION: [HIGHLIGHT_ICON_IMAGEFILE$="imagebank\\icons\\hand.png"]
 -- DESCRIPTION: <Sound0> Entry/Exit 
 -- DESCRIPTION: <Sound1> Moving Loop
 -- DESCRIPTION: <Sound2> Run Aground
 
+local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
+g_tEnt = {}
 
 local boat 				= {}
 local prompt_text 		= {}
@@ -34,6 +39,9 @@ local boat_draft		= {}
 local boat_power		= {}
 local boat_brake		= {}
 local boat_buoyancy		= {}
+local prompt_display	= {}
+local item_highlight 	= {}
+local highlight_icon	= {}
 
 local playerdistance	= {}
 local boat_active = {}
@@ -52,8 +60,12 @@ local boatz = {}
 local speed = {}
 local wobble = {}
 local status = {}
+local tEnt = {}
+local hl_icon = {}
+local hl_imgwidth = {}
+local hl_imgheight = {}
 
-function boat_properties(e, prompt_text, use_range, min_speed, max_speed, turn_speed, drag, player_z_position, player_y_position, boat_rotation, boat_draft, boat_power, boat_brake, boat_buoyancy)
+function boat_properties(e, prompt_text, use_range, min_speed, max_speed, turn_speed, drag, player_z_position, player_y_position, boat_rotation, boat_draft, boat_power, boat_brake, boat_buoyancy, prompt_display, item_highlight, highlight_icon_imagefile)
 	boat[e].prompt_text = prompt_text
 	boat[e].use_range = use_range
 	boat[e].min_speed = min_speed
@@ -67,6 +79,9 @@ function boat_properties(e, prompt_text, use_range, min_speed, max_speed, turn_s
 	boat[e].boat_power = boat_power
 	boat[e].boat_brake = boat_brake
 	boat[e].boat_buoyancy = boat_buoyancy or 1
+	boat[e].prompt_display = prompt_display
+	boat[e].item_highlight = item_highlight
+	boat[e].highlight_icon = highlight_icon_imagefile		
 end
 
 function boat_init(e)
@@ -84,6 +99,9 @@ function boat_init(e)
 	boat[e].boat_power = 5
 	boat[e].boat_brake = 5
 	boat[e].boat_buoyancy = 1
+	boat[e].prompt_display = 1
+	boat[e].item_highlight = 0
+	boat[e].highlight_icon = "imagebank\\icons\\hand.png"
 	
 	boat_active[e] = 0
 	boat_release[e] = 0
@@ -100,12 +118,26 @@ function boat_init(e)
 	wobble[e] = GetGamePlayerControlWobbleHeight()
 	heightTerrain[e] = 0
 	heightSurface[e] = 0
-	status[e] = 'init'
+	g_tEnt = 0
+	tEnt[e] = 0
+	status[e] = "init"
+	hl_icon[e] = 0
+	hl_imgwidth[e] = 0
+	hl_imgheight[e] = 0		
 end
 
 function boat_main(e)
 
 	if status[e] == 'init' then
+		if boat[e].item_highlight == 3 and boat[e].highlight_icon ~= "" then
+			hl_icon[e] = CreateSprite(LoadImage(boat[e].highlight_icon))
+			hl_imgwidth[e] = GetImageWidth(LoadImage(boat[e].highlight_icon))
+			hl_imgheight[e] = GetImageHeight(LoadImage(boat[e].highlight_icon))
+			SetSpriteSize(hl_icon[e],-1,-1)
+			SetSpriteDepth(hl_icon[e],100)
+			SetSpriteOffset(hl_icon[e],hl_imgwidth[e]/2.0, hl_imgheight[e]/2.0)
+			SetSpritePosition(hl_icon[e],500,500)
+		end	
 		local xmin, ymin, zmin, xmax, ymax, zmax = GetObjectColBox(g_Entity[e]['obj'])
 		local sx,sy,sz = GetObjectScales(g_Entity[e]['obj'])
 		boatlength[e] = ((zmax - zmin) * sz)/2
@@ -123,13 +155,22 @@ function boat_main(e)
 		playerdistance[e]=PlayerDist
 		onboatcheck[e]=IntersectAll(g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ+35,g_PlayerPosX,g_Entity[e].y+36,g_PlayerPosZ,0)
 		if onboatcheck[e] == g_Entity[e].obj or playerdistance[e] < boat[e].use_range and boat_active[e]==0 then
-			if boat_active[e]==0 then Prompt(boat[e].prompt_text) end
-			if g_KeyPressE==1 and boat_release[e]==0 and boat_active[e]==0 then
-				boat_active[e]=1
-				boat_release[e]=1
-				PlaySound(e,0)				
-				PromptDuration('Q to dismount',4000)				
+			--pinpoint select object--
+			module_misclib.pinpoint(e,boat[e].use_range,boat[e].item_highlight,hl_icon[e])
+			tEnt[e] = g_tEnt
+			--end pinpoint select object--		
+			if boat_active[e]==0 and tEnt[e] == e then
+				if boat[e].prompt_display == 1 then TextCenterOnX(50,54,1,boat[e].prompt_text) end
+				if boat[e].prompt_display == 2 then Prompt(boat[e].prompt_text) end	
 			end
+			if tEnt[e] == e then
+				if g_KeyPressE==1 and boat_release[e]==0 and boat_active[e]==0 then
+					boat_active[e]=1
+					boat_release[e]=1
+					PlaySound(e,0)
+					PromptDuration('Q to dismount',3000)				
+				end
+			end	
 		end
 
 		if boat_active[e]==0 then
@@ -157,6 +198,7 @@ function boat_main(e)
 			CollisionOn(e)
 			StopSound(e,1)
 		end
+		
 		if boat_active[e]==1 then	
 			SetGamePlayerControlWobbleHeight(0)
 			local nfloatheight = boat[e].boat_buoyancy/5
@@ -216,7 +258,7 @@ function boat_main(e)
 				--Collision Check--------------------------------------------------------------------------
 				local ex,ey,ez,eax,eay,eaz = GetEntityPosAng(e)
 				local ox,oy,oz = U.Rotate3D(0,0,boatlength[e],0,math.rad(eay),0)
-				colobj[e] = IntersectAllIncludeTerrain(ex,ey,ez,ex+ox,ey+oy,ez+oz,g_Entity[e].obj,0,0,1,0)				
+				colobj[e] = IntersectAllIncludeTerrain(ex,ey,ez,ex+ox,ey+oy,ez+oz,g_Entity[e].obj,0,0,10,0)				
 				if colobj[e] > 0 or colobj[e] == -1 then
 					SetFreezePosition(freezex,(g_Entity[e].y + 40),freezez)
 					TransportToFreezePosition()

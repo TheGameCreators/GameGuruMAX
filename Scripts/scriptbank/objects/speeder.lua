@@ -1,10 +1,10 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Speeder v16 by Necrym59 and smallg
+-- Speeder v17 by Necrym59 and smallg
 -- DESCRIPTION: Will create a speeder vehicle object. Set IsImmobile ON.
 -- DESCRIPTION: [PROMPT_TEXT$="E to mount speeder"]
 -- DESCRIPTION: [ENTER_RANGE=150]
 -- DESCRIPTION: [ENTER_ANGLE=35]
--- DESCRIPTION: [PLAYER_XZ_ADJUSTMENT=-8(-100,100)]
+-- DESCRIPTION: [PLAYER_Z_ADJUSTMENT=-8(-500,500)]
 -- DESCRIPTION: [PLAYER_Y_ADJUSTMENT=40(0,100)]
 -- DESCRIPTION: [PLAYER_ANGLE_ADJUSTMENT=0(0,360)]
 -- DESCRIPTION: [#MAXIMUM_SPEED=30.00(1.00,100.00)]
@@ -19,6 +19,7 @@
 -- DESCRIPTION: [USE_TEXT$="WASD-drive, SPACE-Brake, /-Radio"]
 -- DESCRIPTION: [@@VEHICLE_HUD$="In-Game HUD"(0=hudscreenlist)] eg; In-Game HUD 2
 -- DESCRIPTION: [LOCK_PLAYER!=0]
+-- DESCRIPTION: [VEHICLE_UNLOCKED!=1] If set off is locked and requires key 
 -- DESCRIPTION: <Sound0> Moving
 -- DESCRIPTION: <Sound1> Idle Loop
 -- DESCRIPTION: <Sound2> Impact
@@ -31,7 +32,7 @@ local speeder = {}
 local prompt_text = {}
 local enter_range = {}
 local enter_angle = {}
-local player_xz_adjustment = {}
+local player_z_adjustment = {}
 local player_y_adjustment = {}
 local player_angle_adjustment = {}
 local maximum_speed = {}
@@ -44,8 +45,9 @@ local impact_angle = {}
 local speeder_health = {}
 local maximum_slope = {}
 local use_text = {}
-local lock_player = {}
 local vehicle_hud = {}
+local lock_player = {}
+local vehicle_unlocked = {}
 
 local old_health = {}
 local pos_x = {}
@@ -66,11 +68,11 @@ local tEnt = {}
 local underwater = {}
 local hudonce = {}
 
-function speeder_properties(e, prompt_text, enter_range, enter_angle, player_xz_adjustment, player_y_adjustment, player_angle_adjustment, maximum_speed, minimum_speed, turn_speed, acceleration, decceleration, impact_range, impact_angle, speeder_health, maximum_slope, use_text, vehicle_hud, lock_player)
+function speeder_properties(e, prompt_text, enter_range, enter_angle, player_z_adjustment, player_y_adjustment, player_angle_adjustment, maximum_speed, minimum_speed, turn_speed, acceleration, decceleration, impact_range, impact_angle, speeder_health, maximum_slope, use_text, vehicle_hud, lock_player, vehicle_unlocked)
 	speeder[e].prompt_text = prompt_text
 	speeder[e].enter_range = enter_range
 	speeder[e].enter_angle = enter_angle
-	speeder[e].player_xz_adjustment = player_xz_adjustment
+	speeder[e].player_z_adjustment = player_z_adjustment
 	speeder[e].player_y_adjustment = player_y_adjustment
 	speeder[e].player_angle_adjustment = player_angle_adjustment
 	speeder[e].maximum_speed = maximum_speed
@@ -84,7 +86,8 @@ function speeder_properties(e, prompt_text, enter_range, enter_angle, player_xz_
 	speeder[e].maximum_slope = maximum_slope
 	speeder[e].use_text	= use_text
 	speeder[e].vehicle_hud = vehicle_hud
-	speeder[e].lock_player = lock_player or 0	
+	speeder[e].lock_player = lock_player or 0
+	speeder[e].vehicle_unlocked	= vehicle_unlocked or 1
 end
 
 function speeder_init(e)
@@ -92,7 +95,7 @@ function speeder_init(e)
 	speeder[e].prompt_text = "E to mount speeder"	
 	speeder[e].enter_range = 150
 	speeder[e].enter_angle = 35
-	speeder[e].player_xz_adjustment = -8
+	speeder[e].player_z_adjustment = -8
 	speeder[e].player_y_adjustment = 40
 	speeder[e].player_angle_adjustment = 0
 	speeder[e].maximum_speed = 150
@@ -106,7 +109,8 @@ function speeder_init(e)
 	speeder[e].maximum_slope = 19
 	speeder[e].use_text	= "WASD-drive, SPACE-Brake, /-Radio"
 	speeder[e].vehicle_hud = "In-Game HUD"	
-	speeder[e].lock_player = 0	
+	speeder[e].lock_player = 0
+	speeder[e].vehicle_unlocked	= 1
 
 	status[e] = "init"
 	speed[e] = 0
@@ -134,6 +138,12 @@ function speeder_main(e)
 		keypause[e] = g_Time + 1000
 		shealth[e] = speeder[e].speeder_health
 		status[e] = "wait"
+	end
+	
+	if speeder[e].vehicle_unlocked == 1 then
+		speeder[e].vehicle_unlocked = 0
+		SetEntityHasKey(e,1)
+		g_Entity[e]['haskey'] = 1
 	end
 	
 	if status[e] == "wait" then 
@@ -170,17 +180,21 @@ function speeder_exit(e)
 end 
 
 function GetInspeeder(e)
+
 	if PlayerLooking(e,speeder[e].enter_range,speeder[e].enter_angle) == 1 then
 		if shealth[e] <= 0 then	PromptLocal(e," Vehicle inoperative") end
 		if shealth[e] > 0 then PromptLocal(e,speeder[e].prompt_text) end
-		if g_KeyPressE == 1 and vpressed[e] == 0 and shealth[e] > 0 then 
+		if g_KeyPressE == 1 and g_Entity[e]['haskey'] == 0 then
+			PromptLocal(e,"Locked - Need a key")
+		end
+		if g_KeyPressE == 1 and vpressed[e] == 0 and shealth[e] > 0 and g_Entity[e]['haskey'] == 1 then 
 			vpressed[e] = 1
 			speed[e] = 0			
 			old_health[e] = g_PlayerHealth
 			SetEntityHealth(e,shealth[e])
 			new_y = math.rad(g_Entity[e]['angley'])
-			pos_x[e] = g_Entity[e]['x'] + (math.sin(new_y) * speeder[e].player_xz_adjustment)
-			pos_z[e] = g_Entity[e]['z'] + (math.cos(new_y) * speeder[e].player_xz_adjustment)
+			pos_x[e] = g_Entity[e]['x'] + (math.sin(new_y) * speeder[e].player_z_adjustment)
+			pos_z[e] = g_Entity[e]['z'] + (math.cos(new_y) * speeder[e].player_z_adjustment)
 			SetFreezePosition(pos_x[e],g_Entity[e]['y']+speeder[e].player_y_adjustment,pos_z[e])				
 			SetFreezeAngle(g_Entity[e]['anglex'],g_Entity[e]['angley']+speeder[e].player_angle_adjustment,g_Entity[e]['anglez'])
 			TransportToFreezePosition()
@@ -214,8 +228,8 @@ end
 
 function UpdatePlayerPosition(e)
 	new_y = math.rad(g_Entity[e]['angley'])
-	plrpos_x[e] = g_Entity[e]['x'] + (math.sin(new_y) * speeder[e].player_xz_adjustment)
-	plrpos_z[e] = g_Entity[e]['z'] + (math.cos(new_y) * speeder[e].player_xz_adjustment)
+	plrpos_x[e] = g_Entity[e]['x'] + (math.sin(new_y) * speeder[e].player_z_adjustment)
+	plrpos_z[e] = g_Entity[e]['z'] + (math.cos(new_y) * speeder[e].player_z_adjustment)
 	plrpos_y[e] = g_Entity[e]['y']
 	if speeder[e].lock_player == 0 then 
 		SetCameraPosition(0,plrpos_x[e],pos_y[e]+speeder[e].player_y_adjustment,plrpos_z[e])
@@ -373,7 +387,7 @@ function GetOutspeeder(e)
 		SetPlayerHealth(old_health[e])
 		status[e] = "wait" 
 		if hudonce[e] == 1 then
-			ScreenToggle("In-Game HUD")
+			ScreenToggle("")
 			g_liveHudScreen = 0
 			hudonce[e] = 0
 		end

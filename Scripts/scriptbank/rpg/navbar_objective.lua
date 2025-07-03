@@ -1,4 +1,4 @@
--- Navigation Bar Objective v10 by Smallg and Necrym59
+-- Navigation Bar Objective v12 by Smallg and Necrym59
 -- DESCRIPTION: Adds the entity to the Navigation Bar.
 -- DESCRIPTION: [IMAGEFILE$="imagebank\\navbar\\objective.png"] icon for the navigation bar.
 -- DESCRIPTION: [FIXEDSIZE!=0] if 1 will scale icon with the distance

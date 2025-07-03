@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Speeder v15 by Necrym59 and smallg
+-- Speeder v16 by Necrym59 and smallg
 -- DESCRIPTION: Will create a speeder vehicle object. Set IsImmobile ON.
 -- DESCRIPTION: [PROMPT_TEXT$="E to mount speeder"]
 -- DESCRIPTION: [ENTER_RANGE=150]
@@ -17,6 +17,7 @@
 -- DESCRIPTION: [SPEEDER_HEALTH=1000(100,1000)]
 -- DESCRIPTION: [MAXIMUM_SLOPE=19(1,100)]
 -- DESCRIPTION: [USE_TEXT$="WASD-drive, SPACE-Brake, /-Radio"]
+-- DESCRIPTION: [@@VEHICLE_HUD$="In-Game HUD"(0=hudscreenlist)] eg; In-Game HUD 2
 -- DESCRIPTION: [LOCK_PLAYER!=0]
 -- DESCRIPTION: <Sound0> Moving
 -- DESCRIPTION: <Sound1> Idle Loop
@@ -43,6 +44,8 @@ local impact_angle = {}
 local speeder_health = {}
 local maximum_slope = {}
 local use_text = {}
+local lock_player = {}
+local vehicle_hud = {}
 
 local old_health = {}
 local pos_x = {}
@@ -61,8 +64,9 @@ local radioswitch = {}
 local oldy = {}
 local tEnt = {}
 local underwater = {}
+local hudonce = {}
 
-function speeder_properties(e, prompt_text, enter_range, enter_angle, player_xz_adjustment, player_y_adjustment, player_angle_adjustment, maximum_speed, minimum_speed, turn_speed, acceleration, decceleration, impact_range, impact_angle, speeder_health, maximum_slope, use_text, lock_player)
+function speeder_properties(e, prompt_text, enter_range, enter_angle, player_xz_adjustment, player_y_adjustment, player_angle_adjustment, maximum_speed, minimum_speed, turn_speed, acceleration, decceleration, impact_range, impact_angle, speeder_health, maximum_slope, use_text, vehicle_hud, lock_player)
 	speeder[e].prompt_text = prompt_text
 	speeder[e].enter_range = enter_range
 	speeder[e].enter_angle = enter_angle
@@ -79,7 +83,8 @@ function speeder_properties(e, prompt_text, enter_range, enter_angle, player_xz_
 	speeder[e].speeder_health = speeder_health
 	speeder[e].maximum_slope = maximum_slope
 	speeder[e].use_text	= use_text
-	speeder[e].lock_player = lock_player or 0
+	speeder[e].vehicle_hud = vehicle_hud
+	speeder[e].lock_player = lock_player or 0	
 end
 
 function speeder_init(e)
@@ -100,7 +105,8 @@ function speeder_init(e)
 	speeder[e].speeder_health = 1000
 	speeder[e].maximum_slope = 19
 	speeder[e].use_text	= "WASD-drive, SPACE-Brake, /-Radio"
-	speeder[e].lock_player = 0 	
+	speeder[e].vehicle_hud = "In-Game HUD"	
+	speeder[e].lock_player = 0	
 
 	status[e] = "init"
 	speed[e] = 0
@@ -119,6 +125,7 @@ function speeder_init(e)
 	radioswitch[e] = "Off"
 	oldy[e] = 0 
 	tEnt[e] = 0
+	hudonce[e] = 0
 end 
 
 function speeder_main(e)
@@ -182,6 +189,14 @@ function GetInspeeder(e)
 			ChangePlayerWeaponID(0)
 			LoopSound(e,1) -- idle sound
 			StopSound(e,0)
+			if hudonce[e] == 0 and speeder[e].vehicle_hud ~= "" then
+				ScreenToggle(speeder[e].vehicle_hud)
+				g_liveHudScreen = 1
+				hudonce[e] = 1
+			else
+				ScreenToggle("In-Game HUD")
+				hudonce[e] = 0
+			end
 			status[e] = "drive"
 		end 
 	end 
@@ -357,6 +372,11 @@ function GetOutspeeder(e)
 		radioswitch[e] = "Off"		
 		SetPlayerHealth(old_health[e])
 		status[e] = "wait" 
+		if hudonce[e] == 1 then
+			ScreenToggle("In-Game HUD")
+			g_liveHudScreen = 0
+			hudonce[e] = 0
+		end
 	end 
 end
 

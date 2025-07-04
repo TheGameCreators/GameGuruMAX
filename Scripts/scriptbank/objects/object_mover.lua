@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Object Mover v7 by Necrym59
+-- Object Mover v8 by Necrym59
 -- DESCRIPTION: This will move an object by a specified amount either by player or a switch/zone and can be used as a switch for activating other objects or game elements. Set Physics=ON, Always Active = ON, IsImobile=ON
 -- DESCRIPTION: [PROMPT_TEXT$ = "E to move"]
 -- DESCRIPTION: [USE_RANGE=90(1,500)]
@@ -7,26 +7,26 @@
 -- DESCRIPTION: [MOVEMENT=100(1,500)]
 -- DESCRIPTION: [@USE_AS_SWITCH=1(1=No, 2=Yes)]
 -- DESCRIPTION: [MULTI_USE!=0]
--- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)] Use emmisive color for shape option
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline,3=Icon)]
+-- DESCRIPTION: [HIGHLIGHT_ICON_IMAGEFILE$="imagebank\\icons\\hand.png"]
 -- DESCRIPTION: <Sound0> Loop when used
 -- DESCRIPTION: <Sound1> Plays when finished
 
-local U = require "scriptbank\\utillib"
 local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
 g_tEnt = {}
 
-local objectmover 	= {}
-local prompt_text 	= {}
-local use_range 	= {}
-local movement_type = {}
-local movement 		= {}
-local status 		= {}
-local use_as_switch	= {}
-local multi_use		= {}
-local item_highlight= {}
-local prompt_display = {}
+local objectmover 		= {}
+local prompt_text 		= {}
+local use_range 		= {}
+local movement_type 	= {}
+local movement 			= {}
+local use_as_switch		= {}
+local multi_use			= {}
+local prompt_display	= {}
+local item_highlight	= {}
+local highlight_icon	= {}
 
 local objrotval 	= {}
 local objpushval 	= {}
@@ -38,16 +38,21 @@ local pressed		= {}
 local rotatedx		= {}
 local rotatedy		= {}
 local rotatedz		= {}
+local status 		= {}
+local hl_icon		= {}
+local hl_imgwidth	= {}
+local hl_imgheight	= {}
 
-function object_mover_properties(e, prompt_text, use_range, movement_type, movement, use_as_switch, multi_use, item_highlight, prompt_display)
+function object_mover_properties(e, prompt_text, use_range, movement_type, movement, use_as_switch, multi_use, prompt_display, item_highlight, highlight_icon_imagefile)
 	objectmover[e].prompt_text = prompt_text
 	objectmover[e].use_range = use_range
 	objectmover[e].movement_type = movement_type
 	objectmover[e].movement = movement
 	objectmover[e].use_as_switch = use_as_switch or 2
 	objectmover[e].multi_use = multi_use or 0
-	objectmover[e].item_highlight = item_highlight or 0
 	objectmover[e].prompt_display = prompt_display or 1
+	objectmover[e].item_highlight = item_highlight or 0
+	objectmover[e].highlight_icon = highlight_icon_imagefile
 end 
 
 function object_mover_init(e)
@@ -58,10 +63,10 @@ function object_mover_init(e)
 	objectmover[e].movement = 30
 	objectmover[e].use_as_switch = 1
 	objectmover[e].multi_use = 0
+	objectmover[e].prompt_display = 1
 	objectmover[e].item_highlight = 0
-	objectmover[e].prompt_display =	1
+	objectmover[e].highlight_icon = "imagebank\\icons\\hand.png"	
 	
-	status[e] = "waiting"
 	objrotval[e] = 0
 	objpushval[e] = 0
 	objpullval[e] = 0
@@ -72,28 +77,42 @@ function object_mover_init(e)
 	selectobj[e] = 0
 	rotatedx[e] = 0
 	rotatedy[e] = 0
-	rotatedz[e] = 0	
+	rotatedz[e] = 0
+	status[e] = "init"
+	hl_icon[e] = 0
+	hl_imgwidth[e] = 0
+	hl_imgheight[e] = 0	
 end
 
 function object_mover_main(e)
 
+	if status[e] == "init" then
+		if objectmover[e].item_highlight == 3 and objectmover[e].highlight_icon ~= "" then
+			hl_icon[e] = CreateSprite(LoadImage(objectmover[e].highlight_icon))
+			hl_imgwidth[e] = GetImageWidth(LoadImage(objectmover[e].highlight_icon))
+			hl_imgheight[e] = GetImageHeight(LoadImage(objectmover[e].highlight_icon))
+			SetSpriteSize(hl_icon[e],-1,-1)
+			SetSpriteDepth(hl_icon[e],100)
+			SetSpriteOffset(hl_icon[e],hl_imgwidth[e]/2.0, hl_imgheight[e]/2.0)
+			SetSpritePosition(hl_icon[e],500,500)
+		end
+		status[e] = "waiting"
+	end
+
 	local PlayerDist = GetPlayerDistance(e)	
-	if PlayerDist < objectmover[e].use_range then
+	if PlayerDist < objectmover[e].use_range and status[e] == "waiting" then
 		--pinpoint select object--
-		module_misclib.pinpoint(e,objectmover[e].use_range,objectmover[e].item_highlight)
+		module_misclib.pinpoint(e,objectmover[e].use_range,objectmover[e].item_highlight,hl_icon[e])
 		tEnt[e] = g_tEnt
 		--end pinpoint select object--	
-	end
-	
-	if PlayerDist < objectmover[e].use_range and tEnt[e] ~= 0 then
-		if status[e] == "waiting" then  
-			if objectmover[e].prompt_display == 1 then PromptLocal(e,objectmover[e].prompt_text) end
+		if PlayerDist < objectmover[e].use_range and tEnt[e] == e then			
+			if objectmover[e].prompt_display == 1 then TextCenterOnX(50,54,1,objectmover[e].prompt_text) end
 			if objectmover[e].prompt_display == 2 then Prompt(objectmover[e].prompt_text) end	
 			if g_KeyPressE == 1 and pressed[e] == 0	then
 				pressed[e] = 1
 				status[e] = "moving" 
 			end			
-		end
+		end	
 	end
 			
 	if g_Entity[e].activated == 1 or pressed[e] == 1 then							

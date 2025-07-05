@@ -1,6 +1,7 @@
--- One way Door v5 by Necrym59 and Lee
+-- One way Door v6 by Necrym59 and Lee
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- DESCRIPTION: Rotates a non-animating door when player interacts with it. When door is opened, will close and lock permanently after a few seconds delay or when closed.
+-- DESCRIPTION: Rotates a non-animating door when player interacts with it. When door is opened, will close after a few seconds delay.
+-- DESCRIPTION: Can be locked permanently after closing by activation via a switch or zone.
 -- DESCRIPTION: [USE_RANGE=80(1,150)]
 -- DESCRIPTION: [USE_PROMPT$="Press E to open door"]
 -- DESCRIPTION: [CLOSE_DELAY=2(0,30)]
@@ -35,6 +36,7 @@ local hl_imgheight	= {}
 local timeLastFrame = nil
 local timeDiff      = 1
 local controlEnt    = nil
+local beenopened	= {}
 
 function oneway_door_properties(e, use_range, use_prompt, close_delay, close_speed, prompt_display, item_highlight, highlight_icon_imagefile)
 	oneway_door[e].use_range = use_range
@@ -57,6 +59,7 @@ function oneway_door_init_name(e,name)
 	oneway_door[e].highlight_icon = "imagebank\\icons\\hand.png"
 	names[e] = name	
 	
+	beenopened[e] = 0
 	status[e] = "init"
 	tEnt[e] = 0
 	hl_icon[e] = 0
@@ -132,7 +135,8 @@ function oneway_door_main(e)
 						PerformLogicConnections(e)
 						door.state = 'Knob'
 						door.timer = timeThisFrame + 500
-						keyPressed = true
+						keyPressed = true				
+						beenopened[e] = 1
 					end
 				else
 					keyPressed = false
@@ -156,7 +160,7 @@ function oneway_door_main(e)
 	if oneway_door[e].close_delay > 0 then
 		if door.state == 'Open' and GetTimer(e) > oneway_door[e].close_delay*1000 then	
 			g_KeyPressE = 1
-			door.state = 'Closing' 
+			door.state = 'Closing'
 			keyPressed = true			
 		end
 	end
@@ -193,9 +197,13 @@ function oneway_door_main(e)
 			CollisionOn(e)
 		else
 			PlaySound(e,1)
-			door.state = 'Locked'
+			door.state = 'Closed'
 			door.blocking = 1
 		end
+	end
+
+	if g_Entity[e].activated == 1 and door.state == 'Closed' and beenopened[e] == 1 then
+		door.state = 'Locked'
 	end	
 
 	-- navmesh blocker system

@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- vendoror v21 by Necrym59
+-- vendoror v22 by Necrym59
 -- DESCRIPTION: Allows to use this object as a vendor to give the player the selected item.
 -- DESCRIPTION: [PROMPT_TEXT$="E to dispense item"]
 -- DESCRIPTION: [PROMPT_RANGE=90(0,100)]
@@ -10,18 +10,24 @@
 -- DESCRIPTION: [VENDORED_ENTITY_LIFESPAN=1(0,100)] Minutes (0=Eternal)
 -- DESCRIPTION: [VENDORED_ENTITY_NAME$=""]
 -- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] User Global for payment (eg; MyMoney)
--- DESCRIPTION: [@WHEN_EMPTY=1(1=Nothing, 2=Destroy Vendor, 3=Event Triggers, 4=Lose Game, 5=Win Game)]
+-- DESCRIPTION: [@WHEN_EMPTY=1(1=Nothing, 2=Destroy Vendor, 3=Trigger, 4=Lose Game, 5=Win Game)]
 -- DESCRIPTION: [VENDING_DELAY=0(0,100)] in seconds
 -- DESCRIPTION: [VENDING_FORCE=0(0,100)] forced in the angle of the vended object
+-- DESCRIPTION: [@VENDING_ACTIVATION=1(1=Local Trigger,2=External Trigger)]
+-- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline,3=Icon)]
+-- DESCRIPTION: [HIGHLIGHT_ICON_IMAGEFILE$="imagebank\\icons\\hand.png"]
 -- DESCRIPTION: <Sound0> Activation sound
 -- DESCRIPTION: <Sound1> Vending sound
 -- DESCRIPTION: <Sound2> Empty sounds
 
-local V = require "scriptbank\\vectlib"
+local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
-local lower = string.lower
-g_CloneEntityNo = {}
+local V = require "scriptbank\\vectlib"
+g_tEnt = {}
 
+g_CloneEntityNo = {}
+local lower = string.lower
 local vendor 					= {}
 local prompt_text 				= {}
 local prompt_range				= {}
@@ -36,6 +42,10 @@ local user_global_affected 		= {}
 local when_empty				= {}
 local vending_delay				= {}
 local vending_force				= {}
+local vending_activation		= {}
+local prompt_display			= {}
+local item_highlight			= {}
+local highlight_icon			= {}
 
 local origin_x		= {}
 local origin_y		= {}
@@ -43,6 +53,7 @@ local origin_z		= {}
 local objdestAngle	= {}
 local newEntn		= {}
 local cntEntn		= {}
+local tEnt			= {}
 local status		= {}
 local doonce		= {}
 local isempty		= {}
@@ -55,9 +66,12 @@ local eternal		= {}
 local currentvalue	= {}
 local wait			= {}
 local vdelay		= {}
+local hl_icon 		= {}
+local hl_imgwidth	= {}
+local hl_imgheight	= {}
 
 
-function vendor_properties(e, prompt_text, prompt_range, noise_range, vendor_animation, vendored_max_quantity, vendored_entity_cost, vendored_entity_lifespan, vendored_entity_name, user_global_affected, when_empty, vending_delay, vending_force)
+function vendor_properties(e, prompt_text, prompt_range, noise_range, vendor_animation, vendored_max_quantity, vendored_entity_cost, vendored_entity_lifespan, vendored_entity_name, user_global_affected, when_empty, vending_delay, vending_force, vending_activation, prompt_display, item_highlight, highlight_icon_imagefile)
 	vendor[e].prompt_text = prompt_text or ""
 	vendor[e].prompt_range = prompt_range
 	vendor[e].noise_range = noise_range
@@ -70,7 +84,10 @@ function vendor_properties(e, prompt_text, prompt_range, noise_range, vendor_ani
 	vendor[e].when_empty = when_empty
 	vendor[e].vending_delay = vending_delay or 0
 	vendor[e].vending_force = vending_force or 0
-	vendor[e].vendored_entity_no = 0
+	vendor[e].vending_activation = vending_activation or 1	
+	vendor[e].prompt_display = prompt_display
+	vendor[e].item_highlight = item_highlight
+	vendor[e].highlight_icon = highlight_icon_imagefile	
 end
 
 function vendor_init(e)
@@ -87,9 +104,15 @@ function vendor_init(e)
 	vendor[e].when_empty = 1
 	vendor[e].vending_delay = 0	
 	vendor[e].vending_force = 20
+	vendor[e].vending_activation = 1
+	vendor[e].prompt_display = 1
+	vendor[e].item_highlight = 0
+	vendor[e].highlight_icon = "imagebank\\icons\\hand.png"	
 	vendor[e].vendored_entity_no = 0	
 
 	status[e] = "init"
+	g_tEnt = 0
+	tEnt[e] = 0	
 	g_CloneEntityNo = 0	
 	newEntn[e] = 0
 	cntEntn[e] = 0
@@ -100,6 +123,9 @@ function vendor_init(e)
 	pressed[e] = 0
 	dispensed[e] = 0
 	isempty[e] = 0
+	hl_icon[e] = 0
+	hl_imgwidth[e] = 0
+	hl_imgheight[e] = 0	
 	currentvalue[e] = 0
 	tableName[e] = "vendlist" ..tostring(e)
 	_G[tableName[e]] = {}
@@ -109,7 +135,16 @@ end
 
 function vendor_main(e)
 
-	if status[e] == "init" then		
+	if status[e] == "init" then
+		if vendor[e].item_highlight == 3 and vendor[e].highlight_icon ~= "" then
+			hl_icon[e] = CreateSprite(LoadImage(vendor[e].highlight_icon))
+			hl_imgwidth[e] = GetImageWidth(LoadImage(vendor[e].highlight_icon))
+			hl_imgheight[e] = GetImageHeight(LoadImage(vendor[e].highlight_icon))
+			SetSpriteSize(hl_icon[e],-1,-1)
+			SetSpriteDepth(hl_icon[e],100)
+			SetSpriteOffset(hl_icon[e],hl_imgwidth[e]/2.0, hl_imgheight[e]/2.0)
+			SetSpritePosition(hl_icon[e],500,500)
+		end
 		if vendor[e].user_global_affected > "" then
 			if _G["g_UserGlobal['"..vendor[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..vendor[e].user_global_affected.."']"] end
 		end				
@@ -134,40 +169,91 @@ function vendor_main(e)
 	end
 
 	local PlayerDist = GetPlayerDistance(e)
+	
 	if status[e] == "vendor" then
 		if vendor[e].user_global_affected > "" then
 			if _G["g_UserGlobal['"..vendor[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..vendor[e].user_global_affected.."']"] end
 		end
 
-		if PlayerDist < vendor[e].prompt_range or g_Entity[e]['activated'] == 1 then
-			if dispensed[e] < vendor[e].vendored_max_quantity and PlayerDist < vendor[e].prompt_range then PromptLocal(e,vendor[e].prompt_text) end
-			if dispensed[e] == vendor[e].vendored_max_quantity and PlayerDist < vendor[e].prompt_range then PromptLocal(e,"") end			
-			if g_KeyPressE == 1 and currentvalue[e] < vendor[e].vendored_entity_cost then PromptLocal(e,"Insufficent Funds") end			
-			if currentvalue[e] >= vendor[e].vendored_entity_cost then				
-				if g_KeyPressE == 1 or g_Entity[e]['activated'] == 1 and pressed[e] == 0 then					
-					vdelay[e] = g_Time + (vendor[e].vending_delay*1000)				
-					SetAnimationName(e,vendor[e].vendor_animation)
-					PlayAnimation(e)
-					if dispensed[e] < vendor[e].vendored_max_quantity then						
-						PlaySound(e,0)
-						pressed[e] = 0
-						if vendor[e].user_global_affected > "" then
-							if _G["g_UserGlobal['"..vendor[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..vendor[e].user_global_affected.."']"] end
-							_G["g_UserGlobal['"..vendor[e].user_global_affected.."']"] = currentvalue[e] - vendor[e].vendored_entity_cost
-							status[e] = "vendored"
+		if PlayerDist < vendor[e].prompt_range then
+			--pinpoint select object--
+			module_misclib.pinpoint(e,vendor[e].pickup_range,vendor[e].item_highlight,hl_icon[e])
+			tEnt[e] = g_tEnt
+			--end pinpoint select object--
+		end
+		
+		if vendor[e].vending_activation == 1 then
+			if tEnt[e] == e and GetEntityVisibility(e) == 1 then
+				if vendor[e].prompt_display == 1 then
+					if dispensed[e] < vendor[e].vendored_max_quantity and PlayerDist < vendor[e].prompt_range then PromptLocal(e,vendor[e].prompt_text) end
+					if dispensed[e] == vendor[e].vendored_max_quantity and PlayerDist < vendor[e].prompt_range then PromptLocal(e,"") end			
+					if g_KeyPressE == 1 and currentvalue[e] < vendor[e].vendored_entity_cost then PromptLocal(e,"Insufficent Funds") end				
+				end
+				if vendor[e].prompt_display == 2 then
+					if dispensed[e] < vendor[e].vendored_max_quantity and PlayerDist < vendor[e].prompt_range then Prompt(vendor[e].prompt_text) end
+					if dispensed[e] == vendor[e].vendored_max_quantity and PlayerDist < vendor[e].prompt_range then Prompt("") end			
+					if g_KeyPressE == 1 and currentvalue[e] < vendor[e].vendored_entity_cost then Prompt("Insufficent Funds") end				
+				end			
+				if currentvalue[e] >= vendor[e].vendored_entity_cost then				
+					if g_KeyPressE == 1 or g_Entity[e]['activated'] == 1 and pressed[e] == 0 then					
+						vdelay[e] = g_Time + (vendor[e].vending_delay*1000)				
+						SetAnimationName(e,vendor[e].vendor_animation)
+						PlayAnimation(e)
+						if dispensed[e] < vendor[e].vendored_max_quantity then						
+							PlaySound(e,0)
+							pressed[e] = 0
+							if vendor[e].user_global_affected > "" then
+								if _G["g_UserGlobal['"..vendor[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..vendor[e].user_global_affected.."']"] end
+								_G["g_UserGlobal['"..vendor[e].user_global_affected.."']"] = currentvalue[e] - vendor[e].vendored_entity_cost
+								status[e] = "vendored"
+							end
+							if vendor[e].vendored_entity_cost == 0 then
+								status[e] = "vendored"							
+							end
 						end
-						if vendor[e].vendored_entity_cost == 0 then
-							status[e] = "vendored"							
+						if dispensed[e] == vendor[e].vendored_max_quantity then
+							PlaySound(e,2)
+							pressed[e] = 1
+							if vendor[e].prompt_display == 1 then PromptLocal(e,"Empty") end
+							if vendor[e].prompt_display == 2 then Prompt("Empty") end
+							status[e] = "vendor"
+						end	
+						if vendor[e].noise_range > 0 then MakeAISound(g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ,vendor[e].noise_range,1,e) end
+						SetActivated(e,0)
+					end				
+				end
+			end
+		end
+		if vendor[e].vending_activation == 2 then
+			if dispensed[e] < vendor[e].vendored_max_quantity then
+				if g_Entity[e]['activated'] == 1 and currentvalue[e] < vendor[e].vendored_entity_cost then Prompt(e,"Insufficent Funds") end			
+				if currentvalue[e] >= vendor[e].vendored_entity_cost then				
+					if g_Entity[e]['activated'] == 1 and pressed[e] == 0 then					
+						vdelay[e] = g_Time + (vendor[e].vending_delay*1000)				
+						SetAnimationName(e,vendor[e].vendor_animation)
+						PlayAnimation(e)
+						if dispensed[e] < vendor[e].vendored_max_quantity then						
+							PlaySound(e,0)
+							pressed[e] = 0
+							if vendor[e].user_global_affected > "" then
+								if _G["g_UserGlobal['"..vendor[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..vendor[e].user_global_affected.."']"] end
+								_G["g_UserGlobal['"..vendor[e].user_global_affected.."']"] = currentvalue[e] - vendor[e].vendored_entity_cost
+								status[e] = "vendored"
+							end
+							if vendor[e].vendored_entity_cost == 0 then
+								status[e] = "vendored"							
+							end
 						end
-					end
-					if dispensed[e] == vendor[e].vendored_max_quantity then
-						PlaySound(e,2)
-						pressed[e] = 1
-						status[e] = "vendor"
-					end	
-					if vendor[e].noise_range > 0 then MakeAISound(g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ,vendor[e].noise_range,1,e) end
-					SetActivated(e,0)
-				end				
+						if dispensed[e] == vendor[e].vendored_max_quantity then
+							PlaySound(e,2)
+							pressed[e] = 1
+							Prompt("Empty")	
+							status[e] = "vendor"
+						end	
+						if vendor[e].noise_range > 0 then MakeAISound(g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ,vendor[e].noise_range,1,e) end
+						SetActivated(e,0)
+					end				
+				end
 			end
 		end
 	end
@@ -197,7 +283,7 @@ function vendor_main(e)
 			end
 			if vendor[e].vendored_entity_lifespan == 0 then eternal[e] = 1 end
 			wait[e] = g_Time + 600
-			doonce[e] = 1
+			doonce[e] = 1			
 		end	
 		if g_Time > wait[e] then
 			status[e] = "vended"
@@ -239,8 +325,8 @@ function vendor_main(e)
 					WinGame()
 					isempty[e] = 1
 				end	
-			end				
-		end		
+			end
+		end
 		pressed[e] = 0
 		doonce[e] = 0		
 		status[e] = "vendor"

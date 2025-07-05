@@ -1,6 +1,6 @@
--- Direct Damage Spell v24
+-- Direct Damage Spell v25
 -- DESCRIPTION: When collected can be cast as a Direct Damage effect to the target.
--- DESCRIPTION: [PROMPT_TEXT$="E to collect Direct Damage Spell, T or RMB to target"]
+-- DESCRIPTION: [PROMPT_TEXT$="E to collect Direct Damage Spell, Use T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="Direct Damage Inflicted"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
 -- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] eg: MyMana
@@ -10,9 +10,12 @@
 -- DESCRIPTION: [PLAYER_LEVEL=0(0,100))] player level to be able use this spell
 -- DESCRIPTION: [PARTICLE1_NAME$=""] eg: SpellParticle1
 -- DESCRIPTION: [PARTICLE2_NAME$=""] eg: SpellParticle2
--- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
--- DESCRIPTION: <Sound0> when cast effect successful
--- DESCRIPTION: <Sound1> when cast effect unsuccessful
+-- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline,3=Icon)]
+-- DESCRIPTION: [HIGHLIGHT_ICON_IMAGEFILE$="imagebank\\icons\\pickup.png"]
+-- DESCRIPTION: <Sound0> pickup sound
+-- DESCRIPTION: <Sound1> when cast effect successful
+-- DESCRIPTION: <Sound2> when cast effect unsuccessful
 
 local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
@@ -31,7 +34,9 @@ local cast_radius 			= {}
 local player_level 			= {}
 local particle1_name 		= {}
 local particle2_name 		= {}
+local prompt_display		= {}
 local item_highlight 		= {}
+local highlight_icon 		= {}
 
 local cast_timeout 		= {}
 local tAllegiance 		= {}
@@ -46,10 +51,13 @@ local cradius 			= {}
 local tlevelrequired	= {}
 local tplayerlevel		= {}
 local played			= {}
+local hl_icon 			= {}
+local hl_imgwidth 		= {}
+local hl_imgheight 		= {}
 local casttarget 		= {}
 local entaffected 		= {}
 
-function direct_damage_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_damage, cast_radius, player_level, particle1_name, particle2_name, item_highlight)
+function direct_damage_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_damage, cast_radius, player_level, particle1_name, particle2_name, prompt_display, item_highlight, highlight_icon_imagefile)
 	direct_damage_spell[e].prompt_text = prompt_text
 	direct_damage_spell[e].useage_text = useage_text
 	direct_damage_spell[e].pickup_range = pickup_range
@@ -60,7 +68,9 @@ function direct_damage_spell_properties(e, prompt_text, useage_text, pickup_rang
 	direct_damage_spell[e].player_level = player_level
 	direct_damage_spell[e].particle1_name = lower(particle1_name)
 	direct_damage_spell[e].particle2_name = lower(particle2_name)
+	direct_damage_spell[e].prompt_display = prompt_display	
 	direct_damage_spell[e].item_highlight = item_highlight
+	direct_damage_spell[e].highlight_icon = highlight_icon_imagefile
 end
 
 function direct_damage_spell_init(e)
@@ -77,8 +87,11 @@ function direct_damage_spell_init(e)
 	direct_damage_spell[e].particle2_name = ""
 	direct_damage_spell[e].particle1_number = 0
 	direct_damage_spell[e].particle2_number = 0
-	direct_damage_spell[e].item_highlight = 0	
+	direct_damage_spell[e].prompt_display = 1	
+	direct_damage_spell[e].item_highlight = 0
+	direct_damage_spell[e].highlight_icon = "imagebank\\icons\\pickup.png"
 	direct_damage_spell[e].cast_timeout = 0	
+	
 	status[e] = "init"
 	tAllegiance[e] = 0
 	tEnt[e] = 0
@@ -91,58 +104,73 @@ function direct_damage_spell_init(e)
 	played[e] = 0
 	tplayerlevel[e] = 0
 	tlevelrequired[e] = 0
+	hl_icon[e] = 0
+	hl_imgwidth[e] = 0
+	hl_imgheight[e] = 0	
 	cradius[e] = 0
 	casttarget[e] = 0
 end
 
 function direct_damage_spell_main(e)
 
-	-- get particles for spell effects
-	if direct_damage_spell[e].particle1_number == 0 and direct_damage_spell[e].particle1_name ~= "" then
-		for n = 1, g_EntityElementMax do
-			if n ~= nil and g_Entity[n] ~= nil then
-				if lower(GetEntityName(n)) == direct_damage_spell[e].particle1_name then
-					direct_damage_spell[e].particle1_number = n
-					SetPosition(n,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
-					Hide(n)
-					break
-				end
-			end
-		end
-	end
-	if direct_damage_spell[e].particle2_number == 0 and direct_damage_spell[e].particle2_name ~= "" then
-		for m = 1, g_EntityElementMax do
-			if m ~= nil and g_Entity[m] ~= nil then
-				if lower(GetEntityName(m)) == direct_damage_spell[e].particle2_name then
-					direct_damage_spell[e].particle2_number = m
-					SetPosition(m,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
-					Hide(m)
-					break
-				end
-			end
-		end
-	end
-	-- handle states
+	-- handle states	
 	if status[e] == "init" then
+		if direct_damage_spell[e].item_highlight == 3 and direct_damage_spell[e].highlight_icon ~= "" then
+			hl_icon[e] = CreateSprite(LoadImage(direct_damage_spell[e].highlight_icon))
+			hl_imgwidth[e] = GetImageWidth(LoadImage(direct_damage_spell[e].highlight_icon))
+			hl_imgheight[e] = GetImageHeight(LoadImage(direct_damage_spell[e].highlight_icon))
+			SetSpriteSize(hl_icon[e],-1,-1)
+			SetSpriteDepth(hl_icon[e],100)
+			SetSpriteOffset(hl_icon[e],hl_imgwidth[e]/2.0, hl_imgheight[e]/2.0)
+			SetSpritePosition(hl_icon[e],500,500)
+		end	
+		-- get particles for spell effects
+		if direct_damage_spell[e].particle1_number == 0 and direct_damage_spell[e].particle1_name ~= "" then
+			for n = 1, g_EntityElementMax do
+				if n ~= nil and g_Entity[n] ~= nil then
+					if lower(GetEntityName(n)) == direct_damage_spell[e].particle1_name then
+						direct_damage_spell[e].particle1_number = n
+						SetPosition(n,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
+						Hide(n)
+						break
+					end
+				end
+			end
+		end
+		if direct_damage_spell[e].particle2_number == 0 and direct_damage_spell[e].particle2_name ~= "" then
+			for m = 1, g_EntityElementMax do
+				if m ~= nil and g_Entity[m] ~= nil then
+					if lower(GetEntityName(m)) == direct_damage_spell[e].particle2_name then
+						direct_damage_spell[e].particle2_number = m
+						SetPosition(m,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
+						Hide(m)
+						break
+					end
+				end
+			end
+		end
 		tplayerlevel[e] = 0
 		tlevelrequired[e] = direct_damage_spell[e].player_level
 		cradius[e] = 180.0 - direct_damage_spell[e].cast_radius
 		status[e] = "collect_spell"		
 	end
+	
 	if status[e] == "collect_spell" then
 		local PlayerDist = GetPlayerDistance(e)
 		if PlayerDist < direct_damage_spell[e].pickup_range then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,direct_damage_spell[e].pickup_range,direct_damage_spell[e].item_highlight)
+			module_misclib.pinpoint(e,direct_damage_spell[e].pickup_range,direct_damage_spell[e].item_highlight,hl_icon[e])
 			sEnt[e] = g_tEnt
 			--end pinpoint select object--	
 		end	
-		if PlayerDist < direct_damage_spell[e].pickup_range and sEnt[e] ~= 0 then
+		if PlayerDist < direct_damage_spell[e].pickup_range and sEnt[e] == e then
 			if GetEntityCollectable(e) == 1 then
 				if GetEntityCollected(e) == 0 then
-					PromptDuration(direct_damage_spell[e].prompt_text,1000)
+					if direct_damage_spell[e].prompt_display == 1 then PromptLocal(e,direct_damage_spell[e].prompt_text) end
+					if direct_damage_spell[e].prompt_display == 2 then Prompt(direct_damage_spell[e].prompt_text) end
 					if g_KeyPressE == 1 then
 						SetEntityCollected(e,1)
+						PlayNon3DSound(e,0)
 						status[e] = "have_spell"
 					end
 				end
@@ -150,7 +178,8 @@ function direct_damage_spell_main(e)
 		end
 	end	
 	
-	if status[e] == "have_spell" then	
+	if status[e] == "have_spell" then
+		--- Need to identify if this spell is in the hotkeys and which one before casting??
 		--- Select Entity to target ---		
 		if g_InKey == "t" or g_InKey == "T" or g_MouseClick == 2 and casttarget[e] == 0 then
 			TextCenterOnXColor(50-0.01,50,3,"+",255,255,255)							-- temp targeting crosshair
@@ -251,14 +280,14 @@ function direct_damage_spell_main(e)
 					-- prompt we did it
 					PromptDuration(direct_damage_spell[e].useage_text,2000)
 					direct_damage_spell[e].cast_timeout = Timer()
-					PlaySound(e,0)
+					PlaySound(e,1)
 				else
 					-- not successful
 					PromptDuration("Not enough mana",2000)
 					SetEntityUsed(e,0)
 					casttarget[e] = 0
 					if played[e] == 0 then
-						PlaySound(e,1)
+						PlaySound(e,2)
 						played[e] = 1
 					end
 				end

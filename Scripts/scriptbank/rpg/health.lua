@@ -1,5 +1,5 @@
--- DESCRIPTION: The object will give the player an health boost or deduction if used. Can be used as a resource  and a user global can also receive a value.
 -- Health v23 by Necrym59 and Lee
+-- DESCRIPTION: The object will give the player an health boost or deduction if used. Can be used as a resource  and a user global can also receive a value.
 -- DESCRIPTION: [PROMPT_TEXT$="E to consume"]
 -- DESCRIPTION: [PROMPT_IF_COLLECTABLE$="E to collect"]
 -- DESCRIPTION: [USEAGE_TEXT$="Health applied"]

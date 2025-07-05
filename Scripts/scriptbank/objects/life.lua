@@ -1,12 +1,13 @@
--- Life v3 by Necrym59
+-- Life v4 by Necrym59
 -- DESCRIPTION: The object will give the player an extra life if collected
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect"]
 -- DESCRIPTION: [PICKUP_RANGE=90(1,200)]
--- DESCRIPTION: [@PICKUP_STYLE=1(1=Automatic, 2=Manual)]
+-- DESCRIPTION: [@PICKUP_STYLE=1(1=Ranged, 2=Accurate)]
 -- DESCRIPTION: [COLLECTION_TEXT$="Extra Life collected"]
 -- DESCRIPTION: [!ACTIVATE_LOGIC=0] on pickup
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
--- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)] Use emmisive color for shape option
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline,3=Icon)] Use emmisive color for shape option
+-- DESCRIPTION: [HIGHLIGHT_ICON_IMAGEFILE$="imagebank\\icons\\pickup.png"]
 -- DESCRIPTION: <Sound0> for collection
 
 local module_misclib = require "scriptbank\\module_misclib"
@@ -21,21 +22,27 @@ local collection_text 	= {}
 local activate_logic 	= {}
 local prompt_display 	= {}
 local item_highlight 	= {}
-local status			= {}
+local highlight_icon	= {}
+
+local status 			= {}
+local hl_icon 			= {}
+local hl_imgwidth		= {}
+local hl_imgheight		= {}
 local tEnt 				= {}
 local selectobj 		= {}
 local curlives			= {}
 local doonce			= {}
 local wait 				= {}
 
-function life_properties(e, prompt_text, pickup_range, pickup_style, collection_text, activate_logic, prompt_display, item_highlight)
+function life_properties(e, prompt_text, pickup_range, pickup_style, collection_text, activate_logic, prompt_display, item_highlight, highlight_icon_imagefile)
 	life[e].prompt_text = prompt_text
 	life[e].pickup_range = pickup_range
 	life[e].pickup_style = pickup_style
 	life[e].collection_text = collection_text
 	life[e].activate_logic = 1
 	life[e].prompt_display = prompt_display		
-	life[e].item_highlight = item_highlight or 0	
+	life[e].item_highlight = item_highlight or 0
+	life[e].highlight_icon = highlight_icon_imagefile	
 end
 
 function life_init(e)
@@ -47,8 +54,12 @@ function life_init(e)
 	life[e].activate_logic = 0
 	life[e].prompt_display = 1
 	life[e].item_highlight = 0
+	life[e].highlight_icon = "imagebank\\icons\\pickup.png"
 	
 	status[e] = "init"
+	hl_icon[e] = 0
+	hl_imgwidth[e] = 0
+	hl_imgheight[e] = 0	
 	g_tEnt = 0
 	tEnt[e] = 0
 	selectobj[e] = 0
@@ -60,6 +71,15 @@ end
 function life_main(e)	
 	
 	if status[e] == "init"  then
+		if life[e].item_highlight == 3 and life[e].highlight_icon ~= "" then
+			hl_icon[e] = CreateSprite(LoadImage(life[e].highlight_icon))
+			hl_imgwidth[e] = GetImageWidth(LoadImage(life[e].highlight_icon))
+			hl_imgheight[e] = GetImageHeight(LoadImage(life[e].highlight_icon))
+			SetSpriteSize(hl_icon[e],-1,-1)
+			SetSpriteDepth(hl_icon[e],100)
+			SetSpriteOffset(hl_icon[e],hl_imgwidth[e]/2.0, hl_imgheight[e]/2.0)
+			SetSpritePosition(hl_icon[e],500,500)
+		end	
 		status[e] = "start"
 	end
 	if status[e] == "start"  then
@@ -71,10 +91,10 @@ function life_main(e)
 		end
 		if life[e].pickup_style == 2 then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,life[e].pickup_range,life[e].item_highlight)
+			module_misclib.pinpoint(e,life[e].pickup_range,life[e].item_highlight,hl_icon[e])
 			tEnt[e] = g_tEnt
-			--end pinpoint select object--
-			if PlayerDist < life[e].pickup_range and tEnt[e] ~= 0 then
+			--end pinpoint select object--a
+			if PlayerDist < life[e].pickup_range and tEnt[e] == e then
 				if life[e].prompt_display == 1 then PromptLocal(e,life[e].prompt_text) end
 				if life[e].prompt_display == 2 then PromptDuration(life[e].prompt_text,1000) end	
 				if g_KeyPressE == 1 then

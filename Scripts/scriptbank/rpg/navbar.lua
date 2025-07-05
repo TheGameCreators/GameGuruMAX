@@ -1,4 +1,4 @@
--- Navigation Bar v11 by Smallg and Necrym59
+-- Navigation Bar v12 by Smallg and Necrym59
 -- DESCRIPTION: Adds a Nagigation Bar to your game 
 -- DESCRIPTION: [IMAGEFILE$="imagebank\\navbar\\navbar.png"]
 -- DESCRIPTION: [VIEWRANGE=6000] of objectives shown on the radar
@@ -94,6 +94,7 @@ function navbar_init(e)
 	nbar.compass_spacer = "."	
 	queststatus[e] = 0
 	questentity[e] = 0
+	SetEntityAlwaysActive(e,1)	
 	status = "init"
 end 
 

@@ -1,4 +1,4 @@
--- Freeze Spell v24
+-- Freeze Spell v25 by Necrym59 and Lee
 -- DESCRIPTION: When collected can be cast as a Freeze effect to damage the target.
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Freeze Spell, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="You cast a Freeze spell"]
@@ -10,9 +10,12 @@
 -- DESCRIPTION: [PLAYER_LEVEL=0(0,100))] player level to be able use this spell
 -- DESCRIPTION: [PARTICLE1_NAME$=""] eg: SpellParticle1
 -- DESCRIPTION: [PARTICLE2_NAME$=""] eg: SpellParticle2
--- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
--- DESCRIPTION: <Sound0> when effect successful
--- DESCRIPTION: <Sound1> when effect unsuccessful
+-- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline,3=Icon)]
+-- DESCRIPTION: [HIGHLIGHT_ICON_IMAGEFILE$="imagebank\\icons\\pickup.png"]
+-- DESCRIPTION: <Sound0> pickup sound
+-- DESCRIPTION: <Sound1> when cast effect successful
+-- DESCRIPTION: <Sound2> when cast effect unsuccessful
 
 local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
@@ -31,7 +34,9 @@ local cast_radius 			= {}
 local player_level 			= {}
 local particle1_name 		= {}
 local particle2_name 		= {}
+local prompt_display		= {}
 local item_highlight 		= {}
+local highlight_icon 		= {}
 
 local cast_timeout 		= {}
 local tAllegiance 		= {}
@@ -42,6 +47,9 @@ local tTarget 			= {}
 local sEnt				= {}
 local selectobj			= {}
 local status			= {}
+local hl_icon 			= {}
+local hl_imgwidth 		= {}
+local hl_imgheight 		= {}
 local cradius			= {}
 local curhealth			= {}
 local doonce			= {}
@@ -53,8 +61,7 @@ local freeze_time		= {}
 local current_time		= {}
 local entaffected		= {}
 
-function freeze_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_damage, cast_radius, player_level, particle1_name, particle2_name, item_highlight)
-	freeze_spell[e] = g_Entity[e]
+function freeze_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_damage, cast_radius, player_level, particle1_name, particle2_name, prompt_display, item_highlight, highlight_icon_imagefile)
 	freeze_spell[e].prompt_text = prompt_text
 	freeze_spell[e].useage_text = useage_text
 	freeze_spell[e].pickup_range = pickup_range
@@ -65,11 +72,13 @@ function freeze_spell_properties(e, prompt_text, useage_text, pickup_range, user
 	freeze_spell[e].player_level = player_level
 	freeze_spell[e].particle1_name = lower(particle1_name)
 	freeze_spell[e].particle2_name = lower(particle2_name)
-	freeze_spell[e].item_highlight = item_highlight	
+	freeze_spell[e].prompt_display = prompt_display	
+	freeze_spell[e].item_highlight = item_highlight
+	freeze_spell[e].highlight_icon = highlight_icon_imagefile
 end
 
 function freeze_spell_init(e)
-	freeze_spell[e] = g_Entity[e]
+	freeze_spell[e] = {}
 	freeze_spell[e].prompt_text = "E to Collect"
 	freeze_spell[e].useage_text = "You cast a Freeze spell"
 	freeze_spell[e].pickup_range = 90
@@ -82,7 +91,11 @@ function freeze_spell_init(e)
 	freeze_spell[e].particle2_name = ""
 	freeze_spell[e].particle1_number = 0
 	freeze_spell[e].particle2_number = 0
-	freeze_spell[e].item_highlight = 0 
+	freeze_spell[e].prompt_display = 1
+	freeze_spell[e].item_highlight = 0
+	freeze_spell[e].highlight_icon = "imagebank\\icons\\pickup.png"
+	
+	
 	freeze_spell[e].cast_timeout = 0	
 	status[e] = "init"
 	tAllegiance[e] = 0
@@ -102,37 +115,49 @@ function freeze_spell_init(e)
 	tlevelrequired[e] = 0
 	freeze_time[e] = 6000
 	current_time[e] = 0
+	hl_icon[e] = 0
+	hl_imgwidth[e] = 0
+	hl_imgheight[e] = 0
 end
 
 function freeze_spell_main(e)
-	freeze_spell[e] = g_Entity[e]
-	-- get particles for spell effects
-	if freeze_spell[e].particle1_number == 0 and freeze_spell[e].particle1_name ~= "" then
-		for n = 1, g_EntityElementMax do
-			if n ~= nil and g_Entity[n] ~= nil then
-				if lower(GetEntityName(n)) == freeze_spell[e].particle1_name then
-					freeze_spell[e].particle1_number = n
-					SetPosition(n,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
-					Hide(n)
-					break
-				end
-			end
-		end
-	end
-	if freeze_spell[e].particle2_number == 0 and freeze_spell[e].particle2_name ~= "" then
-		for m = 1, g_EntityElementMax do
-			if m ~= nil and g_Entity[m] ~= nil then
-				if lower(GetEntityName(m)) == freeze_spell[e].particle2_name then
-					freeze_spell[e].particle2_number = m
-					SetPosition(m,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
-					Hide(m)
-					break
-				end
-			end
-		end
-	end
+
 	-- handle states
 	if status[e] == "init" then
+		if freeze_spell[e].item_highlight == 3 and freeze_spell[e].highlight_icon ~= "" then
+			hl_icon[e] = CreateSprite(LoadImage(freeze_spell[e].highlight_icon))
+			hl_imgwidth[e] = GetImageWidth(LoadImage(freeze_spell[e].highlight_icon))
+			hl_imgheight[e] = GetImageHeight(LoadImage(freeze_spell[e].highlight_icon))
+			SetSpriteSize(hl_icon[e],-1,-1)
+			SetSpriteDepth(hl_icon[e],100)
+			SetSpriteOffset(hl_icon[e],hl_imgwidth[e]/2.0, hl_imgheight[e]/2.0)
+			SetSpritePosition(hl_icon[e],500,500)
+		end		
+		-- get particles for spell effects
+		if freeze_spell[e].particle1_number == 0 and freeze_spell[e].particle1_name ~= "" then
+			for n = 1, g_EntityElementMax do
+				if n ~= nil and g_Entity[n] ~= nil then
+					if lower(GetEntityName(n)) == freeze_spell[e].particle1_name then
+						freeze_spell[e].particle1_number = n
+						SetPosition(n,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
+						Hide(n)
+						break
+					end
+				end
+			end
+		end
+		if freeze_spell[e].particle2_number == 0 and freeze_spell[e].particle2_name ~= "" then
+			for m = 1, g_EntityElementMax do
+				if m ~= nil and g_Entity[m] ~= nil then
+					if lower(GetEntityName(m)) == freeze_spell[e].particle2_name then
+						freeze_spell[e].particle2_number = m
+						SetPosition(m,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
+						Hide(m)
+						break
+					end
+				end
+			end
+		end	
 		tplayerlevel[e] = 0
 		tlevelrequired[e] = freeze_spell[e].player_level
 		cradius[e] = 180.0 - freeze_spell[e].cast_radius
@@ -142,16 +167,18 @@ function freeze_spell_main(e)
 		local PlayerDist = GetPlayerDistance(e)
 		if PlayerDist < freeze_spell[e].pickup_range then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,freeze_spell[e].pickup_range,freeze_spell[e].item_highlight)
+			module_misclib.pinpoint(e,freeze_spell[e].pickup_range,freeze_spell[e].item_highlight,hl_icon[e])
 			sEnt[e] = g_tEnt
 			--end pinpoint select object--	
 		end	
-		if PlayerDist < freeze_spell[e].pickup_range and sEnt[e] ~= 0 then
+		if PlayerDist < freeze_spell[e].pickup_range and sEnt[e] == e then
 			if GetEntityCollectable(e) == 1 then
 				if GetEntityCollected(e) == 0 then
-					PromptDuration(freeze_spell[e].prompt_text,1000)
+					if freeze_spell[e].prompt_display == 1 then PromptLocal(e,freeze_spell[e].prompt_text) end
+					if freeze_spell[e].prompt_display == 2 then Prompt(freeze_spell[e].prompt_text) end
 					if g_KeyPressE == 1 then
 						SetEntityCollected(e,1)
+						PlayNon3DSound(e,0)
 						status[e] = "have_spell"
 					end
 				end
@@ -245,14 +272,14 @@ function freeze_spell_main(e)
 					-- prompt we did it
 					PromptDuration(freeze_spell[e].useage_text,2000)
 					freeze_spell[e].cast_timeout = Timer()
-					PlaySound(e,0)				
+					PlaySound(e,1)				
 				else
 					-- not successful
 					PromptDuration("Not enough mana",2000)
 					SetEntityUsed(e,0)
 					casttarget[e] = 0
 					if played[e] == 0 then
-						PlaySound(e,1)
+						PlaySound(e,2)
 						played[e] = 1
 					end
 				end			

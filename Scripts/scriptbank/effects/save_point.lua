@@ -1,4 +1,4 @@
--- Save Point v10 by Necrym59
+-- Save Point v11 by Necrym59
 -- DESCRIPTION: Saves a save point
 -- DESCRIPTION: Attach to an object, switch or trigger zone to activate
 -- DESCRIPTION: [@ACTIVATION=1(1=By This Object, 2=By External Zone/Switch)]
@@ -6,7 +6,8 @@
 -- DESCRIPTION: [PROMPT_MESSAGE$="Press E to save"]
 -- DESCRIPTION: [SAVE_MESSAGE$="Saving.."]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
--- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline,3=Icon)]
+-- DESCRIPTION: [HIGHLIGHT_ICON_IMAGEFILE$="imagebank\\icons\\disk.png"]
 -- DESCRIPTION: <Sound0> when activated
 
 local module_misclib = require "scriptbank\\module_misclib"
@@ -19,6 +20,7 @@ local use_range 		= {}
 local save_message 		= {}
 local prompt_display 	= {}
 local item_highlight 	= {}
+local highlight_icon 	= {}
 
 local played			= {}
 local doonce			= {}
@@ -27,14 +29,18 @@ local animonce			= {}
 local tEnt 				= {}
 local selectobj 		= {}
 local status			= {}
+local hl_icon			= {}
+local hl_imgwidth		= {}
+local hl_imgheight		= {}
 
-function save_point_properties(e, activation, use_range, prompt_message, save_message, prompt_display, item_highlight)
+function save_point_properties(e, activation, use_range, prompt_message, save_message, prompt_display, item_highlight, highlight_icon_imagefile)
 	savepoint[e].activation = activation
 	savepoint[e].use_range = use_range
 	savepoint[e].prompt_message = prompt_message
 	savepoint[e].save_message = save_message
 	savepoint[e].prompt_display = prompt_display
 	savepoint[e].item_highlight = item_highlight
+	savepoint[e].highlight_icon = highlight_icon_imagefile	
 end
 
 function save_point_init(e)
@@ -45,6 +51,7 @@ function save_point_init(e)
 	savepoint[e].save_message = "Saving.."
 	savepoint[e].prompt_display = 1
 	savepoint[e].item_highlight = 0
+	savepoint[e].highlight_icon = "imagebank\\icons\\disk.png"
 	
 	played[e] = 0
 	doonce[e] = 0
@@ -54,11 +61,23 @@ function save_point_init(e)
 	selectobj[e] = 0
 	wait[e] = math.huge
 	status[e] = "init"
+	hl_icon[e] = 0
+	hl_imgwidth[e] = 0
+	hl_imgheight[e] = 0	
 end
 
 function save_point_main(e)
 
 	if status[e] == "init" then
+		if savepoint[e].item_highlight == 3 and savepoint[e].highlight_icon ~= "" then
+			hl_icon[e] = CreateSprite(LoadImage(savepoint[e].highlight_icon))
+			hl_imgwidth[e] = GetImageWidth(LoadImage(savepoint[e].highlight_icon))
+			hl_imgheight[e] = GetImageHeight(LoadImage(savepoint[e].highlight_icon))
+			SetSpriteSize(hl_icon[e],-1,-1)
+			SetSpriteDepth(hl_icon[e],100)
+			SetSpriteOffset(hl_icon[e],hl_imgwidth[e]/2.0, hl_imgheight[e]/2.0)
+			SetSpritePosition(hl_icon[e],500,500)
+		end	
 		status[e] = "activate"
 	end
 
@@ -66,11 +85,11 @@ function save_point_main(e)
 		local PlayerDist = GetPlayerDistance(e)
 		if PlayerDist < savepoint[e].use_range then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,savepoint[e].use_range,savepoint[e].item_highlight)
+			module_misclib.pinpoint(e,savepoint[e].use_range,savepoint[e].item_highlight,hl_icon[e])
 			tEnt[e] = g_tEnt
 			--end pinpoint select object--
 		end
-		if PlayerDist < savepoint[e].use_range and tEnt[e] ~= 0 then
+		if PlayerDist < savepoint[e].use_range and tEnt[e] == e then
 			if savepoint[e].prompt_display == 1 then PromptLocal(e,savepoint[e].prompt_message) end
 			if savepoint[e].prompt_display == 2 then Prompt(savepoint[e].prompt_message) end
 			if g_KeyPressE == 1 then

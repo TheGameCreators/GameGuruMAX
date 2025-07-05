@@ -1,36 +1,55 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Nightvision v17 by Necrym59
--- DESCRIPTION: The applied object will give the player Nightvision Goggles? Set Always active ON.
--- DESCRIPTION: Set the [PICKUP_TEXT$="E to Pickup"] and [USEAGE_TEXT$="Hold B + Wheel to zoom, N=Nightvision ON/OFF"]
--- DESCRIPTION: [#MIN_ZOOM=-10(-20,1)], [MAX_ZOOM=30(1,30)], [ZOOM_SPEED=1(1,10)], [READOUT_X=50(1,100)], [READOUT_Y=10(1,100)],
--- DESCRIPTION: [@COMPASS=1(1=On, 2=Off)], [@COMPASS_POSITION=2(1=Top, 2=Bottom)]
--- DESCRIPTION: Hud screen [IMAGEFILE$="imagebank\\misc\\testimages\\nvgoggles.png"]
--- DESCRIPTION: Nightvision [#EXPOSURE=2.95(1.0,5.0)]
+-- Nightvision v18 by Necrym59
+-- DESCRIPTION: The applied object will give the player Nightvision Goggles?
+-- DESCRIPTION: [PICKUP_TEXT$="E to Pickup"]
+-- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
+-- DESCRIPTION: [USEAGE_TEXT$="N=Nightvision ON/OFF, Hold B + Wheel to zoom"]
+-- DESCRIPTION: [#MIN_ZOOM=-10(-20,1)]
+-- DESCRIPTION: [#MAX_ZOOM=30(1,30)]
+-- DESCRIPTION: [ZOOM_SPEED=1(1,10)]
+-- DESCRIPTION: [ZOOM_READOUT_X=50(1,100)]
+-- DESCRIPTION: [ZOOM_READOUT_Y=10(1,100)]
+-- DESCRIPTION: [@COMPASS=1(1=On, 2=Off)]
+-- DESCRIPTION: [@COMPASS_POSITION=2(1=Top, 2=Bottom)]
+-- DESCRIPTION: [GOGGLES_IMAGEFILE$="imagebank\\misc\\testimages\\nvgoggles.png"]
+-- DESCRIPTION: [#EXPOSURE=2.95(1.0,5.0)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline,3=Icon)]
+-- DESCRIPTION: [HIGHLIGHT_ICON_IMAGEFILE$="imagebank\\icons\\pickup.png"]
 -- DESCRIPTION: <Sound0> for pickup
 -- DESCRIPTION: <Sound1> for wearing/removing
 
-local nightvision = {}
-local nvgoggles = {}
-local pickup_text = {}
-local useage_text = {}
-local start_wheel = {}
-local mod = {}
-local zoom_speed = {}
-local min_zoom = {}
-local max_zoom = {}
-local screen_image = {}
-local exposure = {}
-local status = {}
-local readout_x = {}
-local readout_y = {}
+local module_misclib = require "scriptbank\\module_misclib"
+local U = require "scriptbank\\utillib"
+g_tEnt = {}
+
+local nightvision 		= {}
+local pickup_text 		= {}
+local pickup_range		= {}
+local useage_text		= {}
+local start_wheel		= {}
+local mod				= {}
+local zoom_speed		= {}
+local min_zoom			= {}
+local max_zoom			= {}
+local zoom_readout_x	= {}
+local zoom_readout_y	= {}
+local screen_image		= {}
+local exposure			= {}
+local item_highlight	= {}
+local highlight_icon	= {}
+
 local compass = {}
 local compass_position = {}
+local status = {}
+local tEnt = {}
 local compass_pos = {}
 local oldfov = {}
 local played ={}
 local keypause = {}
-
 local nvswitch = {}
+local nvsprite = {}
+local selectobj	= {}
+local have_nvgoggles = {}
 local default_AmbienceRed = {}
 local default_AmbienceBlue = {}
 local default_AmbienceGreen = {}
@@ -41,43 +60,58 @@ local default_FogBlue = {}
 local default_FogNearest = {}
 local default_FogDistance = {}
 local default_Exposure = {}
+local hl_icon = {}
+local hl_imgwidth = {}
+local hl_imgheight = {}
 
-function nightvision_properties(e, pickup_text, useage_text, min_zoom, max_zoom, zoom_speed, readout_x, readout_y, compass, compass_position, screen_image, exposure)
+function nightvision_properties(e, pickup_text, pickup_range, useage_text, min_zoom, max_zoom, zoom_speed, zoom_readout_x, zoom_readout_y, compass, compass_position, screen_image, exposure, item_highlight, highlight_icon_imagefile)
 	nightvision[e].pickup_text = pickup_text
+	nightvision[e].pickup_range = pickup_range	
 	nightvision[e].useage_text = useage_text
 	nightvision[e].min_zoom = min_zoom
 	nightvision[e].max_zoom = max_zoom
 	nightvision[e].zoom_speed = zoom_speed
-	nightvision[e].readout_x = readout_x
-	nightvision[e].readout_y = readout_y
+	nightvision[e].zoom_readout_x = zoom_readout_x
+	nightvision[e].zoom_readout_y = zoom_readout_y
 	nightvision[e].compass = compass
 	nightvision[e].compass_position = compass_position
-	nightvision[e].screen_image = imagefile or screen_image
+	nightvision[e].screen_image = goggles_imagefile or screen_image
 	nightvision[e].exposure = exposure
-end -- End properties
+	nightvision[e].item_highlight = item_highlight
+	nightvision[e].highlight_icon = highlight_icon_imagefile
+end 
 
 function nightvision_init(e)
 	nightvision[e] = {}
-	have_nvgoggles = 0
 	nightvision[e].pickup_text = ""
+	nightvision[e].pickup_range = 80	
 	nightvision[e].useage_text = ""
 	nightvision[e].min_zoom = -10
 	nightvision[e].max_zoom = 30
 	nightvision[e].zoom_speed = 1
-	nightvision[e].readout_x = 50
-	nightvision[e].readout_y = 10
+	nightvision[e].zoom_readout_x = 50
+	nightvision[e].zoom_readout_y = 10
 	nightvision[e].compass = 1
 	nightvision[e].compass_position = 1
 	nightvision[e].screen_image = "imagebank\\misc\\testimages\\nvgoggles.png"
 	nightvision[e].exposure = 2.95
-
+	nightvision[e].item_highlight = 0
+	nightvision[e].highlight_icon = "imagebank\\icons\\pickup.png"
+	
 	start_wheel = 0
 	mod = 0
 	fov = 0
 	status = "init"
+	have_nvgoggles[e] = 0	
 	defn_Compass()
 	nvswitch[e] = 0
+	nvsprite[e] = 0
 	played[e] = 0
+	tEnt[e] = 0
+	hl_icon[e] = 0
+	hl_imgwidth[e] = 0
+	hl_imgheight[e] = 0
+	selectobj[e] = 0	
 	keypause[e] = math.huge
 	default_AmbienceRed[e] = GetAmbienceRed()
 	default_AmbienceBlue[e] = GetAmbienceBlue()
@@ -94,10 +128,21 @@ end
 function nightvision_main(e)
 
 	if status == "init" then
-		nvgoggles = CreateSprite(LoadImage(nightvision[e].screen_image))
-		SetSpriteSize(nvgoggles,100,100)
-		SetSpriteDepth(nvgoggles,100)
-		SetSpritePosition(nvgoggles,200,200)
+		if nightvision[e].item_highlight == 3 and nightvision[e].highlight_icon ~= "" then
+			hl_icon[e] = CreateSprite(LoadImage(nightvision[e].highlight_icon))
+			hl_imgwidth[e] = GetImageWidth(LoadImage(nightvision[e].highlight_icon))
+			hl_imgheight[e] = GetImageHeight(LoadImage(nightvision[e].highlight_icon))
+			SetSpriteSize(hl_icon[e],-1,-1)
+			SetSpriteDepth(hl_icon[e],100)
+			SetSpriteOffset(hl_icon[e],hl_imgwidth[e]/2.0, hl_imgheight[e]/2.0)
+			SetSpritePosition(hl_icon[e],500,500)
+		end	
+		if nightvision[e].screen_image ~= "" then
+			nvsprite[e] = CreateSprite(LoadImage(nightvision[e].screen_image))
+			SetSpriteSize(nvsprite[e],100,100)
+			SetSpriteDepth(nvsprite[e],100)
+			SetSpritePosition(nvsprite[e],500,500)
+		end			
 		compass_pos = nightvision[e].compass_position
 		mod = g_PlayerFOV
 		fov = g_PlayerFOV
@@ -106,48 +151,55 @@ function nightvision_main(e)
 	end
 	PlayerDist = GetPlayerDistance(e)
 	if fov == nil then fov = g_PlayerFOV end
-	if have_nvgoggles == 0 then
-		if PlayerDist < 80 and g_PlayerHealth > 0 and have_nvgoggles == 0 then
-			Prompt(nightvision[e].pickup_text)
+	
+	if have_nvgoggles[e] == 0 then
+		if PlayerDist < nightvision[e].pickup_range then
+			--pinpoint select object--
+			module_misclib.pinpoint(e,nightvision[e].pickup_range,nightvision[e].item_highlight,hl_icon[e])
+			tEnt[e] = g_tEnt
+			--end pinpoint select object--
+		end
+	
+		if PlayerDist < nightvision[e].pickup_range and tEnt[e] == e and GetEntityVisibility(e) == 1 then
+			PromptLocal(e,nightvision[e].pickup_text)
 			if g_KeyPressE == 1 then
-				PromptDuration("N to use Nightvision",2000)
+				PromptDuration(nightvision[e].useage_text,2000)
 				PlaySound(e,0)
-				have_nvgoggles = 1
+				have_nvgoggles[e] = 1
 				Hide(e)
 				CollisionOff(e)
 				ActivateIfUsed(e)
 			end
 		end
 	end
-	if nightvision[e].compass == 1 and have_nvgoggles == 1 and nvswitch[e] == 1 then
-		compass_active=1
-		show_Compass()
-	end
-
-	if have_nvgoggles == 1 then
+	
+	if have_nvgoggles[e] == 1 then
 		if g_Time > keypause[e] and nvswitch[e] == 0 then
-		if GetInKey() == "n" or GetInKey() == "N" and nvswitch[e] == 0 then
-			SetAmbienceRed(0)
-			SetAmbienceBlue(0)
-			SetAmbienceGreen(180)
-			SetAmbienceIntensity(120)
-			SetExposure(nightvision[e].exposure)
-			SetFogRed(0)
-			SetFogGreen(255)
-			SetFogBlue(0)
-			SetFogNearest(1000)
-			SetFogDistance(10000)
-			if played[e] == 0 and nvswitch[e] == 0 then
-				PlaySound(e,1)
-				played[e] = 1
+			if GetInKey() == "n" or GetInKey() == "N" and nvswitch[e] == 0 then
+				SetAmbienceRed(0)
+				SetAmbienceBlue(0)
+				SetAmbienceGreen(180)
+				SetAmbienceIntensity(120)
+				SetExposure(nightvision[e].exposure)
+				SetFogRed(0)
+				SetFogGreen(255)
+				SetFogBlue(0)
+				SetFogNearest(1000)
+				SetFogDistance(10000)
+				if played[e] == 0 and nvswitch[e] == 0 then
+					PlaySound(e,1)
+					played[e] = 1
+				end
+				keypause[e] = g_Time + 1000
+				nvswitch[e] = 1
 			end
-			keypause[e] = g_Time + 1000
-			nvswitch[e] = 1
-		end
 		end
 		if nvswitch[e] == 1 then
-			PasteSpritePosition(nvgoggles,0,0)
+			PasteSpritePosition(nvsprite[e],0,0)
 			TextCenterOnXColor(50,99,2,nightvision[e].useage_text,100,255,100)
+			if nightvision[e].compass == 1 then
+				show_Compass()
+			end
 		end
 		if g_Scancode == 48 and nvswitch[e] == 1 then --Hold B Key to use
 			if g_MouseWheel < 0 then
@@ -161,7 +213,7 @@ function nightvision_main(e)
 				mod = nightvision[e].max_zoom
 			end
 			SetPlayerFOV(fov-mod)
-			TextCenterOnX(nightvision[e].readout_x,nightvision[e].readout_y,3,"Magnification Factor: " ..mod)
+			TextCenterOnX(nightvision[e].zoom_readout_x,nightvision[e].zoom_readout_y,3,"Magnification Factor: " ..mod)			
 		else
 			start_wheel = g_MouseWheel
 			mod = 0

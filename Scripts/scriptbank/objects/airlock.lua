@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Airlock Switch v10 by Necrym59
+-- Airlock Switch v11 by Necrym59
 -- DESCRIPTION: This object will be treated as a switch object for activating a set of airlock doors. Doors need to be locked.
 -- DESCRIPTION: [@AIRLOCK_TYPE=1(1=Air, 2=Water)]
 -- DESCRIPTION: [AIR_LEVEL=100(0,100)]
@@ -12,6 +12,9 @@
 -- DESCRIPTION: [DOOR2_NAME$="Outer Door"]
 -- DESCRIPTION: [#DELAY=8(1,100)]
 -- DESCRIPTION: [NPC_DROWNING!=0] If on will drown all NPC's under water level.
+-- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline,3=Icon)] Use emmisive color for shape option
+-- DESCRIPTION: [HIGHLIGHT_ICON_IMAGEFILE$="imagebank\\icons\\switch.png"]
 -- DESCRIPTION: <Sound0> when activating
 -- DESCRIPTION: <Sound1> when processing
 
@@ -33,12 +36,18 @@ local door1_name 		= {}
 local door2_name 		= {}
 local delay 			= {}
 local npc_drowning 		= {}
+local prompt_display	= {}
+local item_highlight	= {}
+local highlight_icon	= {}
 
 local door1_number 		= {}
 local door2_number 		= {}
 local state 			= {}
 
 local status = {}
+local hl_icon 			= {}
+local hl_imgwidth		= {}
+local hl_imgheight		= {}
 local mode = {}
 local tEnt = {}
 local selectobj = {}
@@ -55,7 +64,7 @@ local depressurised = {}
 local innerdoor = {}
 local outerdoor = {}
 
-function airlock_properties(e, airlock_type, air_level, water_level, prompt_text, use_range, depressurise_text, pressurise_text, door1_name, door2_name, delay, npc_drowning)
+function airlock_properties(e, airlock_type, air_level, water_level, prompt_text, use_range, depressurise_text, pressurise_text, door1_name, door2_name, delay, npc_drowning, prompt_display, item_highlight, highlight_icon_imagefile)
 	airlock[e].airlock_type = airlock_type
 	airlock[e].air_level = air_level
 	airlock[e].water_level = water_level
@@ -67,6 +76,9 @@ function airlock_properties(e, airlock_type, air_level, water_level, prompt_text
 	airlock[e].door2_name = lower(door2_name)
 	airlock[e].delay = delay
 	airlock[e].npc_drowning = npc_drowning or 0
+	airlock[e].prompt_display = prompt_display or 1
+	airlock[e].item_highlight = item_highlight or 0
+	airlock[e].highlight_icon = highlight_icon_imagefile	
 end
 
 function airlock_init(e)
@@ -82,11 +94,18 @@ function airlock_init(e)
 	airlock[e].door2_name = ""
 	airlock[e].delay = 8
 	airlock[e].npc_drowning = 0	
+	airlock[e].prompt_display = 1
+	airlock[e].item_highlight = 0
+	airlock[e].highlight_icon = "imagebank\\icons\\switch.png"
+	
 	airlock[e].door1_number = 0
-	airlock[e].door2_number = 0
+	airlock[e].door2_number = 0	
 	airlock[e].state = 1
 	
 	status[e] = "init"
+	hl_icon[e] = 0
+	hl_imgwidth[e] = 0
+	hl_imgheight[e] = 0	
 	wait[e] = math.huge
 	mode[e] = ""
 	g_tEnt = 0
@@ -108,7 +127,15 @@ end
 function airlock_main(e)
 
 	if status[e] == "init" then		
-		airlock[e].w_level = w_level
+		if airlock[e].item_highlight == 3 and airlock[e].highlight_icon ~= "" then
+			hl_icon[e] = CreateSprite(LoadImage(airlock[e].highlight_icon))
+			hl_imgwidth[e] = GetImageWidth(LoadImage(airlock[e].highlight_icon))
+			hl_imgheight[e] = GetImageHeight(LoadImage(airlock[e].highlight_icon))
+			SetSpriteSize(hl_icon[e],-1,-1)
+			SetSpriteDepth(hl_icon[e],100)
+			SetSpriteOffset(hl_icon[e],hl_imgwidth[e]/2.0, hl_imgheight[e]/2.0)
+			SetSpritePosition(hl_icon[e],500,500)
+		end		
 		if airlock[e].door1_number == 0 or airlock[e].door1_number == nil then
 			for a = 1, g_EntityElementMax do
 				if a ~= nil and g_Entity[a] ~= nil then
@@ -139,14 +166,15 @@ function airlock_main(e)
 		
 		if PlayerDist < airlock[e].use_range and g_PlayerHealth > 0 then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,airlock[e].use_range,0)
+			module_misclib.pinpoint(e,airlock[e].use_range,airlock[e].item_highlight,hl_icon[e])
 			tEnt[e] = g_tEnt
 			--end pinpoint select object--	
 		end	
 
-		if PlayerDist < airlock[e].use_range and tEnt[e] ~= 0 then
+		if PlayerDist < airlock[e].use_range and tEnt[e] == e then
 			if airlock_status[e] == "Pressurised" then 
-				PromptLocal(e,airlock[e].prompt_text.. " depressurisation")
+				if airlock[e].prompt_display == 1 then PromptLocal(e,airlock[e].prompt_text.. " depressurisation") end
+				if airlock[e].prompt_display == 2 then Prompt(airlock[e].prompt_text.. " depressurisation") end			
 				if g_KeyPressE == 1 then
 					SetActivated(e,1)
 					PlaySound(e,0)
@@ -158,8 +186,9 @@ function airlock_main(e)
 				end
 			end	
 			if airlock_status[e] == "Depressurised" then
-				PromptLocal(e,airlock[e].prompt_text.. " pressurisation")
-					if g_KeyPressE == 1 then
+				if airlock[e].prompt_display == 1 then PromptLocal(e,airlock[e].prompt_text.. " pressurisation") end
+				if airlock[e].prompt_display == 2 then Prompt(airlock[e].prompt_text.. " pressurisation") end
+				if g_KeyPressE == 1 then
 					SetActivated(e,1)
 					PlaySound(e,0)
 					SetAnimationName(e,"on")
@@ -200,12 +229,14 @@ function airlock_main(e)
 		if mode[e] == "Depressurise" and doordelay[e] <= 0 then
 			LoopSound(e,1)
 			ActivateIfUsed(e)
-			PromptLocal(e,airlock[e].depressurise_text.. " : " ..countdown[e].. " seconds")
+			if airlock[e].prompt_display == 1 then PromptLocal(e,airlock[e].depressurise_text.. " : " ..countdown[e].. " seconds") end
+			if airlock[e].prompt_display == 2 then Prompt(airlock[e].depressurise_text.. " : " ..countdown[e].. " seconds") end
 		end
 		if mode[e] == "Pressurise" and doordelay[e] <= 0 then
 			LoopSound(e,1)
 			ActivateIfUsed(e)
-			PromptLocal(e,airlock[e].pressurise_text.. " : " ..countdown[e].. " seconds")
+			if airlock[e].prompt_display == 1 then PromptLocal(e,airlock[e].pressurise_text.. " : " ..countdown[e].. " seconds") end
+			if airlock[e].prompt_display == 2 then Prompt(airlock[e].pressurise_text.. " : " ..countdown[e].. " seconds") end			
 		end
 	end
 

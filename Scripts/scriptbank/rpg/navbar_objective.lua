@@ -1,4 +1,4 @@
--- Navigation Bar Objective v9 by Smallg and Necrym59
+-- Navigation Bar Objective v12 by Smallg and Necrym59
 -- DESCRIPTION: Adds the entity to the Navigation Bar.
 -- DESCRIPTION: [IMAGEFILE$="imagebank\\navbar\\objective.png"] icon for the navigation bar.
 -- DESCRIPTION: [FIXEDSIZE!=0] if 1 will scale icon with the distance
@@ -7,6 +7,7 @@
 -- DESCRIPTION: [@WHEN_IN_PROXIMITY=1(1=Do Nothing, 2=Remove Marker, 3=Trigger + Remove Marker, 4=Destroy Entity)]
 -- DESCRIPTION: [@ENTITY_TYPE=1(1=This Entity, 2=Named Entity)] 
 -- DESCRIPTION: [ENTITY_NAME$=""]
+-- DESCRIPTION: [HIDE_ENTITY!=0]
 
 local lower = string.lower
 
@@ -21,15 +22,19 @@ local when_in_proximity = {}
 local entity_type 		= {}
 local entity_name 		= {}
 local entity_no 		= {}
+local hide_entity 		= {}
 
-function navbar_objective_properties(e, imagename, fixedsize, ignorerange, proximity_range, when_in_proximity, entity_type, entity_name)
+local status 			= {}
+
+function navbar_objective_properties(e, imagename, fixedsize, ignorerange, proximity_range, when_in_proximity, entity_type, entity_name, hide_entity)
 	g_navigation_entity[e].imagename = imagename or imagefile
 	g_navigation_entity[e].fixedsize = fixedsize
 	g_navigation_entity[e].ignorerange = ignorerange
 	g_navigation_entity[e].proximity_range = proximity_range
 	g_navigation_entity[e].when_in_proximity = when_in_proximity	
 	g_navigation_entity[e].entity_type = entity_type
-	g_navigation_entity[e].entity_name = lower(entity_name) or ""	
+	g_navigation_entity[e].entity_name = lower(entity_name) or ""
+	g_navigation_entity[e].hide_entity = hide_entity or 0 
 end 
 
 function navbar_objective_init_name(e,name)
@@ -42,10 +47,26 @@ function navbar_objective_init_name(e,name)
 	g_navigation_entity[e].entity_type = 1
 	g_navigation_entity[e].entity_name = ""
 	g_navigation_entity[e].tname = name
+	g_navigation_entity[e].hide_entity = 0
+	
 	entity_no[e] = 0
+	status[e] = "init"
+	SetEntityAlwaysActive(e,1)
 end 
 
 function navbar_objective_main(e)
+
+	if status[e] == "init" then
+		if g_navigation_entity[e].hide_entity == 0 then
+			SetEntityAlphaClipping(100)
+			CollisionOn(e)
+		end
+		if g_navigation_entity[e].hide_entity == 1 then
+			SetEntityAlphaClipping(e,0)
+			CollisionOff(e)
+		end
+		status[e] = "endinit"
+	end
 
 	local PlayerDist = GetPlayerDistance(e)
 

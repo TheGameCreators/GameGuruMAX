@@ -1,4 +1,4 @@
--- Remover v4 by Necrym59
+-- Remover v5 by Necrym59
 -- DESCRIPTION: A global behavior that will remove all the same named entities in-game when activated by a switch or zone.
 -- DESCRIPTION: Attach to an object and link to a switch or zone. Set AlwaysActive=ON.
 -- DESCRIPTION: [ENTITY_NAME$=""] Name of entities.
@@ -11,7 +11,6 @@ local entity_name 		= {}
 local status			= {}
 
 function remover_properties(e, entity_name)
-	remover[e] = g_Entity[e]
 	remover[e].entity_name = lower(entity_name)
 end 
 
@@ -37,6 +36,7 @@ function remover_main(e)
 			end
 		end
 		PlaySound(e,0)
-		status[e] = "endinit"
+		SetActivated(e,0)
+		SwitchScript(e,"no_behavior_selected.lua")
 	end	
 end

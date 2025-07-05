@@ -1,0 +1,69 @@
+;Saved by Model Importer
+;header
+desc             = claymore
+
+
+;orientation
+model            = claymore.dbo
+scale            = 100.00
+collisionmode    = 0
+defaultstatic    = 0
+materialindex    = -1
+matrixmode       = 
+cullmode         = 1
+
+;visualinfo
+textured         = claymore_color.dds
+baseColorMap     = claymore_color.dds
+alpharef         = 1.00
+normalMap        = claymore_normal.dds
+normalStrength   = 1.00
+surfaceMap       = claymore_surface.dds
+roughnessStrength= 1.00
+metalnessStrength= 1.00
+transparency     = 0
+renderorderbias  = 0.00
+reflectance      = 0.04
+basecolor        = 4294967295
+emissivecolor    = 0
+textureref1       = claymore_color.dds
+textureref2       = claymore_normal.dds
+textureref3       = claymore_surface.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+
+;physics shapes
+physicscount     = 0
+
+;identity details
+ischaracter      = 0
+hasweapon        = 
+isobjective      = 0
+cantakeweapon    = 0
+alwaysactive	 = 1
+
+;statistics
+strength         = 1
+explodable       = 1
+debrisshape      = 100
+
+;ai
+aimain           = objects\mines.lua
+
+;spawn
+spawnmax         = 
+spawndelay       = 
+spawnqty         = 
+
+;anim
+animspeed        = 25.00
+animmax          = 1
+anim0            = 0,1
+playanimineditor = 1
+
+;thumbnail
+thumbnailbackdrop = Blue showroom.dds
+thumbnailzoom = 1.000000
+thumbnailcamleft = -0.093283
+thumbnailcamup = 2.371486
+thumbnailrotatex = 357.508148
+thumbnailrotatey = 224.975998

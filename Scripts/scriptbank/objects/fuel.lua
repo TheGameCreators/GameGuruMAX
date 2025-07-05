@@ -1,12 +1,13 @@
--- Fuel v11
+-- Fuel v12
 -- DESCRIPTION: The attached object will give the player a fuel resource if collected.
 -- DESCRIPTION: [PROMPT_TEXT$="E to Collect"]
 -- DESCRIPTION: [AMOUNT=5(1,30)]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
--- DESCRIPTION: [@PICKUP_STYLE=1(1=Automatic, 2=Manual)]
+-- DESCRIPTION: [@PICKUP_STYLE=1(1=Ranged, 2=Accurate)]
 -- DESCRIPTION: [COLLECTED_TEXT$="Collected Fuel"]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
--- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline,3=Icon)]
+-- DESCRIPTION: [HIGHLIGHT_ICON_IMAGEFILE$="imagebank\\icons\\pickup.png"]
 -- DESCRIPTION: Play the audio <Sound0> when picked up.
 
 local module_misclib = require "scriptbank\\module_misclib"
@@ -25,6 +26,7 @@ local pickup_style 		= {}
 local collected_text 	= {}
 local prompt_display 	= {}
 local item_highlight 	= {}
+local highlight_icon	= {}
 
 local total 			= {}
 local tEnt 				= {}
@@ -32,8 +34,12 @@ local selectobj 		= {}
 local collected			= {}
 local collectonce		= {}
 local doonce			= {}
+local hl_icon			= {}
+local hl_imgwidth		= {}
+local hl_imgheight		= {}
+local status			= {}
 
-function fuel_properties(e, prompt_text, amount, pickup_range, pickup_style, collected_text, prompt_display, item_highlight)
+function fuel_properties(e, prompt_text, amount, pickup_range, pickup_style, collected_text, prompt_display, item_highlight, highlight_icon_imagefile)
 	fuel[e].prompt_text = prompt_text
 	fuel[e].amount = amount
 	fuel[e].pickup_range = pickup_range
@@ -41,6 +47,7 @@ function fuel_properties(e, prompt_text, amount, pickup_range, pickup_style, col
 	fuel[e].collected_text = collected_text
 	fuel[e].prompt_display = prompt_display
 	fuel[e].item_highlight = item_highlight
+	fuel[e].highlight_icon = highlight_icon_imagefile
 end
 
 function fuel_init_name(e)
@@ -52,6 +59,7 @@ function fuel_init_name(e)
 	fuel[e].collected_text = "Collected Fuel"
 	fuel[e].prompt_display = 1
 	fuel[e].item_highlight = 0
+	fuel[e].highlight_icon = "imagebank\\icons\\pickup.png"
 	
 	g_fuel = 0
 	g_fuelamount = 0
@@ -61,9 +69,26 @@ function fuel_init_name(e)
 	selectobj[e] = 0
 	collected[e] = 0
 	doonce[e] = 0
+	status[e] = "init"
+	hl_icon[e] = 0
+	hl_imgwidth[e] = 0
+	hl_imgheight[e] = 0	
 end
 
 function fuel_main(e)
+
+	if status[e] == "init" then
+		if fuel[e].item_highlight == 3 and fuel[e].highlight_icon ~= "" then
+			hl_icon[e] = CreateSprite(LoadImage(fuel[e].highlight_icon))
+			hl_imgwidth[e] = GetImageWidth(LoadImage(fuel[e].highlight_icon))
+			hl_imgheight[e] = GetImageHeight(LoadImage(fuel[e].highlight_icon))
+			SetSpriteSize(hl_icon[e],-1,-1)
+			SetSpriteDepth(hl_icon[e],100)
+			SetSpriteOffset(hl_icon[e],hl_imgwidth[e]/2.0, hl_imgheight[e]/2.0)
+			SetSpritePosition(hl_icon[e],500,500)
+		end
+		status[e] = "endinit"
+	end
 
 	local PlayerDist = GetPlayerDistance(e)
 	
@@ -104,11 +129,11 @@ function fuel_main(e)
 	if fuel[e].pickup_style == 2 then
 		if PlayerDist < fuel[e].pickup_range then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,fuel[e].pickup_range,fuel[e].item_highlight)
+			module_misclib.pinpoint(e,fuel[e].pickup_range,fuel[e].item_highlight,hl_icon[e])
 			tEnt[e] = g_tEnt
 			--end pinpoint select object--
 		end
-		if PlayerDist < fuel[e].pickup_range and collected[e] == 0 and tEnt[e] ~= 0 and g_fuelcollected == 0 then
+		if PlayerDist < fuel[e].pickup_range and collected[e] == 0 and tEnt[e] == e and g_fuelcollected == 0 then
 			if fuel[e].prompt_display == 1 then PromptLocal(e,fuel[e].prompt_text) end
 			if fuel[e].prompt_display == 2 then Prompt(fuel[e].prompt_text) end			
 			if g_KeyPressE == 1 then

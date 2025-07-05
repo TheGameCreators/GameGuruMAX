@@ -1,5 +1,5 @@
--- DESCRIPTION: The object will give the player an armour boost or deduction if used.
 -- Armour v16
+-- DESCRIPTION: The object will give the player an armour boost or deduction if used.
 -- DESCRIPTION: [PROMPT_TEXT$="E to consume"]
 -- DESCRIPTION: [PROMPT_IF_COLLECTABLE$="E to collect"]
 -- DESCRIPTION: [USEAGE_TEXT$="Armour applied"]
